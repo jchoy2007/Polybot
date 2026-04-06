@@ -305,12 +305,12 @@ class BTC15MinStrategy:
         momentum = price_data["momentum"]
         change_5m = price_data["change_5m"]
 
-        # Necesitamos momentum MUY FUERTE (filtro estricto — 67% win rate no basta)
-        if momentum < 0.03:  # 0.03% en 1 min = movimiento fuerte (subido de 0.015%)
+        # Necesitamos momentum significativo (balance entre original y muy estricto)
+        if momentum < 0.02:  # 0.02% en 1 min (original: 0.015, estricto: 0.03)
             return None
 
         # Necesitamos cambio de 5 min significativo
-        if abs(change_5m) < 0.10:  # 0.10% en 5 min mínimo (subido de 0.05%)
+        if abs(change_5m) < 0.07:  # 0.07% en 5 min (original: 0.05, estricto: 0.10)
             return None
 
         # Obtener precios del mercado

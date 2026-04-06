@@ -294,6 +294,9 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
         auto_max = 500.0
     SAFETY.max_bet_absolute = min(auto_max, max(settings_max, bankroll * 0.05))
 
+    # Auto-scale daily spend limit (50% del bankroll o mínimo $80)
+    SAFETY.max_daily_spend = max(80.0, bankroll * 0.50)
+
     logger.info("=" * 60)
     logger.info(f"🔄 NUEVO CICLO - {cycle_start.strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info(f"   Bankroll: ${STATE.current_bankroll:.2f} | "

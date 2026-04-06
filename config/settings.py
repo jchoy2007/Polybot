@@ -53,7 +53,7 @@ class SafetyRules:
 
     # --- Límites por ciclo y diarios ---
     max_bets_per_cycle: int = 3       # Máximo 3 apuestas por ciclo de 15 min
-    max_daily_spend: float = 60.0     # Máximo $60/día en apuestas nuevas (protege capital)
+    max_daily_spend: float = 80.0     # Máximo $80/día (sube automático con capital)
     max_resolution_days: int = 2      # Solo mercados que resuelven en 2 días máx
 
     # --- Stop-loss automáticos (mantener protección) ---

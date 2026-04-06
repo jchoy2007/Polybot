@@ -75,8 +75,8 @@ WEATHER_MODELS = [
     "meteofrance_seamless" # Météo-France
 ]
 
-MIN_MODELS_AGREE = 4   # Necesita 4 de 6 modelos de acuerdo (más seguro)
-MIN_EDGE = 0.20  # 20% mínimo (subido de 15% — demasiadas pérdidas con 15%)
+MIN_MODELS_AGREE = 3   # 3 de 6 modelos de acuerdo (balance entre seguridad y oportunidad)
+MIN_EDGE = 0.18  # 18% mínimo (entre el 15% original y 20% que era muy estricto)
 
 
 class WeatherTrader:
