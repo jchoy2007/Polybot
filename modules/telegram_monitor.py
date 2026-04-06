@@ -61,14 +61,23 @@ class TelegramMonitor:
         try:
             session = await self._get_session()
             url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
-            await session.post(url, json={
+            async with session.post(url, json={
                 "chat_id": self.chat_id,
                 "text": message,
                 "parse_mode": "Markdown",
                 "disable_web_page_preview": True,
-            })
+            }) as resp:
+                if resp.status != 200:
+                    # Reintentar sin Markdown (a veces caracteres especiales rompen el formato)
+                    async with session.post(url, json={
+                        "chat_id": self.chat_id,
+                        "text": message,
+                    }) as resp2:
+                        if resp2.status != 200:
+                            err = await resp2.text()
+                            logger.warning(f"Telegram error {resp2.status}: {err[:100]}")
         except Exception as e:
-            logger.debug(f"Telegram send error: {e}")
+            logger.warning(f"Telegram send error: {e}")
 
     # ═══════════════════════════════════════════════════════════════
     # REPORTES
