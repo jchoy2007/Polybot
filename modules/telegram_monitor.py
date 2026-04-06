@@ -162,10 +162,11 @@ class TelegramMonitor:
                 else:
                     pending.append(p)
 
+            total_estimated = bankroll + total_val
+            real_roi = ((total_estimated - 200) / 200) * 100
             lines.append(f"💰 En posiciones: ${total_val:.2f}")
-            lines.append(f"💰 Total estimado: ${bankroll + total_val:.2f}")
-            lines.append(f"{pnl_emoji} P/L posiciones: ${total_pnl_pos:+.2f}")
-            lines.append(f"📈 ROI: {roi:+.1f}%")
+            lines.append(f"💰 Total estimado: ${total_estimated:.2f}")
+            lines.append(f"{pnl_emoji} P/L: ${total_estimated - 200:+.2f} ({real_roi:+.1f}%)")
             lines.append(f"🕐 {datetime.now().strftime('%H:%M %d/%m')}")
 
             # GANADORAS
@@ -283,7 +284,7 @@ class TelegramMonitor:
                 end_dt = datetime.fromisoformat(end_date_str).replace(tzinfo=timezone.utc)
             diff = (end_dt - datetime.now(timezone.utc)).total_seconds()
             if diff <= 0:
-                return "[RESUELTO]"
+                return "[POR COBRAR]"
             if diff < 3600:
                 return f"[{diff/60:.0f}min]"
             if diff < 86400:
