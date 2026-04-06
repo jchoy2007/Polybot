@@ -1,0 +1,559 @@
+"""
+PolyBot - Strategy 5: Stock Market Trader
+==========================================
+Tradea mercados de S&P 500, NASDAQ, Dow Jones en Polymarket.
+El trade S&P 500 del Día 1 fue el más exitoso (+$16).
+
+Usa Yahoo Finance (sin key) para datos en tiempo real.
+"""
+
+import os
+import re
+import json
+import time
+import logging
+import aiohttp
+from typing import Optional, Dict, List
+from datetime import datetime, timezone, timedelta
+from config.settings import SAFETY, STATE
+
+logger = logging.getLogger("polybot.stocks")
+
+GAMMA_API_URL = "https://gamma-api.polymarket.com"
+
+# Índices bursátiles
+INDICES = {
+    "sp500":   {"symbol": "^GSPC", "futures": "ES=F",
+                "aliases": ["s&p", "s&p 500", "sp500", "s&p500", "spy", "spx"],
+                "name": "S&P 500"},
+    "nasdaq":  {"symbol": "^IXIC", "futures": "NQ=F",
+                "aliases": ["nasdaq", "qqq", "ndx", "nasdaq-100", "nasdaq 100"],
+                "name": "NASDAQ"},
+    "dow":     {"symbol": "^DJI",  "futures": "YM=F",
+                "aliases": ["dow", "dow jones", "djia", "dia"],
+                "name": "Dow Jones"},
+    "russell": {"symbol": "^RUT",  "futures": "RTY=F",
+                "aliases": ["russell", "russell 2000", "iwm"],
+                "name": "Russell 2000"},
+}
+
+MIN_EDGE = 0.08  # 8% (data más confiable que weather)
+
+
+class StockTrader:
+    """Estrategia de trading en mercados bursátiles de Polymarket."""
+
+    def __init__(self):
+        self.session: Optional[aiohttp.ClientSession] = None
+        self.cache = {}
+        self.cache_ttl = 120    # 2 min (mercado se mueve rápido)
+        self.last_run = 0
+        self.min_interval = 180  # 3 min entre escaneos
+        self.traded_markets = set()
+        self._load_traded()
+
+    async def _get_session(self) -> aiohttp.ClientSession:
+        if self.session is None or self.session.closed:
+            self.session = aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=15)
+            )
+        return self.session
+
+    async def close(self):
+        if self.session and not self.session.closed:
+            await self.session.close()
+
+    def _load_traded(self):
+        try:
+            with open("data/bets_placed.json", "r") as f:
+                data = json.load(f)
+                self.traded_markets = set(data.get("market_ids", []))
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
+
+    def _save_bet(self, market_id: str, question: str = ""):
+        try:
+            os.makedirs("data", exist_ok=True)
+            try:
+                with open("data/bets_placed.json", "r") as f:
+                    data = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                data = {"market_ids": [], "history": []}
+            if market_id and market_id not in data["market_ids"]:
+                data["market_ids"].append(market_id)
+                data["history"].append({
+                    "market_id": market_id, "question": question,
+                    "timestamp": datetime.now().isoformat(),
+                    "strategy": "STOCKS"
+                })
+            with open("data/bets_placed.json", "w") as f:
+                json.dump(data, f, indent=2)
+        except Exception:
+            pass
+
+    # ═══════════════════════════════════════════════════════════════
+    # PUNTO DE ENTRADA
+    # ═══════════════════════════════════════════════════════════════
+
+    async def run_cycle(self) -> Optional[Dict]:
+        """Busca y tradea mercados de índices bursátiles."""
+        if STATE.is_paused:
+            return None
+
+        now = time.time()
+        if now - self.last_run < self.min_interval:
+            return None
+        self.last_run = now
+
+        logger.info("📈 Stock Trader: Buscando mercados de bolsa...")
+
+        stock_markets = await self._find_stock_markets()
+        if not stock_markets:
+            logger.info("   📈 No se encontraron mercados de bolsa")
+            return None
+
+        logger.info(f"   📈 Encontrados {len(stock_markets)} mercados de bolsa")
+
+        for market in stock_markets:
+            try:
+                trade = await self._analyze_and_trade(market)
+                if trade:
+                    return trade
+            except Exception as e:
+                logger.error(f"   📈 Error: {e}")
+
+        logger.info("   📈 Sin oportunidades de bolsa en este ciclo")
+        return None
+
+    # ═══════════════════════════════════════════════════════════════
+    # BUSCAR MERCADOS
+    # ═══════════════════════════════════════════════════════════════
+
+    async def _find_stock_markets(self) -> List[Dict]:
+        """Busca mercados de índices bursátiles activos."""
+        session = await self._get_session()
+
+        # Keywords EXCLUSIVOS de bolsa (no genéricos como "up", "down", "red")
+        stock_keywords = ["s&p", "s&p 500", "sp500", "nasdaq", "dow jones",
+                          "djia", "russell 2000", "stock market",
+                          "close up", "close down", "close green", "close red",
+                          "trading day"]
+
+        # Excluir crypto para evitar falsos positivos
+        crypto_exclude = ["btc", "bitcoin", "eth", "ethereum", "sol", "solana",
+                          "bnb", "xrp", "doge", "crypto", "token", "coin"]
+
+        markets = []
+        for offset in [0, 100, 200, 300, 400]:
+            try:
+                async with session.get(
+                    f"{GAMMA_API_URL}/markets",
+                    params={
+                        "active": "true", "closed": "false",
+                        "limit": 100, "offset": str(offset),
+                        "order": "volume", "ascending": "false"
+                    }
+                ) as resp:
+                    if resp.status == 200:
+                        batch = await resp.json()
+                        if not batch:
+                            break
+                        for m in batch:
+                            q = (m.get("question") or "").lower()
+
+                            # Excluir mercados crypto
+                            if any(kw in q for kw in crypto_exclude):
+                                continue
+
+                            if any(kw in q for kw in stock_keywords):
+                                mid = str(m.get("id", ""))
+                                cid = m.get("conditionId", "")
+                                if mid in self.traded_markets or cid in self.traded_markets:
+                                    continue
+
+                                # Solo mercados que resuelven en 48h
+                                end_str = m.get("endDate", "")
+                                if end_str:
+                                    try:
+                                        end_dt = datetime.fromisoformat(
+                                            end_str.replace("Z", "+00:00"))
+                                        hours = (end_dt - datetime.now(timezone.utc)).total_seconds() / 3600
+                                        if hours < 0 or hours > 48:
+                                            continue
+                                    except:
+                                        pass
+
+                                markets.append(m)
+            except Exception:
+                break
+
+        return markets
+
+    # ═══════════════════════════════════════════════════════════════
+    # ANALIZAR Y TRADEAR
+    # ═══════════════════════════════════════════════════════════════
+
+    async def _analyze_and_trade(self, market: Dict) -> Optional[Dict]:
+        """Analiza mercado de bolsa y ejecuta si hay edge."""
+        question = market.get("question", "")
+        market_id = str(market.get("id", ""))
+
+        # 1. Parsear pregunta
+        parsed = self._parse_stock_question(question)
+        if not parsed:
+            return None
+
+        index_key = parsed["index"]
+        direction = parsed["direction"]
+
+        logger.info(f"   📈 {question[:55]}")
+
+        # 2. Obtener datos del mercado
+        mkt_data = await self._get_market_data(index_key)
+        if not mkt_data:
+            logger.info(f"      No se pudo obtener datos de {INDICES[index_key]['name']}")
+            return None
+
+        change = mkt_data.get("change_pct", 0)
+        logger.info(f"      {INDICES[index_key]['name']}: ${mkt_data['price']:,.0f} | "
+                     f"Cambio: {change:+.2%} | Estado: {mkt_data.get('state', '?')}")
+
+        # 3. Calcular probabilidad
+        prob_direction = self._calculate_prob(mkt_data, direction, parsed.get("threshold_pct"))
+        logger.info(f"      P({direction})={prob_direction:.1%}")
+
+        # 4. Comparar con mercado
+        outcomes = market.get("outcomePrices", "[]")
+        if isinstance(outcomes, str):
+            prices = json.loads(outcomes)
+        else:
+            prices = outcomes
+        if len(prices) < 2:
+            return None
+
+        yes_price = float(prices[0])
+        no_price = float(prices[1])
+
+        # VALIDACIÓN: rechazar precios inválidos
+        if yes_price < 0.02 or yes_price > 0.98 or no_price < 0.02 or no_price > 0.98:
+            logger.info(f"      Precios fuera de rango (YES={yes_price:.2f}, NO={no_price:.2f}), skip")
+            return None
+
+        tokens = market.get("clobTokenIds", "[]")
+        if isinstance(tokens, str):
+            tokens = json.loads(tokens)
+        if len(tokens) < 2:
+            return None
+
+        # El mercado pregunta "will X close up/down?"
+        # prob_direction = probabilidad de que el mercado se mueva en 'direction'
+        # Si direction=up → prob_direction = P(YES)
+        edge_yes = prob_direction - yes_price
+        edge_no = (1 - prob_direction) - no_price
+
+        if edge_yes > edge_no and edge_yes >= MIN_EDGE:
+            side, edge, price, token_id = "YES", edge_yes, yes_price, tokens[0]
+        elif edge_no >= MIN_EDGE:
+            side, edge, price, token_id = "NO", edge_no, no_price, tokens[1]
+        else:
+            logger.info(f"      Edge YES={edge_yes:+.1%}, NO={edge_no:+.1%} → insuficiente")
+            return None
+
+        logger.info(f"      🎯 EDGE {side}: {edge:.1%}")
+
+        # 5. Sizing — más agresivo para stocks (mejor trade día 1)
+        bet_amount = min(
+            STATE.current_bankroll * 0.08,
+            SAFETY.max_bet_absolute * 1.2,  # 20% extra vs normal
+            STATE.current_bankroll * 0.12
+        )
+        bet_amount = max(bet_amount, 2.0)
+        bet_amount = round(bet_amount, 2)
+
+        # 6. Ejecutar
+        trade = {
+            "strategy": "STOCKS",
+            "timestamp": datetime.now().isoformat(),
+            "market_id": market_id,
+            "question": question,
+            "side": side,
+            "amount": bet_amount,
+            "price": price,
+            "edge": edge,
+            "probability": prob_direction if side == "YES" else 1 - prob_direction,
+            "index": index_key,
+            "direction": direction,
+            "market_change": change,
+            "mode": "DRY_RUN" if SAFETY.dry_run else "LIVE"
+        }
+
+        if SAFETY.dry_run:
+            trade["status"] = "SIMULATED"
+            logger.info(f"      🏃 [DRY RUN] {side} ${bet_amount:.2f} @ {price:.2f}")
+        else:
+            logger.info(f"      💰 [LIVE] {side} ${bet_amount:.2f} @ {price:.2f}")
+            try:
+                executed = await self._execute_real_order(token_id, price, bet_amount)
+                if executed:
+                    trade["status"] = "EXECUTED"
+                    STATE.current_bankroll -= bet_amount
+                    self.traded_markets.add(market_id)
+                    self._save_bet(market_id, question)
+                    STATE.total_trades += 1
+                    STATE.open_positions += 1
+                    logger.info(f"      ✅ Stock trade ejecutado! Capital: ${STATE.current_bankroll:.2f}")
+                else:
+                    trade["status"] = "FAILED"
+                    self.traded_markets.add(market_id)
+            except Exception as e:
+                trade["status"] = "ERROR"
+                trade["error"] = str(e)
+
+        return trade
+
+    # ═══════════════════════════════════════════════════════════════
+    # PARSEAR PREGUNTA
+    # ═══════════════════════════════════════════════════════════════
+
+    def _parse_stock_question(self, question: str) -> Optional[Dict]:
+        q = question.lower()
+        result = {"index": None, "direction": "up", "threshold_pct": None}
+
+        # Word boundary matching para evitar 'dow' matcheando 'down'
+        best_len = 0
+        for key, info in INDICES.items():
+            for alias in info["aliases"]:
+                pattern = r'(?:^|[\s,;:\-\(\)])' + re.escape(alias) + r'(?:$|[\s,;:\-\(\)\'\"?!.])'
+                if re.search(pattern, q):
+                    if len(alias) > best_len:
+                        result["index"] = key
+                        best_len = len(alias)
+        if not result["index"]:
+            return None
+
+        if any(w in q for w in ["close down", "close lower", "close red", "drop", "fall", "decline"]):
+            result["direction"] = "down"
+        else:
+            result["direction"] = "up"
+
+        pct = re.search(r'(\d+\.?\d*)%', q)
+        if pct:
+            result["threshold_pct"] = float(pct.group(1))
+
+        return result
+
+    # ═══════════════════════════════════════════════════════════════
+    # DATOS DE MERCADO (Yahoo Finance)
+    # ═══════════════════════════════════════════════════════════════
+
+    async def _get_market_data(self, index_key: str) -> Optional[Dict]:
+        """Obtiene datos de Yahoo Finance."""
+        cache_key = f"stock:{index_key}"
+        if cache_key in self.cache:
+            c = self.cache[cache_key]
+            if time.time() - c["ts"] < self.cache_ttl:
+                return c["data"]
+
+        idx = INDICES[index_key]
+        session = await self._get_session()
+
+        try:
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{idx['symbol']}"
+            headers = {"User-Agent": "Mozilla/5.0"}
+            params = {"range": "5d", "interval": "1d", "includePrePost": "true"}
+
+            async with session.get(url, params=params, headers=headers) as resp:
+                if resp.status != 200:
+                    return None
+                data = await resp.json()
+
+            result_list = data.get("chart", {}).get("result", [])
+            if not result_list:
+                return None
+
+            chart = result_list[0]
+            meta = chart.get("meta", {})
+            indicators = chart.get("indicators", {}).get("quote", [{}])[0]
+
+            price = meta.get("regularMarketPrice", 0)
+            prev_close = meta.get("chartPreviousClose") or meta.get("previousClose", 0)
+            change_pct = (price - prev_close) / prev_close if prev_close else 0
+
+            # Historial para distribución
+            closes = indicators.get("close", [])
+            daily_returns = []
+            for i in range(1, len(closes)):
+                if closes[i] and closes[i-1] and closes[i-1] > 0:
+                    daily_returns.append((closes[i] - closes[i-1]) / closes[i-1])
+
+            state = meta.get("marketState", "REGULAR")
+
+            result = {
+                "price": price,
+                "prev_close": prev_close,
+                "change_pct": change_pct,
+                "daily_returns": daily_returns,
+                "state": state,
+                "pre_market": meta.get("preMarketPrice"),
+            }
+
+            # Futuros si mercado cerrado
+            if state in ("PRE", "POST", "CLOSED"):
+                fut = await self._get_futures(idx["futures"])
+                if fut:
+                    result["futures"] = fut
+
+            self.cache[cache_key] = {"data": result, "ts": time.time()}
+            return result
+
+        except Exception as e:
+            logger.error(f"   📈 Yahoo Finance error: {e}")
+            return None
+
+    async def _get_futures(self, symbol: str) -> Optional[Dict]:
+        session = await self._get_session()
+        try:
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+            headers = {"User-Agent": "Mozilla/5.0"}
+            async with session.get(url, params={"range": "1d", "interval": "5m"},
+                                   headers=headers) as resp:
+                if resp.status != 200:
+                    return None
+                data = await resp.json()
+                meta = data.get("chart", {}).get("result", [{}])[0].get("meta", {})
+                p = meta.get("regularMarketPrice", 0)
+                pc = meta.get("previousClose", 1)
+                return {"price": p, "change_pct": (p - pc) / pc if pc else 0}
+        except Exception:
+            return None
+
+    # ═══════════════════════════════════════════════════════════════
+    # CÁLCULO DE PROBABILIDAD
+    # ═══════════════════════════════════════════════════════════════
+
+    def _calculate_prob(self, data: Dict, direction: str,
+                        threshold_pct: float = None) -> float:
+        """
+        P(direction) combinando:
+        1. Momentum intraday
+        2. Futuros pre-market
+        3. Distribución histórica
+        4. Hora del día (más confiable cerca del cierre)
+        """
+        change = data.get("change_pct", 0)
+        returns = data.get("daily_returns", [])
+        state = data.get("state", "REGULAR")
+        futures = data.get("futures", {})
+
+        # Base histórica
+        if returns:
+            if threshold_pct:
+                t = threshold_pct / 100
+                hist = sum(1 for r in returns if (r > t if direction == "up" else r < -t)) / len(returns)
+            else:
+                hist = sum(1 for r in returns if (r > 0 if direction == "up" else r < 0)) / len(returns)
+        else:
+            hist = 0.52 if direction == "up" else 0.48
+
+        # Momentum
+        momentum = 0.5
+        if state == "REGULAR":
+            if direction == "up":
+                if change > 0.005:
+                    momentum = min(0.70 + change * 5, 0.90)
+                elif change > 0:
+                    momentum = 0.55 + change * 10
+                else:
+                    momentum = max(0.15, 0.40 + change * 5)
+            else:
+                if change < -0.005:
+                    momentum = min(0.70 + abs(change) * 5, 0.90)
+                elif change < 0:
+                    momentum = 0.55 + abs(change) * 10
+                else:
+                    momentum = max(0.15, 0.40 - change * 5)
+        elif futures:
+            fc = futures.get("change_pct", 0)
+            if direction == "up":
+                momentum = max(0.10, min(0.90, 0.50 + fc * 8))
+            else:
+                momentum = max(0.10, min(0.90, 0.50 - fc * 8))
+
+        # Peso del momentum según hora
+        now_utc = datetime.now(timezone.utc)
+        et_hour = (now_utc.hour - 5) % 24  # Aprox ET
+
+        if state == "REGULAR":
+            if et_hour >= 15:
+                w = 0.80
+            elif et_hour >= 13:
+                w = 0.65
+            elif et_hour >= 11:
+                w = 0.50
+            else:
+                w = 0.35
+        else:
+            w = 0.25
+
+        prob = hist * (1 - w) + momentum * w
+        return max(0.05, min(0.95, prob))
+
+    # ═══════════════════════════════════════════════════════════════
+    # EJECUCIÓN REAL
+    # ═══════════════════════════════════════════════════════════════
+
+    async def _execute_real_order(self, token_id: str, price: float,
+                                   amount: float) -> bool:
+        """Ejecuta orden real (mismo patrón que btc_15min)."""
+        try:
+            from py_clob_client.client import ClobClient
+            from py_clob_client.clob_types import MarketOrderArgs, OrderArgs, OrderType
+            from py_clob_client.order_builder.constants import BUY
+
+            pk = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
+            if not pk:
+                return False
+            pk_clean = pk[2:] if pk.startswith("0x") else pk
+
+            client = ClobClient(
+                host="https://clob.polymarket.com",
+                key=pk_clean, chain_id=137, signature_type=0
+            )
+            client.set_api_creds(client.create_or_derive_api_creds())
+
+            # FOK
+            try:
+                mo = MarketOrderArgs(token_id=token_id, amount=amount, side=BUY)
+                signed = client.create_market_order(mo)
+                resp = client.post_order(signed, OrderType.FOK)
+                if resp and isinstance(resp, dict):
+                    oid = resp.get("orderID", "")
+                    if (resp.get("success") or resp.get("status") == "matched") and oid:
+                        logger.info(f"      ✅ FOK ejecutada: {oid[:20]}...")
+                        return True
+            except Exception as e:
+                logger.debug(f"      FOK falló: {str(e)[:60]}")
+
+            # GTC
+            try:
+                limit_price = min(price + 0.03, 0.95)
+                size = round(amount / max(price, 0.01), 2)
+                lo = OrderArgs(token_id=token_id, price=round(limit_price, 2),
+                               size=size, side=BUY)
+                signed_l = client.create_order(lo)
+                resp_l = client.post_order(signed_l, OrderType.GTC)
+                if resp_l and isinstance(resp_l, dict):
+                    oid = resp_l.get("orderID", "")
+                    if oid or resp_l.get("success"):
+                        logger.info(f"      ✅ GTC ejecutada: {oid[:20]}...")
+                        return True
+            except Exception as e:
+                logger.debug(f"      GTC falló: {str(e)[:60]}")
+
+            return False
+        except Exception as e:
+            logger.error(f"      Error CLOB: {e}")
+            return False
+
+    def get_stats(self) -> str:
+        return f"📈 Stocks: tracking {', '.join(INDICES.keys())}"

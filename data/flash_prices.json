@@ -1,0 +1,292 @@
+{
+  "markets": {
+    "1851351": {
+      "yes_price": 0.505,
+      "question": "Ethereum Up or Down - April 4, 7:15PM-7:30PM ET",
+      "timestamp": 1775342265.2466807
+    },
+    "1841309": {
+      "yes_price": 0.5,
+      "question": "Ethereum Up or Down - April 4, 2:20AM-2:25AM ET",
+      "timestamp": 1775282952.8321862
+    },
+    "1841316": {
+      "yes_price": 0.5,
+      "question": "Ethereum Up or Down - April 4, 2:25AM-2:30AM ET",
+      "timestamp": 1775282952.8322163
+    },
+    "1841268": {
+      "yes_price": 0.505,
+      "question": "Bitcoin Up or Down - April 4, 2:10AM-2:15AM ET",
+      "timestamp": 1775282952.8322535
+    },
+    "1840134": {
+      "yes_price": 0.835,
+      "question": "Ethereum Up or Down - April 4, 12:00AM-4:00AM ET",
+      "timestamp": 1775285235.1343913
+    },
+    "1825870": {
+      "yes_price": 0.49,
+      "question": "Bitcoin Up or Down - April 4, 4AM ET",
+      "timestamp": 1775286886.0128856
+    },
+    "1841719": {
+      "yes_price": 0.5,
+      "question": "Ethereum Up or Down - April 4, 3:20AM-3:25AM ET",
+      "timestamp": 1775286886.0129051
+    },
+    "1825406": {
+      "yes_price": 0.395,
+      "question": "Solana Up or Down - April 4, 3AM ET",
+      "timestamp": 1775286886.0129151
+    },
+    "1856782": {
+      "yes_price": 0.0055,
+      "question": "Ethereum above 2,115 on April 4, 4AM ET?",
+      "timestamp": 1775288698.3799448
+    },
+    "1825872": {
+      "yes_price": 0.495,
+      "question": "Solana Up or Down - April 4, 4AM ET",
+      "timestamp": 1775289601.5909393
+    },
+    "1846659": {
+      "yes_price": 0.475,
+      "question": "Bitcoin Up or Down - April 4, 12:15PM-12:30PM ET",
+      "timestamp": 1775319573.375717
+    },
+    "1858541": {
+      "yes_price": 0.5,
+      "question": "Bitcoin Up or Down - April 5, 5:30AM-5:45AM ET",
+      "timestamp": 1775322997.9576466
+    },
+    "1846746": {
+      "yes_price": 0.505,
+      "question": "Solana Up or Down - April 4, 12:30PM-12:45PM ET",
+      "timestamp": 1775319573.375806
+    },
+    "1832110": {
+      "yes_price": 0.465,
+      "question": "Bitcoin Up or Down - April 4, 1PM ET",
+      "timestamp": 1775321332.782374
+    },
+    "1847399": {
+      "yes_price": 0.505,
+      "question": "Bitcoin Up or Down - April 4, 1:40PM-1:45PM ET",
+      "timestamp": 1775322997.957669
+    },
+    "1847325": {
+      "yes_price": 0.505,
+      "question": "Bitcoin Up or Down - April 4, 1:20PM-1:25PM ET",
+      "timestamp": 1775322997.9576898
+    },
+    "1847428": {
+      "yes_price": 0.475,
+      "question": "Ethereum Up or Down - April 4, 1:45PM-1:50PM ET",
+      "timestamp": 1775324453.9487247
+    },
+    "1847910": {
+      "yes_price": 0.505,
+      "question": "Bitcoin Up or Down - April 4, 2:15PM-2:20PM ET",
+      "timestamp": 1775325353.3705044
+    },
+    "1848057": {
+      "yes_price": 0.505,
+      "question": "Bitcoin Up or Down - April 4, 2:50PM-2:55PM ET",
+      "timestamp": 1775327253.9039867
+    },
+    "1848000": {
+      "yes_price": 0.505,
+      "question": "Bitcoin Up or Down - April 4, 2:35PM-2:40PM ET",
+      "timestamp": 1775327253.9039958
+    },
+    "1849591": {
+      "yes_price": 0.505,
+      "question": "Bitcoin Up or Down - April 4, 5:30PM-5:45PM ET",
+      "timestamp": 1775335969.774899
+    },
+    "1832734": {
+      "yes_price": 0.345,
+      "question": "Solana Up or Down - April 4, 2PM ET",
+      "timestamp": 1775328156.4269269
+    },
+    "1833344": {
+      "yes_price": 0.835,
+      "question": "Bitcoin Up or Down - April 4, 3PM ET",
+      "timestamp": 1775329850.3293946
+    },
+    "1848494": {
+      "yes_price": 0.505,
+      "question": "Bitcoin Up or Down - April 4, 3:25PM-3:30PM ET",
+      "timestamp": 1775329850.3294282
+    },
+    "1848437": {
+      "yes_price": 0.035,
+      "question": "Ethereum Up or Down - April 4, 3:15PM-3:30PM ET",
+      "timestamp": 1775330753.3727372
+    },
+    "1833369": {
+      "yes_price": 0.968,
+      "question": "Ethereum Up or Down - April 4, 3PM ET",
+      "timestamp": 1775330753.3727424
+    },
+    "1846423": {
+      "yes_price": 0.085,
+      "question": "Bitcoin Up or Down - April 4, 12:00PM-4:00PM ET",
+      "timestamp": 1775332423.082729
+    },
+    "1846419": {
+      "yes_price": 0.948,
+      "question": "Ethereum Up or Down - April 4, 12:00PM-4:00PM ET",
+      "timestamp": 1775332423.0827127
+    },
+    "1848840": {
+      "yes_price": 0.51,
+      "question": "Ethereum Up or Down - April 4, 4:10PM-4:15PM ET",
+      "timestamp": 1775333290.6198037
+    },
+    "1848822": {
+      "yes_price": 0.515,
+      "question": "Ethereum Up or Down - April 4, 4:05PM-4:10PM ET",
+      "timestamp": 1775333290.6198463
+    },
+    "1849098": {
+      "yes_price": 0.625,
+      "question": "Ethereum Up or Down - April 4, 4:30PM-4:45PM ET",
+      "timestamp": 1775334160.0930264
+    },
+    "1849195": {
+      "yes_price": 0.505,
+      "question": "Bitcoin Up or Down - April 4, 4:55PM-5:00PM ET",
+      "timestamp": 1775335969.7748759
+    },
+    "1849287": {
+      "yes_price": 0.79,
+      "question": "Solana Up or Down - April 4, 5:00PM-5:15PM ET",
+      "timestamp": 1775336936.0493357
+    },
+    "1849294": {
+      "yes_price": 0.805,
+      "question": "Solana Up or Down - April 4, 5:05PM-5:10PM ET",
+      "timestamp": 1775336936.0493517
+    },
+    "1866469": {
+      "yes_price": 0.5,
+      "question": "Solana Up or Down - April 5, 5:00PM-5:15PM ET",
+      "timestamp": 1775367624.0141635
+    },
+    "1866478": {
+      "yes_price": 0.5,
+      "question": "Solana Up or Down - April 5, 5:00PM-5:05PM ET",
+      "timestamp": 1775337769.9520476
+    },
+    "1866471": {
+      "yes_price": 0.5,
+      "question": "Ethereum Up or Down - April 5, 5:00PM-5:15PM ET",
+      "timestamp": 1775337769.9520578
+    },
+    "1866472": {
+      "yes_price": 0.505,
+      "question": "Bitcoin Up or Down - April 5, 5:00PM-5:05PM ET",
+      "timestamp": 1775337769.952067
+    },
+    "1866468": {
+      "yes_price": 0.5,
+      "question": "Ethereum Up or Down - April 5, 5:00PM-5:05PM ET",
+      "timestamp": 1775337769.952075
+    },
+    "1866473": {
+      "yes_price": 0.5,
+      "question": "Bitcoin Up or Down - April 5, 5:00PM-5:15PM ET",
+      "timestamp": 1775337769.952083
+    },
+    "1849727": {
+      "yes_price": 0.46,
+      "question": "Bitcoin Up or Down - April 4, 5:35PM-5:40PM ET",
+      "timestamp": 1775337769.9521186
+    },
+    "1866533": {
+      "yes_price": 0.505,
+      "question": "Bitcoin Up or Down - April 5, 5:10PM-5:15PM ET",
+      "timestamp": 1775340547.0533125
+    },
+    "1866534": {
+      "yes_price": 0.5,
+      "question": "Ethereum Up or Down - April 5, 5:10PM-5:15PM ET",
+      "timestamp": 1775340547.0532837
+    },
+    "1866537": {
+      "yes_price": 0.5,
+      "question": "Solana Up or Down - April 5, 5:10PM-5:15PM ET",
+      "timestamp": 1775340547.0533001
+    },
+    "1835957": {
+      "yes_price": 0.515,
+      "question": "Bitcoin Up or Down - April 4, 6PM ET",
+      "timestamp": 1775340547.053267
+    },
+    "1852164": {
+      "yes_price": 0.5,
+      "question": "Bitcoin Up or Down - April 4, 8:45PM-9:00PM ET",
+      "timestamp": 1775340547.053323
+    },
+    "1836875": {
+      "yes_price": 0.49,
+      "question": "Ethereum Up or Down - April 4, 7PM ET",
+      "timestamp": 1775343257.620433
+    },
+    "1850946": {
+      "yes_price": 0.49,
+      "question": "Ethereum Up or Down - April 4, 6:50PM-6:55PM ET",
+      "timestamp": 1775343257.6204457
+    },
+    "1841393": {
+      "yes_price": 0.5,
+      "question": "Solana Up or Down - April 5, 3AM ET",
+      "timestamp": 1775367624.0140975
+    },
+    "1871445": {
+      "yes_price": 0.5,
+      "question": "Ethereum Up or Down - April 5, 11:55PM-12:00AM ET",
+      "timestamp": 1775367624.014133
+    },
+    "1859361": {
+      "yes_price": 0.5,
+      "question": "Bitcoin Up or Down - April 5, 7:00AM-7:15AM ET",
+      "timestamp": 1775367624.0141523
+    },
+    "1866321": {
+      "yes_price": 0.5,
+      "question": "Ethereum Up or Down - April 5, 4:55PM-5:00PM ET",
+      "timestamp": 1775367624.0141726
+    },
+    "1866320": {
+      "yes_price": 0.505,
+      "question": "Bitcoin Up or Down - April 5, 4:55PM-5:00PM ET",
+      "timestamp": 1775367624.0141823
+    },
+    "1866319": {
+      "yes_price": 0.5,
+      "question": "Solana Up or Down - April 5, 4:55PM-5:00PM ET",
+      "timestamp": 1775367624.0141914
+    }
+  },
+  "crypto": {
+    "BTC": {
+      "price": 67076.31,
+      "prev_price": 67095.08,
+      "timestamp": 1775367623.4246705
+    },
+    "ETH": {
+      "price": 2052.34,
+      "prev_price": 2052.82,
+      "timestamp": 1775367623.424688
+    },
+    "SOL": {
+      "price": 80.3,
+      "prev_price": 80.28,
+      "timestamp": 1775367623.424695
+    }
+  },
+  "last_update": 1775367624.0141945
+}

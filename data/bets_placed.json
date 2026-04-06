@@ -1,0 +1,730 @@
+{
+  "market_ids": [
+    "1466016",
+    "0x80059ff4e694f878c0498f6f3a067ee7ca62dc2fc46251a4287b58355ce47bc5",
+    "0x9df006923390474e5c675296b68396ace48d9ffb013d03472834db11988e0188",
+    "0x09d155bb3058e295b00f98888e583765620af085bf590b1c6938df353d0e6c50",
+    "0xd768b772c984777177afd103f82cf8d18b84395114709e8d5ef97abf76205f95",
+    "0x6d6a738139be7ce473d92acf24885351a38c74c8c6693acf200e73b2e552a417",
+    "0xc9e950b00ebedb5e89fe8d78b6f524c10e06a16faa64689e7fb2fb71634eeaa0",
+    "1817398",
+    "1397302",
+    "1827775",
+    "1834636",
+    "1828220",
+    "1760814",
+    "1743639",
+    "1835052",
+    "1702441",
+    "1830006",
+    "1831124",
+    "1839907",
+    "1777638",
+    "1843322",
+    "0xaf295ab688f842b0cfb2934de017b6cf2ed57c7cc821b71664ff45a57ff40436",
+    "0x67ec8e048fa83544ae070d36d2ef3a58aab62f0747af2e5f60e748bb66cc4151",
+    "0x64db9c8c890dc20d8d7b47745f5e59f944d0f752e3a3b36821ef0a796d667563",
+    "0xf6aae8bc09cca076506249d9033ca86965fc46c550d9276515332f0530d41929",
+    "0x2b3fc437914197566152ee927c753bcf3acef00bf94bd82fa463ba82d696318d",
+    "0x521edaf65087ba0b217a2468aa1d9d725539523c77cefb9123d2adb52dd76ab7",
+    "0x3ae11003900dd79543745d3c1ba2b2588fd13803fb1c6bdf96ea62bcaa9302f9",
+    "0x0f3c8016ffeaf8e96d2f2747fa9a2009abf5d60264123b86d7a5401663af9cd6",
+    "0x89bd47dd1673889b4b8f765f357eb4a524c207c624e2726e77a5f02565f9b04c",
+    "0xf1a9e189ee37f1e318ed6d560fb31e4453986eb4a6da6eb46bb99ffa2be909e3",
+    "1792453",
+    "1792462",
+    "0xc290019b6a491354610687f2572e3fe6a64af2a86fda45616911f6b57601f892",
+    "0x27e7fddd52f9f808a784accdd26f9940048af893cc37deef0343b14e72a538cb",
+    "1791875",
+    "1794842",
+    "1538196",
+    "0x4351454646d5ebfbc19943af4d46d5d07fced48bf1f4c004572fcb899216814b",
+    "0x9aa4dee3b4c0bb808a6ca95183dfcbca6f554cca97577f5144e860339f1fde76",
+    "0xb1d1eff01be6af6623d3f73037029d832b7fb50a1f7bd67dfacf20c7bb9bae00",
+    "1541586",
+    "1810412",
+    "1781209",
+    "1841385",
+    "0xf51447c0675387a75e3e900e4034fe8bee70cf9129337137c669d1cb498fd91f",
+    "0xda19aa07e2ff2873bbbbe489fd77652f5cde4336f9e5ee137d8166bf204ec91e",
+    "0xfc4187daa21cdfecb8263ecda22d4b4bdac0b350dc7938f4f755dc385afb4806",
+    "0x45ffd4386abd7b1fa4ab14c9033ff688840033c0d368d867d1571ccb0ff426e4",
+    "1815291",
+    "0xaee23ba609cf85d7442142970cd35d2451897d5b1b385b3fe7dbda5194b60858",
+    "1818019",
+    "0xd9c6c0704e930a785281d1e2b544c18288d3bb7b4417ef80bd3a8f77378da673",
+    "1841739",
+    "1781235",
+    "1702442",
+    "1553283",
+    "1798216",
+    "0xfe6a90369ab060846585e150a90d6f6f8db889d446d5e2b0d261b6bea9b3a659",
+    "0xdcd2e728017e5470762fba5aa3a0626daf0c55dbf65ed42dce124a37e3a81da7",
+    "0x4b40c5bb9c8964f4f3aab4421e2fa64ba7c937929bd041b9d0b77a9031d91685",
+    "1833216",
+    "1843079",
+    "1732213",
+    "1815262",
+    "1827183",
+    "1815308",
+    "0x5e15e2f0afcbcace45bd21f8922dfe1345c77db2e4f7ffc1dc6efee9ae3ea786",
+    "0x624f7b4f92944751b3070cf8e04768d816a2400fe7ee04ec6c609f63ed2f61b5",
+    "0xb71c4ef4b135e20152d0b46be7bfda15f0a53e40e9c952d7d79e6578c4fdd6ec",
+    "0x0308e01591966003f204ba5a36e7d767150cdc41f73cd2be78b5d46567f414cf",
+    "0x916e9a4f779aacf9deab81e60841cc05dc870b7569c20d4c2379e185db1db1e6",
+    "0xc7a401d3215ea34ccf72b3145dccfe65b391d39a838488f50a4bf3ef290dc28c",
+    "1853215",
+    "1541587",
+    "1815261",
+    "0x171b30b8d5ab80f73a4506ac473062bcffb02f2951042939d51189a99ddfba80",
+    "0x33fe797f357547b9b3fae3fb7624003c59db619981b2a70afe337e3dacbee894",
+    "0x4634d14c426f07437cfc890f89944c2280992f15349f96ab8fb6de74c9bbdca0",
+    "1827217",
+    "1665321",
+    "1849170",
+    "1537927",
+    "1849195",
+    "1776297",
+    "1854845",
+    "1831368",
+    "1721577",
+    "1792244",
+    "1827194",
+    "1792549",
+    "1827173",
+    "1850946",
+    "1815307",
+    "0xf4f151eedbd551e2c050900f594ac112abc98074c4bbcb9eec73bc56f3b31a55",
+    "0x570cfe84a1505bf6c7849f03b52e726a205f1d5395d608431a1a0f835e32c51c",
+    "0x8745a33913271c683ce5cc46dead9e53ac494edc4fd8018a778c5aecf8f17f75",
+    "0x89bdfc7959fc935a94bed56833c2a977b4707a3df0e15382714d07074932a8e8",
+    "0x837d25cb4aa2852b7e9aacc27dc43665d1f293909e10b5a0a0be43fc505afee5",
+    "0x2d4498c507cda655ab4e5fc80d18fcd71a433e0a136239f3c241d8ea5550e850",
+    "0x5714d0c7f8d5a3bb86a8d94aeeb46252b464ede33c2d0bc0c22c74bb9e9d9922",
+    "0xac999c2f1caad594454031401018e821fbecb1f6c85959e1d36f32aee238a855",
+    "0x7a0576e86cd21f11799ae90e548087bf589c4643f11b695320782d15c236527c",
+    "0x5a9296972262eeefe7447fd546c26d2e3309028b361bce052d788f32d17facb6",
+    "1827463",
+    "0x05b11f3b6f60ab0224da39d48664b097e3416280f00a13284027adb926a0a773",
+    "1854551"
+  ],
+  "history": [
+    {
+      "market_id": "1466016",
+      "question": "US x Iran ceasefire by April 30?",
+      "timestamp": "2026-04-02T14:17:22"
+    },
+    {
+      "market_id": "0x80059ff4e694f878c0498f6f3a067ee7ca62dc2fc46251a4287b58355ce47bc5",
+      "question": "US x Iran ceasefire by April 30?",
+      "timestamp": "2026-04-02T14:26:31",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x9df006923390474e5c675296b68396ace48d9ffb013d03472834db11988e0188",
+      "question": "Lakers vs. Thunder",
+      "timestamp": "2026-04-03T05:11:54.624948",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x09d155bb3058e295b00f98888e583765620af085bf590b1c6938df353d0e6c50",
+      "question": "Games Total: O/U 2.5",
+      "timestamp": "2026-04-03T05:11:54.624981",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xd768b772c984777177afd103f82cf8d18b84395114709e8d5ef97abf76205f95",
+      "question": "Will Ethereum dip to $2,000 on April 2?",
+      "timestamp": "2026-04-03T05:11:54.625211",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x6d6a738139be7ce473d92acf24885351a38c74c8c6693acf200e73b2e552a417",
+      "question": "Flames vs. Golden Knights",
+      "timestamp": "2026-04-03T05:11:54.625643",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xc9e950b00ebedb5e89fe8d78b6f524c10e06a16faa64689e7fb2fb71634eeaa0",
+      "question": "Bitcoin Up or Down - April 3, 1:25AM-1:30AM ET",
+      "timestamp": "2026-04-03T05:11:54.625662",
+      "source": "sync"
+    },
+    {
+      "market_id": "1817398",
+      "question": "Bucharest Open: Damir Dzumhur vs Botic van de Zandschulp",
+      "timestamp": "2026-04-03T05:16:06.612113"
+    },
+    {
+      "market_id": "1397302",
+      "question": "Will Russia capture Lyman by April 30, 2026?",
+      "timestamp": "2026-04-03T05:16:15.541029",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1827775",
+      "question": "Ethereum Up or Down - April 3, 6:25AM-6:30AM ET",
+      "timestamp": "2026-04-03T05:28:10.135236"
+    },
+    {
+      "market_id": "1834636",
+      "question": "Dota 2: PARIVISION vs Natus Vincere (BO3) - BLAST Slam Europe Closed Qualifier Playoffs",
+      "timestamp": "2026-04-03T05:42:08.146472"
+    },
+    {
+      "market_id": "1828220",
+      "question": "Solana Up or Down - April 3, 7:25AM-7:30AM ET",
+      "timestamp": "2026-04-03T05:42:13.351370"
+    },
+    {
+      "market_id": "1760814",
+      "question": "Bulls vs. Knicks",
+      "timestamp": "2026-04-03T07:45:58.229226",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1743639",
+      "question": "Will the price of Ethereum be above $2,100 on April 3?",
+      "timestamp": "2026-04-03T07:59:05.608287",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1835052",
+      "question": "Counter-Strike: K27 vs 100 Thieves (BO3) - PGL Astana: European Closed Qualifier Playoffs",
+      "timestamp": "2026-04-03T08:13:03.584630",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1702441",
+      "question": "LoL: T1 vs Hanwha Life Esports (BO3) - LCK Rounds 1-2",
+      "timestamp": "2026-04-03T08:29:59.330778"
+    },
+    {
+      "market_id": "1830006",
+      "question": "Ethereum Up or Down - April 3, 10:45AM-11:00AM ET",
+      "timestamp": "2026-04-03T09:29:08.271606"
+    },
+    {
+      "market_id": "1831124",
+      "question": "Solana Up or Down - April 3, 11:25AM-11:30AM ET",
+      "timestamp": "2026-04-03T09:43:42.889443"
+    },
+    {
+      "market_id": "1839907",
+      "question": "Will Bitcoin dip to $66,000 on April 3?",
+      "timestamp": "2026-04-03T09:59:44.555526"
+    },
+    {
+      "market_id": "1777638",
+      "question": "Will the price of Solana be above $70 on April 5?",
+      "timestamp": "2026-04-03T10:13:21.775728",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1843322",
+      "question": "Solana Up or Down - April 3, 11AM ET",
+      "timestamp": "2026-04-03T10:28:51.619654"
+    },
+    {
+      "market_id": "0xaf295ab688f842b0cfb2934de017b6cf2ed57c7cc821b71664ff45a57ff40436",
+      "question": "LoL: T1 vs Hanwha Life Esports (BO3) - LCK Rounds 1-2",
+      "timestamp": "2026-04-03T15:51:43.273077",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x67ec8e048fa83544ae070d36d2ef3a58aab62f0747af2e5f60e748bb66cc4151",
+      "question": "Ethereum Up or Down - April 3, 6:25AM-6:30AM ET",
+      "timestamp": "2026-04-03T15:51:43.273814",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x64db9c8c890dc20d8d7b47745f5e59f944d0f752e3a3b36821ef0a796d667563",
+      "question": "Dota 2: PARIVISION vs Natus Vincere (BO3) - BLAST Slam Europe Closed Qualifier P",
+      "timestamp": "2026-04-03T15:51:43.274467",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xf6aae8bc09cca076506249d9033ca86965fc46c550d9276515332f0530d41929",
+      "question": "Solana Up or Down - April 3, 7:25AM-7:30AM ET",
+      "timestamp": "2026-04-03T15:51:43.274528",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x2b3fc437914197566152ee927c753bcf3acef00bf94bd82fa463ba82d696318d",
+      "question": "Bulls vs. Knicks",
+      "timestamp": "2026-04-03T15:51:43.274557",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x521edaf65087ba0b217a2468aa1d9d725539523c77cefb9123d2adb52dd76ab7",
+      "question": "Will Bitcoin dip to $66,000 on April 3?",
+      "timestamp": "2026-04-03T15:51:43.275128",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x3ae11003900dd79543745d3c1ba2b2588fd13803fb1c6bdf96ea62bcaa9302f9",
+      "question": "Will the price of Ethereum be above $2,100 on April 3?",
+      "timestamp": "2026-04-03T15:51:43.275679",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x0f3c8016ffeaf8e96d2f2747fa9a2009abf5d60264123b86d7a5401663af9cd6",
+      "question": "Solana Up or Down - April 3, 11:25AM-11:30AM ET",
+      "timestamp": "2026-04-03T15:51:43.276219",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x89bd47dd1673889b4b8f765f357eb4a524c207c624e2726e77a5f02565f9b04c",
+      "question": "Will the price of Solana be above $70 on April 5?",
+      "timestamp": "2026-04-03T15:51:43.276756",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xf1a9e189ee37f1e318ed6d560fb31e4453986eb4a6da6eb46bb99ffa2be909e3",
+      "question": "Ethereum Up or Down - April 3, 10:45AM-11:00AM ET",
+      "timestamp": "2026-04-03T15:51:43.277293",
+      "source": "sync"
+    },
+    {
+      "market_id": "1792453",
+      "question": "Will Elon Musk post 65-89 tweets from April 2 to April 4, 2026?",
+      "timestamp": "2026-04-03T16:13:28.204771",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1792462",
+      "question": "Will Elon Musk post 140-164 tweets from April 2 to April 4, 2026?",
+      "timestamp": "2026-04-03T16:13:28.986461",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "0xc290019b6a491354610687f2572e3fe6a64af2a86fda45616911f6b57601f892",
+      "question": "Will Elon Musk post 65-89 tweets from April 2 to April 4, 2026?",
+      "timestamp": "2026-04-03T16:33:30.150171",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x27e7fddd52f9f808a784accdd26f9940048af893cc37deef0343b14e72a538cb",
+      "question": "Will Elon Musk post 140-164 tweets from April 2 to April 4, 2026?",
+      "timestamp": "2026-04-03T16:33:30.150633",
+      "source": "sync"
+    },
+    {
+      "market_id": "1791875",
+      "question": "Will \"The Drama\" Opening Weekend Box Office be greater than 10m?",
+      "timestamp": "2026-04-03T16:35:53.052591",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1794842",
+      "question": "Will \"Bully - Kanye West\" be the Billboard 200 #1 album for the week of April 11?",
+      "timestamp": "2026-04-03T16:51:25.779156",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1538196",
+      "question": "Will Real Salt Lake win on 2026-04-04?",
+      "timestamp": "2026-04-03T17:37:21.324878"
+    },
+    {
+      "market_id": "0x4351454646d5ebfbc19943af4d46d5d07fced48bf1f4c004572fcb899216814b",
+      "question": "Will Real Salt Lake win on 2026-04-04?",
+      "timestamp": "2026-04-03T17:41:25.619338",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x9aa4dee3b4c0bb808a6ca95183dfcbca6f554cca97577f5144e860339f1fde76",
+      "question": "Will \"The Drama\" Opening Weekend Box Office be greater than 10m?",
+      "timestamp": "2026-04-03T17:41:25.620580",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xb1d1eff01be6af6623d3f73037029d832b7fb50a1f7bd67dfacf20c7bb9bae00",
+      "question": "Will \"Bully - Kanye West\" be the Billboard 200 #1 album for the week of April 11",
+      "timestamp": "2026-04-03T17:41:25.620849",
+      "source": "sync"
+    },
+    {
+      "market_id": "1541586",
+      "question": "Will Londrina EC vs. Cear\u00e1 SC end in a draw?",
+      "timestamp": "2026-04-04T00:45:42.598227",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1810412",
+      "question": "Will \"The Drama\" Opening Weekend Box Office be between $15m and $16m?",
+      "timestamp": "2026-04-04T00:45:43.871645",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1781209",
+      "question": "Will the highest temperature in Dallas be 86\u00b0F or higher on April 4?",
+      "timestamp": "2026-04-04T00:45:48.382859",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "1841385",
+      "question": "BNB Up or Down - April 4, 2:50AM-2:55AM ET",
+      "timestamp": "2026-04-04T00:45:51.633325",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "0xf51447c0675387a75e3e900e4034fe8bee70cf9129337137c669d1cb498fd91f",
+      "question": "Will the highest temperature in Dallas be 86\u00b0F or higher on April 4?",
+      "timestamp": "2026-04-04T01:04:16.516942",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xda19aa07e2ff2873bbbbe489fd77652f5cde4336f9e5ee137d8166bf204ec91e",
+      "question": "Will Londrina EC vs. Cear\u00e1 SC end in a draw?",
+      "timestamp": "2026-04-04T01:04:16.523296",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xfc4187daa21cdfecb8263ecda22d4b4bdac0b350dc7938f4f755dc385afb4806",
+      "question": "Will \"The Drama\" Opening Weekend Box Office be between $15m and $16m?",
+      "timestamp": "2026-04-04T01:04:16.524218",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x45ffd4386abd7b1fa4ab14c9033ff688840033c0d368d867d1571ccb0ff426e4",
+      "question": "BNB Up or Down - April 4, 2:50AM-2:55AM ET",
+      "timestamp": "2026-04-04T01:04:16.525150",
+      "source": "sync"
+    },
+    {
+      "market_id": "1815291",
+      "question": "Will the highest temperature in Los Angeles be between 74-75\u00b0F on April 5?",
+      "timestamp": "2026-04-04T01:09:10.205929",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "0xaee23ba609cf85d7442142970cd35d2451897d5b1b385b3fe7dbda5194b60858",
+      "question": "Will the highest temperature in Los Angeles be between 74-75\u00b0F on April 5?",
+      "timestamp": "2026-04-04T01:17:05.728313",
+      "source": "sync"
+    },
+    {
+      "market_id": "1818019",
+      "question": "Counter-Strike: FaZe vs EYEBALLERS (BO3) - PGL Bucharest Group Stage",
+      "timestamp": "2026-04-04T02:06:28.237422"
+    },
+    {
+      "market_id": "0xd9c6c0704e930a785281d1e2b544c18288d3bb7b4417ef80bd3a8f77378da673",
+      "question": "Counter-Strike: FaZe vs EYEBALLERS (BO3) - PGL Bucharest Group Stage",
+      "timestamp": "2026-04-04T02:09:25.496492",
+      "source": "sync"
+    },
+    {
+      "market_id": "1841739",
+      "question": "Bitcoin Up or Down - April 4, 3:30AM-3:45AM ET",
+      "timestamp": "2026-04-04T02:44:39.783968"
+    },
+    {
+      "market_id": "1781235",
+      "question": "Will the highest temperature in Chicago be between 60-61\u00b0F on April 4?",
+      "timestamp": "2026-04-04T02:44:55.947658",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "1702442",
+      "question": "LoL: T1 vs Hanwha Life Esports - Game 1 Winner",
+      "timestamp": "2026-04-04T02:59:39.004239"
+    },
+    {
+      "market_id": "1553283",
+      "question": "Will Liverpool FC win on 2026-04-04?",
+      "timestamp": "2026-04-04T02:59:40.689872"
+    },
+    {
+      "market_id": "1798216",
+      "question": "LoL: SK Gaming vs Shifters (BO3) - LEC Regular Season",
+      "timestamp": "2026-04-04T02:59:42.474609"
+    },
+    {
+      "market_id": "0xfe6a90369ab060846585e150a90d6f6f8db889d446d5e2b0d261b6bea9b3a659",
+      "question": "Will Liverpool FC win on 2026-04-04?",
+      "timestamp": "2026-04-04T11:14:32.031324",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xdcd2e728017e5470762fba5aa3a0626daf0c55dbf65ed42dce124a37e3a81da7",
+      "question": "LoL: SK Gaming vs Shifters (BO3) - LEC Regular Season",
+      "timestamp": "2026-04-04T11:14:32.031397",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x4b40c5bb9c8964f4f3aab4421e2fa64ba7c937929bd041b9d0b77a9031d91685",
+      "question": "Will the highest temperature in Chicago be between 60-61\u00b0F on April 4?",
+      "timestamp": "2026-04-04T11:14:32.035196",
+      "source": "sync"
+    },
+    {
+      "market_id": "1833216",
+      "question": "Will \"Something Very Bad Is Going to Happen: Season 1\" be the top global Netflix show this week?",
+      "timestamp": "2026-04-04T11:19:16.913591",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1843079",
+      "question": "Will the highest temperature in Los Angeles be between 70-71\u00b0F on April 7?",
+      "timestamp": "2026-04-04T11:19:31.130315",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "1732213",
+      "question": "VfB Stuttgart vs. BV Borussia 09 Dortmund: O/U 4.5",
+      "timestamp": "2026-04-04T11:34:14.974632"
+    },
+    {
+      "market_id": "1815262",
+      "question": "Will the highest temperature in Austin be between 70-71\u00b0F on April 5?",
+      "timestamp": "2026-04-04T11:48:50.658641",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "1827183",
+      "question": "Will the highest temperature in New York City be between 56-57\u00b0F on April 6?",
+      "timestamp": "2026-04-04T12:16:35.952870",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "1815308",
+      "question": "Will the highest temperature in San Francisco be 78\u00b0F or higher on April 5?",
+      "timestamp": "2026-04-04T12:32:36.633040",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "0x5e15e2f0afcbcace45bd21f8922dfe1345c77db2e4f7ffc1dc6efee9ae3ea786",
+      "question": "VfB Stuttgart vs. BV Borussia 09 Dortmund: O/U 4.5",
+      "timestamp": "2026-04-04T12:37:23.817799",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x624f7b4f92944751b3070cf8e04768d816a2400fe7ee04ec6c609f63ed2f61b5",
+      "question": "Will the highest temperature in San Francisco be 78\u00b0F or higher on April 5?",
+      "timestamp": "2026-04-04T12:37:23.818138",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xb71c4ef4b135e20152d0b46be7bfda15f0a53e40e9c952d7d79e6578c4fdd6ec",
+      "question": "Will the highest temperature in Los Angeles be between 70-71\u00b0F on April 7?",
+      "timestamp": "2026-04-04T12:37:23.819407",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x0308e01591966003f204ba5a36e7d767150cdc41f73cd2be78b5d46567f414cf",
+      "question": "Will the highest temperature in Austin be between 70-71\u00b0F on April 5?",
+      "timestamp": "2026-04-04T12:37:23.820058",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x916e9a4f779aacf9deab81e60841cc05dc870b7569c20d4c2379e185db1db1e6",
+      "question": "Will the highest temperature in New York City be between 56-57\u00b0F on April 6?",
+      "timestamp": "2026-04-04T12:37:23.820474",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xc7a401d3215ea34ccf72b3145dccfe65b391d39a838488f50a4bf3ef290dc28c",
+      "question": "Will \"Something Very Bad Is Going to Happen: Season 1\" be the top global Netflix",
+      "timestamp": "2026-04-04T12:37:23.821469",
+      "source": "sync"
+    },
+    {
+      "market_id": "1853215",
+      "question": "Spread: Heat (-16.5)",
+      "timestamp": "2026-04-04T13:27:10.069954"
+    },
+    {
+      "market_id": "1541587",
+      "question": "Will Cear\u00e1 SC win on 2026-04-04?",
+      "timestamp": "2026-04-04T13:42:20.032559",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1815261",
+      "question": "Will the highest temperature in Austin be between 68-69\u00b0F on April 5?",
+      "timestamp": "2026-04-04T13:57:32.677608",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "0x171b30b8d5ab80f73a4506ac473062bcffb02f2951042939d51189a99ddfba80",
+      "question": "Spread: Heat (-16.5)",
+      "timestamp": "2026-04-04T14:04:12.993472",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x33fe797f357547b9b3fae3fb7624003c59db619981b2a70afe337e3dacbee894",
+      "question": "Will the highest temperature in Austin be between 68-69\u00b0F on April 5?",
+      "timestamp": "2026-04-04T14:04:12.997542",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x4634d14c426f07437cfc890f89944c2280992f15349f96ab8fb6de74c9bbdca0",
+      "question": "Will Cear\u00e1 SC win on 2026-04-04?",
+      "timestamp": "2026-04-04T14:04:12.998153",
+      "source": "sync"
+    },
+    {
+      "market_id": "1827217",
+      "question": "Will the highest temperature in Miami be between 84-85\u00b0F on April 6?",
+      "timestamp": "2026-04-04T14:53:41.017013",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "1665321",
+      "question": "LoL: Cloud9 vs LYON (BO3) - LCS Group Stage",
+      "timestamp": "2026-04-04T15:07:54.845795"
+    },
+    {
+      "market_id": "1849170",
+      "question": "Ethereum Up or Down - April 4, 4:45PM-5:00PM ET",
+      "timestamp": "2026-04-04T15:37:09.674328"
+    },
+    {
+      "market_id": "1537927",
+      "question": "Maple Leafs vs. Kings",
+      "timestamp": "2026-04-04T15:52:30.910615"
+    },
+    {
+      "market_id": "1849195",
+      "question": "Bitcoin Up or Down - April 4, 4:55PM-5:00PM ET",
+      "timestamp": "2026-04-04T15:52:35.090633"
+    },
+    {
+      "market_id": "1776297",
+      "question": "Pistons vs. 76ers",
+      "timestamp": "2026-04-04T16:22:35.928355"
+    },
+    {
+      "market_id": "1854845",
+      "question": "Will the highest temperature in San Francisco be between 64-65\u00b0F on April 8?",
+      "timestamp": "2026-04-04T16:22:47.820320",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "1831368",
+      "question": "Will Elon Musk post <40 tweets from April 4 to April 6, 2026?",
+      "timestamp": "2026-04-04T17:08:51.506280",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1721577",
+      "question": "Will SpaceX\u2019s IPO valuation be between 2.00T and 2.25T?",
+      "timestamp": "2026-04-04T17:22:47.680936"
+    },
+    {
+      "market_id": "1792244",
+      "question": "Will 20-24 ships transit the Strait of Hormuz between March 30-April 5?",
+      "timestamp": "2026-04-04T17:22:54.053794",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1827194",
+      "question": "Will the highest temperature in Dallas be between 72-73\u00b0F on April 6?",
+      "timestamp": "2026-04-04T17:23:09.094933",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "1792549",
+      "question": "Will Tony Finau win the 2026 Valero Texas Open?",
+      "timestamp": "2026-04-04T17:37:27.921985",
+      "strategy": "NO_HARVEST"
+    },
+    {
+      "market_id": "1827173",
+      "question": "Will the highest temperature in Seattle be between 70-71\u00b0F on April 6?",
+      "timestamp": "2026-04-04T17:37:42.526091",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "1850946",
+      "question": "Ethereum Up or Down - April 4, 6:50PM-6:55PM ET",
+      "timestamp": "2026-04-04T17:53:58.551664"
+    },
+    {
+      "market_id": "1815307",
+      "question": "Will the highest temperature in San Francisco be between 76-77\u00b0F on April 5?",
+      "timestamp": "2026-04-04T17:54:15.570202",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "0xf4f151eedbd551e2c050900f594ac112abc98074c4bbcb9eec73bc56f3b31a55",
+      "question": "Maple Leafs vs. Kings",
+      "timestamp": "2026-04-05T00:26:15.771182",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x570cfe84a1505bf6c7849f03b52e726a205f1d5395d608431a1a0f835e32c51c",
+      "question": "Will the highest temperature in Miami be between 84-85\u00b0F on April 6?",
+      "timestamp": "2026-04-05T00:26:15.771720",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x8745a33913271c683ce5cc46dead9e53ac494edc4fd8018a778c5aecf8f17f75",
+      "question": "Will SpaceX\u2019s IPO valuation be between 2.00T and 2.25T?",
+      "timestamp": "2026-04-05T00:26:15.772091",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x89bdfc7959fc935a94bed56833c2a977b4707a3df0e15382714d07074932a8e8",
+      "question": "Will the highest temperature in San Francisco be between 64-65\u00b0F on April 8?",
+      "timestamp": "2026-04-05T00:26:15.772483",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x837d25cb4aa2852b7e9aacc27dc43665d1f293909e10b5a0a0be43fc505afee5",
+      "question": "Will Elon Musk post <40 tweets from April 4 to April 6, 2026?",
+      "timestamp": "2026-04-05T00:26:15.772987",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x2d4498c507cda655ab4e5fc80d18fcd71a433e0a136239f3c241d8ea5550e850",
+      "question": "Will the highest temperature in Dallas be between 72-73\u00b0F on April 6?",
+      "timestamp": "2026-04-05T00:26:15.773200",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x5714d0c7f8d5a3bb86a8d94aeeb46252b464ede33c2d0bc0c22c74bb9e9d9922",
+      "question": "Will the highest temperature in Seattle be between 70-71\u00b0F on April 6?",
+      "timestamp": "2026-04-05T00:26:15.773406",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xac999c2f1caad594454031401018e821fbecb1f6c85959e1d36f32aee238a855",
+      "question": "Will the highest temperature in San Francisco be between 76-77\u00b0F on April 5?",
+      "timestamp": "2026-04-05T00:26:15.773605",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x7a0576e86cd21f11799ae90e548087bf589c4643f11b695320782d15c236527c",
+      "question": "Will 20-24 ships transit the Strait of Hormuz between March 30-April 5?",
+      "timestamp": "2026-04-05T00:26:15.773992",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x5a9296972262eeefe7447fd546c26d2e3309028b361bce052d788f32d17facb6",
+      "question": "Will Tony Finau win the 2026 Valero Texas Open?",
+      "timestamp": "2026-04-05T00:26:15.774800",
+      "source": "sync"
+    },
+    {
+      "market_id": "1827463",
+      "question": "Will the highest temperature in Houston be between 70-71\u00b0F on April 6?",
+      "timestamp": "2026-04-05T00:29:40.041481",
+      "strategy": "WEATHER"
+    },
+    {
+      "market_id": "0x05b11f3b6f60ab0224da39d48664b097e3416280f00a13284027adb926a0a773",
+      "question": "Will the highest temperature in Houston be between 70-71\u00b0F on April 6?",
+      "timestamp": "2026-04-05T00:37:38.111007",
+      "source": "sync"
+    },
+    {
+      "market_id": "1854551",
+      "question": "Will the highest temperature in Atlanta be between 70-71\u00b0F on April 8?",
+      "timestamp": "2026-04-05T00:40:21.738015",
+      "strategy": "WEATHER"
+    }
+  ]
+}

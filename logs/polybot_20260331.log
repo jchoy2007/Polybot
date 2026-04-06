@@ -1,0 +1,1404 @@
+10:32:33 [polybot.main] INFO: 🏃 Modo DRY RUN (simulación)
+10:32:33 [polybot.main] INFO: 🤖 PolyBot MULTI-ESTRATEGIA iniciado
+10:32:33 [polybot.main] INFO:    Capital inicial: $100.00
+10:32:33 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+10:32:33 [polybot.main] INFO:    Edge mínimo: 5%
+10:32:33 [polybot.main] INFO:    Kelly fracción: 0.5
+10:32:33 [polybot.main] INFO:    Escaneo cada: 15 min
+10:32:33 [polybot.main] INFO:    Estrategias activas:
+10:32:33 [polybot.main] INFO:      1. IA Value Bets (análisis con Claude)
+10:32:33 [polybot.main] INFO:      2. BTC 15-min Up/Down (momentum)
+10:32:33 [polybot.main] INFO:      3. Copy Trading (copiar traders top)
+10:32:33 [polybot.main] INFO:      4. Arbitraje YES+NO
+10:32:33 [polybot.main] INFO: ============================================================
+10:32:33 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-31 10:32:33
+10:32:33 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+10:32:33 [polybot.main] INFO:    Modo: 🏃 DRY RUN (simulación)
+10:32:33 [polybot.main] INFO:    Estrategias: IA + BTC 15m + Copy Trading + Arbitraje
+10:32:33 [polybot.main] INFO: ============================================================
+10:32:33 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+10:32:33 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+10:32:34 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+10:32:35 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+10:32:35 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+10:32:36 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+10:32:37 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+10:32:38 [polybot.scanner] INFO: ✅ 11 mercados pasan los filtros (de 500 totales)
+10:32:38 [polybot.main] INFO:    Encontrados 11 mercados elegibles
+10:32:38 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+10:32:38 [polybot.analyzer] INFO: 🧠 Analizando: S&P 500 (SPX) Up or Down on March 31?...
+10:32:56 [polybot.analyzer] INFO:    → Edge: 31.9% | Prob: 35.0% | Acción: BET
+10:32:56 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+10:33:21 [polybot.analyzer] INFO: 🧠 Analizando: Will Google (GOOGL) close above $280 end of March?...
+10:33:38 [polybot.analyzer] INFO:    → Edge: 25.0% | Prob: 98.0% | Acción: BET
+10:33:38 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+10:34:03 [polybot.analyzer] INFO: 🧠 Analizando: Spread: Knicks (-1.5)...
+10:34:24 [polybot.analyzer] INFO:    → Edge: -6.5% | Prob: 45.0% | Acción: BET
+10:34:24 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+10:34:49 [polybot.analyzer] INFO: 🧠 Analizando: Czechia vs. Denmark: O/U 1.5...
+10:34:50 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbQLHJQzfa8VM32WySSc"}
+10:34:50 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+10:35:15 [polybot.analyzer] INFO: 🧠 Analizando: Will Senegal win on 2026-03-31?...
+10:35:15 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbQN9BKZ6T16idj75jGM"}
+10:35:15 [polybot.analyzer] INFO: ✅ Análisis completo: 3 mercados analizados, 3 recomendados para apostar
+10:35:15 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+10:35:15 [polybot.main] INFO:    ✅ APOSTAR $10.00 | Edge: 31.9% | Kelly: 16.4% | Prob estimada: 35.0% vs mercado: 3.1%
+10:35:15 [polybot.main] INFO:    ❌ Will Google (GOOGL) close above $280 end: Probabilidad extrema (98.0%), riesgo alto
+10:35:15 [polybot.main] INFO:    ❌ Spread: Knicks (-1.5): Edge insuficiente: -6.5% < 5.0%
+10:35:15 [polybot.main] INFO: 🎯 Ejecutando 1 apuestas de valor...
+10:35:15 [polybot.executor] INFO: 🏃 [DRY RUN] Apuesta simulada:
+   Mercado: S&P 500 (SPX) Up or Down on March 31?
+   Lado: NO
+   Monto: $10.00
+   Precio: $0.032
+   Shares: 317.4603
+   Edge: 31.9%
+   Confianza: 75.0%
+10:35:15 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T10:35:15.412874",
+  "market_id": "1790417",
+  "question": "S&P 500 (SPX) Up or Down on March 31?",
+  "side": "NO",
+  "amount": 10.0,
+  "price": 0.0315,
+  "estimated_prob": 0.35,
+  "edge": 0.3185,
+  "result": null,
+  "bankroll_after": 100.0
+}
+10:35:15 [polybot.main] INFO:    Orden: SIMULATED
+10:35:15 [polybot.main] INFO: 
+==================================================
+10:35:15 [polybot.main] INFO: ₿ ESTRATEGIA 2: BTC 15-Min Up/Down
+10:35:15 [polybot.main] INFO: ==================================================
+10:35:15 [polybot.btc15m] INFO: ₿ BTC 15-min: Escaneando oportunidad...
+10:35:15 [polybot.btc15m] INFO:    BTC: $67,008 | 1m: +0.024% | 5m: -0.072% | Dir: UP
+10:35:16 [polybot.btc15m] INFO:    Mercado: Bitcoin Up or Down - April 1, 11:25AM-11:30AM ET
+10:35:16 [polybot.btc15m] INFO:    Sin señal clara, esperando...
+10:35:16 [polybot.main] INFO: 
+==================================================
+10:35:16 [polybot.main] INFO: 👥 ESTRATEGIA 3: Copy Trading
+10:35:16 [polybot.main] INFO: ==================================================
+10:35:16 [polybot.copytrading] INFO: 👥 Copy Trading: Buscando trades para copiar...
+10:35:16 [polybot.copytrading] INFO:    No se encontraron traders top en esta sesión
+10:35:16 [polybot.main] INFO: 
+==================================================
+10:35:16 [polybot.main] INFO: ⚖️ ESTRATEGIA 4: Arbitraje YES+NO
+10:35:16 [polybot.main] INFO: ==================================================
+10:35:16 [polybot.arbitrage] INFO: ⚖️ Arbitraje: Escaneando oportunidades...
+10:35:17 [polybot.arbitrage] INFO:    No hay oportunidades de arbitraje ahora
+10:35:17 [polybot.main] INFO: 
+============================================================
+10:35:17 [polybot.main] INFO: 📋 RESUMEN DEL CICLO
+10:35:17 [polybot.main] INFO: ============================================================
+10:35:17 [polybot.main] INFO: 📋 RESUMEN DE ÓRDENES
+==================================================
+
+1. [DRY_RUN] NO $10.00
+   Mercado: S&P 500 (SPX) Up or Down on March 31?
+   Precio: $0.032 | Edge: 31.9% | Estado: SIMULATED
+
+==================================================
+Total órdenes: 1
+Bankroll: $100.00
+10:35:17 [polybot.main] INFO: ₿ BTC 15-min: 0 trades | Win: 0 | Loss: 0 | WR: 0% | P&L: $+0.00
+10:35:17 [polybot.main] INFO: 👥 Copy Trading: 0 trades copiados | Traders monitoreados: 0
+10:35:17 [polybot.main] INFO: ⚖️ Arbitraje: 0 oportunidades | Trades: 0 | Profit total: $0.0000
+10:35:17 [polybot.main] INFO: 💰 Bankroll: $100.00 | Total trades: 1
+10:35:17 [polybot.main] INFO: ============================================================
+10:35:17 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260331_1035.json
+10:52:37 [polybot.main] INFO: 🏃 Modo DRY RUN (simulación)
+10:52:37 [polybot.main] INFO: 🤖 PolyBot MULTI-ESTRATEGIA iniciado
+10:52:37 [polybot.main] INFO:    Capital inicial: $100.00
+10:52:37 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+10:52:37 [polybot.main] INFO:    Edge mínimo: 5%
+10:52:37 [polybot.main] INFO:    Kelly fracción: 0.5
+10:52:37 [polybot.main] INFO:    Escaneo cada: 15 min
+10:52:37 [polybot.main] INFO:    Estrategias activas:
+10:52:37 [polybot.main] INFO:      1. IA Value Bets (análisis con Claude)
+10:52:37 [polybot.main] INFO:      2. BTC 15-min Up/Down (momentum)
+10:52:37 [polybot.main] INFO:      3. Copy Trading (copiar traders top)
+10:52:37 [polybot.main] INFO:      4. Arbitraje YES+NO
+10:52:37 [polybot.main] INFO: ============================================================
+10:52:37 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-31 10:52:37
+10:52:37 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+10:52:37 [polybot.main] INFO:    Modo: 🏃 DRY RUN (simulación)
+10:52:37 [polybot.main] INFO:    Estrategias: IA + BTC 15m + Copy Trading + Arbitraje
+10:52:37 [polybot.main] INFO: ============================================================
+10:52:37 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+10:52:37 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+10:52:38 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+10:52:38 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+10:52:40 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+10:52:40 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+10:52:41 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+10:52:42 [polybot.scanner] INFO: ✅ 10 mercados pasan los filtros (de 500 totales)
+10:52:42 [polybot.main] INFO:    Encontrados 10 mercados elegibles
+10:52:42 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+10:52:42 [polybot.analyzer] INFO: 🧠 Analizando: S&P 500 (SPX) Up or Down on March 31?...
+10:52:59 [polybot.analyzer] INFO:    → Edge: 11.2% | Prob: 15.0% | Acción: BET
+10:52:59 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+10:53:24 [polybot.analyzer] INFO: 🧠 Analizando: Spread: Knicks (-1.5)...
+10:53:42 [polybot.analyzer] INFO:    → Edge: -3.5% | Prob: 48.0% | Acción: BET
+10:53:42 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+10:54:07 [polybot.analyzer] INFO: 🧠 Analizando: Czechia vs. Denmark: O/U 1.5...
+10:54:29 [polybot.analyzer] INFO:    → Edge: 4.0% | Prob: 78.0% | Acción: BET
+10:54:29 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+10:54:54 [polybot.analyzer] INFO: 🧠 Analizando: Will Senegal win on 2026-03-31?...
+10:54:54 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbRs4D6bJ77aZAfC4A4U"}
+10:54:54 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+10:55:19 [polybot.analyzer] INFO: 🧠 Analizando: Will Ethereum dip to $2,000 on March 31?...
+10:55:19 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbRtvAi8Yt2FYNgX6bgs"}
+10:55:19 [polybot.analyzer] INFO: ✅ Análisis completo: 3 mercados analizados, 3 recomendados para apostar
+10:55:19 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+10:55:19 [polybot.main] INFO:    ✅ APOSTAR $5.80 | Edge: 11.2% | Kelly: 5.8% | Prob estimada: 15.0% vs mercado: 3.9%
+10:55:19 [polybot.main] INFO:    ❌ Czechia vs. Denmark: O/U 1.5: Edge insuficiente: 4.0% < 5.0%
+10:55:19 [polybot.main] INFO:    ❌ Spread: Knicks (-1.5): Edge insuficiente: -3.5% < 5.0%
+10:55:19 [polybot.main] INFO: 🎯 Ejecutando 1 apuestas de valor...
+10:55:19 [polybot.executor] INFO: 🏃 [DRY RUN] Apuesta simulada:
+   Mercado: S&P 500 (SPX) Up or Down on March 31?
+   Lado: NO
+   Monto: $5.80
+   Precio: $0.038
+   Shares: 150.6494
+   Edge: 11.2%
+   Confianza: 90.0%
+10:55:19 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T10:55:19.788402",
+  "market_id": "1790417",
+  "question": "S&P 500 (SPX) Up or Down on March 31?",
+  "side": "NO",
+  "amount": 5.8,
+  "price": 0.0385,
+  "estimated_prob": 0.15000000000000002,
+  "edge": 0.11150000000000002,
+  "result": null,
+  "bankroll_after": 100.0
+}
+10:55:19 [polybot.main] INFO:    Orden: SIMULATED
+10:55:19 [polybot.main] INFO: 
+==================================================
+10:55:19 [polybot.main] INFO: ₿ ESTRATEGIA 2: BTC 15-Min Up/Down
+10:55:19 [polybot.main] INFO: ==================================================
+10:55:19 [polybot.btc15m] INFO: ₿ BTC 15-min: Escaneando oportunidad...
+10:55:20 [polybot.btc15m] INFO:    BTC: $66,978 | 1m: -0.004% | 5m: -0.088% | Dir: DOWN
+10:55:20 [polybot.btc15m] INFO:    Mercado: Bitcoin Up or Down - April 1, 11:45AM-11:50AM ET
+10:55:20 [polybot.btc15m] INFO:    Sin señal clara, esperando...
+10:55:20 [polybot.main] INFO: 
+==================================================
+10:55:20 [polybot.main] INFO: 👥 ESTRATEGIA 3: Copy Trading
+10:55:20 [polybot.main] INFO: ==================================================
+10:55:20 [polybot.copytrading] INFO: 👥 Copy Trading: Buscando trades para copiar...
+10:55:21 [polybot.copytrading] INFO:    No se encontraron traders top en esta sesión
+10:55:21 [polybot.main] INFO: 
+==================================================
+10:55:21 [polybot.main] INFO: ⚖️ ESTRATEGIA 4: Arbitraje YES+NO
+10:55:21 [polybot.main] INFO: ==================================================
+10:55:21 [polybot.arbitrage] INFO: ⚖️ Arbitraje: Escaneando oportunidades...
+10:55:21 [polybot.arbitrage] INFO:    No hay oportunidades de arbitraje ahora
+10:55:21 [polybot.main] INFO: 
+============================================================
+10:55:21 [polybot.main] INFO: 📋 RESUMEN DEL CICLO
+10:55:21 [polybot.main] INFO: ============================================================
+10:55:21 [polybot.main] INFO: 📋 RESUMEN DE ÓRDENES
+==================================================
+
+1. [DRY_RUN] NO $5.80
+   Mercado: S&P 500 (SPX) Up or Down on March 31?
+   Precio: $0.038 | Edge: 11.2% | Estado: SIMULATED
+
+==================================================
+Total órdenes: 1
+Bankroll: $100.00
+10:55:21 [polybot.main] INFO: ₿ BTC 15-min: 0 trades | Win: 0 | Loss: 0 | WR: 0% | P&L: $+0.00
+10:55:21 [polybot.main] INFO: 👥 Copy Trading: 0 trades copiados | Traders monitoreados: 0
+10:55:21 [polybot.main] INFO: ⚖️ Arbitraje: 0 oportunidades | Trades: 0 | Profit total: $0.0000
+10:55:21 [polybot.main] INFO: 💰 Bankroll: $100.00 | Total trades: 1
+10:55:21 [polybot.main] INFO: ============================================================
+10:55:21 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260331_1055.json
+11:03:05 [polybot.main] INFO: 🏃 Modo DRY RUN (simulación)
+11:03:05 [polybot.main] INFO: 🤖 PolyBot MULTI-ESTRATEGIA iniciado
+11:03:05 [polybot.main] INFO:    Capital inicial: $100.00
+11:03:05 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+11:03:05 [polybot.main] INFO:    Edge mínimo: 5%
+11:03:05 [polybot.main] INFO:    Kelly fracción: 0.5
+11:03:05 [polybot.main] INFO:    Escaneo cada: 15 min
+11:03:05 [polybot.main] INFO:    Estrategias activas:
+11:03:05 [polybot.main] INFO:      1. IA Value Bets (análisis con Claude)
+11:03:05 [polybot.main] INFO:      2. BTC 15-min Up/Down (momentum)
+11:03:05 [polybot.main] INFO:      3. Copy Trading (copiar traders top)
+11:03:05 [polybot.main] INFO:      4. Arbitraje YES+NO
+11:03:05 [polybot.main] INFO: ============================================================
+11:03:05 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-31 11:03:05
+11:03:05 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+11:03:05 [polybot.main] INFO:    Modo: 🏃 DRY RUN (simulación)
+11:03:05 [polybot.main] INFO:    Estrategias: IA + BTC 15m + Copy Trading + Arbitraje
+11:03:05 [polybot.main] INFO: ============================================================
+11:03:05 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+11:03:05 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+11:03:06 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:03:06 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:03:07 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:03:08 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:03:09 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:03:09 [polybot.scanner] INFO: ✅ 10 mercados pasan los filtros (de 500 totales)
+11:03:09 [polybot.main] INFO:    Encontrados 10 mercados elegibles
+11:03:09 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+11:03:09 [polybot.analyzer] INFO: 🧠 Analizando: S&P 500 (SPX) Up or Down on March 31?...
+11:03:26 [polybot.analyzer] ERROR: Error parseando análisis: Expecting value: line 6 column 22 (char 497)
+11:03:26 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:03:51 [polybot.analyzer] INFO: 🧠 Analizando: LoL: Galions vs Solary - Game 2 Winner...
+11:04:03 [polybot.analyzer] ERROR: Error Claude API (529): {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"},"request_id":"req_011CZbSYeUhdn2eVzBatCeR6"}
+11:04:03 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:04:28 [polybot.analyzer] INFO: 🧠 Analizando: Spread: Knicks (-1.5)...
+11:04:45 [polybot.analyzer] INFO:    → Edge: 6.5% | Prob: 58.0% | Acción: BET
+11:04:45 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:05:10 [polybot.analyzer] INFO: 🧠 Analizando: Will the price of Bitcoin be between $64,000 and $66,000 on ...
+11:05:32 [polybot.analyzer] INFO:    → Edge: 42.0% | Prob: 70.0% | Acción: BET
+11:05:32 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:05:57 [polybot.analyzer] INFO: 🧠 Analizando: Czechia vs. Denmark: Both Teams to Score...
+11:05:57 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbShwFkgF1FbNHWi2EBB"}
+11:05:57 [polybot.analyzer] INFO: ✅ Análisis completo: 2 mercados analizados, 2 recomendados para apostar
+11:05:57 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+11:05:57 [polybot.main] INFO:    ✅ APOSTAR $10.00 | Edge: 42.0% | Kelly: 29.2% | Prob estimada: 70.0% vs mercado: 28.0%
+11:05:57 [polybot.main] INFO:    ✅ APOSTAR $6.70 | Edge: 6.5% | Kelly: 6.7% | Prob estimada: 58.0% vs mercado: 51.5%
+11:05:57 [polybot.main] INFO: 🎯 Ejecutando 2 apuestas de valor...
+11:05:57 [polybot.executor] INFO: 🏃 [DRY RUN] Apuesta simulada:
+   Mercado: Will the price of Bitcoin be between $64,000 and $66,000 on 
+   Lado: YES
+   Monto: $10.00
+   Precio: $0.280
+   Shares: 35.7143
+   Edge: 42.0%
+   Confianza: 85.0%
+11:05:57 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T11:05:57.665433",
+  "market_id": "1717403",
+  "question": "Will the price of Bitcoin be between $64,000 and $66,000 on April 1?",
+  "side": "YES",
+  "amount": 10.0,
+  "price": 0.28,
+  "estimated_prob": 0.7,
+  "edge": 0.41999999999999993,
+  "result": null,
+  "bankroll_after": 100.0
+}
+11:05:57 [polybot.main] INFO:    Orden: SIMULATED
+11:05:57 [polybot.executor] INFO: 🏃 [DRY RUN] Apuesta simulada:
+   Mercado: Spread: Knicks (-1.5)
+   Lado: NO
+   Monto: $6.70
+   Precio: $0.515
+   Shares: 13.0097
+   Edge: 6.5%
+   Confianza: 75.0%
+11:05:57 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T11:05:57.666531",
+  "market_id": "1797088",
+  "question": "Spread: Knicks (-1.5)",
+  "side": "NO",
+  "amount": 6.7,
+  "price": 0.515,
+  "estimated_prob": 0.5800000000000001,
+  "edge": 0.06500000000000006,
+  "result": null,
+  "bankroll_after": 100.0
+}
+11:05:57 [polybot.main] INFO:    Orden: SIMULATED
+11:05:57 [polybot.main] INFO: 
+==================================================
+11:05:57 [polybot.main] INFO: ₿ ESTRATEGIA 2: BTC 15-Min Up/Down
+11:05:57 [polybot.main] INFO: ==================================================
+11:05:57 [polybot.btc15m] INFO: ₿ BTC 15-min: Escaneando oportunidad...
+11:05:58 [polybot.btc15m] INFO:    BTC: $66,835 | 1m: -0.024% | 5m: -0.072% | Dir: DOWN
+11:05:59 [polybot.btc15m] INFO:    Mercado: Solana Up or Down on April 2?
+11:05:59 [polybot.btc15m] INFO:    Sin señal clara, esperando...
+11:05:59 [polybot.main] INFO: 
+==================================================
+11:05:59 [polybot.main] INFO: 👥 ESTRATEGIA 3: Copy Trading
+11:05:59 [polybot.main] INFO: ==================================================
+11:05:59 [polybot.copytrading] INFO: 👥 Copy Trading: Buscando trades para copiar...
+11:06:02 [polybot.copytrading] INFO:    No se encontraron traders via API. Esto es normal si la API de leaderboard cambió.
+11:06:02 [polybot.copytrading] INFO:    No se encontraron traders top en esta sesión
+11:06:02 [polybot.main] INFO: 
+==================================================
+11:06:02 [polybot.main] INFO: ⚖️ ESTRATEGIA 4: Arbitraje YES+NO
+11:06:02 [polybot.main] INFO: ==================================================
+11:06:02 [polybot.arbitrage] INFO: ⚖️ Arbitraje: Escaneando oportunidades...
+11:06:03 [polybot.arbitrage] INFO:    No hay oportunidades de arbitraje ahora
+11:06:03 [polybot.main] INFO: 
+============================================================
+11:06:03 [polybot.main] INFO: 📋 RESUMEN DEL CICLO
+11:06:03 [polybot.main] INFO: ============================================================
+11:06:03 [polybot.main] INFO: 📋 RESUMEN DE ÓRDENES
+==================================================
+
+1. [DRY_RUN] YES $10.00
+   Mercado: Will the price of Bitcoin be between $64,000 and $66,00
+   Precio: $0.280 | Edge: 42.0% | Estado: SIMULATED
+
+2. [DRY_RUN] NO $6.70
+   Mercado: Spread: Knicks (-1.5)
+   Precio: $0.515 | Edge: 6.5% | Estado: SIMULATED
+
+==================================================
+Total órdenes: 2
+Bankroll: $100.00
+11:06:03 [polybot.main] INFO: ₿ BTC 15-min: 0 trades | Win: 0 | Loss: 0 | WR: 0% | P&L: $+0.00
+11:06:03 [polybot.main] INFO: 👥 Copy Trading: 0 trades copiados | Traders monitoreados: 0
+11:06:03 [polybot.main] INFO: ⚖️ Arbitraje: 0 oportunidades | Trades: 0 | Profit total: $0.0000
+11:06:03 [polybot.main] INFO: 💰 Bankroll: $100.00 | Total trades: 2
+11:06:03 [polybot.main] INFO: ============================================================
+11:06:03 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260331_1106.json
+11:10:43 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+11:10:43 [polybot.main] WARNING:    MODO LIVE ACTIVADO - DINERO REAL
+11:10:43 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+11:10:43 [polybot.main] INFO: 🤖 PolyBot MULTI-ESTRATEGIA iniciado
+11:10:43 [polybot.main] INFO:    Capital inicial: $100.00
+11:10:43 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+11:10:43 [polybot.main] INFO:    Edge mínimo: 5%
+11:10:43 [polybot.main] INFO:    Kelly fracción: 0.5
+11:10:43 [polybot.main] INFO:    Escaneo cada: 15 min
+11:10:43 [polybot.main] INFO:    Estrategias activas:
+11:10:43 [polybot.main] INFO:      1. IA Value Bets (análisis con Claude)
+11:10:43 [polybot.main] INFO:      2. BTC 15-min Up/Down (momentum)
+11:10:43 [polybot.main] INFO:      3. Copy Trading (copiar traders top)
+11:10:43 [polybot.main] INFO:      4. Arbitraje YES+NO
+11:10:43 [polybot.main] INFO: ============================================================
+11:10:43 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-31 11:10:43
+11:10:43 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+11:10:43 [polybot.main] INFO:    Modo: 💰 LIVE (dinero real)
+11:10:43 [polybot.main] INFO:    Estrategias: IA + BTC 15m + Copy Trading + Arbitraje
+11:10:43 [polybot.main] INFO: ============================================================
+11:10:43 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+11:10:43 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+11:10:43 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:10:44 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:10:45 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:10:46 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:10:47 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:10:47 [polybot.scanner] INFO: ✅ 12 mercados pasan los filtros (de 500 totales)
+11:10:47 [polybot.main] INFO:    Encontrados 12 mercados elegibles
+11:10:47 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+11:10:47 [polybot.analyzer] INFO: 🧠 Analizando: S&P 500 (SPX) Up or Down on March 31?...
+11:11:07 [polybot.analyzer] INFO:    → Edge: -14.2% | Prob: 82.0% | Acción: BET
+11:11:07 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:11:32 [polybot.analyzer] INFO: 🧠 Analizando: Spread: Knicks (-1.5)...
+11:11:50 [polybot.analyzer] INFO:    → Edge: -4.5% | Prob: 47.0% | Acción: BET
+11:11:50 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:12:15 [polybot.analyzer] INFO: 🧠 Analizando: Will the price of Bitcoin be between $64,000 and $66,000 on ...
+11:12:29 [polybot.analyzer] INFO:    → Edge: 60.0% | Prob: 85.0% | Acción: BET
+11:12:29 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:12:54 [polybot.analyzer] INFO: 🧠 Analizando: Czechia vs. Denmark: Both Teams to Score...
+11:12:54 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbTEfyMerJcxpcyJz84A"}
+11:12:54 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:13:19 [polybot.analyzer] INFO: 🧠 Analizando: Spread: Pistons (-2.5)...
+11:13:20 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbTGaMaW5JiQb6FWa6pS"}
+11:13:20 [polybot.analyzer] INFO: ✅ Análisis completo: 3 mercados analizados, 3 recomendados para apostar
+11:13:20 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+11:13:20 [polybot.main] INFO:    ✅ APOSTAR $10.00 | Edge: 60.0% | Kelly: 40.0% | Prob estimada: 85.0% vs mercado: 25.0%
+11:13:20 [polybot.main] INFO:    ❌ Spread: Knicks (-1.5): Edge insuficiente: -4.5% < 5.0%
+11:13:20 [polybot.main] INFO:    ❌ S&P 500 (SPX) Up or Down on March 31?: Edge insuficiente: -14.2% < 5.0%
+11:13:20 [polybot.main] INFO: 🎯 Ejecutando 1 apuestas de valor...
+11:13:20 [polybot.executor] INFO: 💰 [LIVE] Ejecutando apuesta REAL:
+   Mercado: Will the price of Bitcoin be between $64,000 and $66,000 on 
+   Lado: YES
+   Monto: $10.00
+   Precio: $0.250
+11:13:20 [polybot.executor] WARNING: ⚠️ Para ejecutar órdenes reales, instala py-clob-client:
+   pip install py-clob-client
+   Y configura tu wallet en el archivo .env
+11:13:20 [polybot.main] INFO:    Orden: PENDING_SETUP
+11:13:20 [polybot.main] INFO: 
+==================================================
+11:13:20 [polybot.main] INFO: ₿ ESTRATEGIA 2: BTC 15-Min Up/Down
+11:13:20 [polybot.main] INFO: ==================================================
+11:13:20 [polybot.btc15m] INFO: ₿ BTC 15-min: Escaneando oportunidad...
+11:13:20 [polybot.btc15m] INFO:    BTC: $66,839 | 1m: +0.065% | 5m: -0.202% | Dir: UP
+11:13:21 [polybot.btc15m] INFO:    Mercado: Bitcoin Up or Down - April 1, 12:05PM-12:10PM ET
+11:13:21 [polybot.btc15m] INFO:    Sin señal clara, esperando...
+11:13:21 [polybot.main] INFO: 
+==================================================
+11:13:21 [polybot.main] INFO: 👥 ESTRATEGIA 3: Copy Trading
+11:13:21 [polybot.main] INFO: ==================================================
+11:13:21 [polybot.copytrading] INFO: 👥 Copy Trading: Buscando trades para copiar...
+11:13:25 [polybot.copytrading] INFO:    No se encontraron traders via API. Esto es normal si la API de leaderboard cambió.
+11:13:25 [polybot.copytrading] INFO:    No se encontraron traders top en esta sesión
+11:13:25 [polybot.main] INFO: 
+==================================================
+11:13:25 [polybot.main] INFO: ⚖️ ESTRATEGIA 4: Arbitraje YES+NO
+11:13:25 [polybot.main] INFO: ==================================================
+11:13:25 [polybot.arbitrage] INFO: ⚖️ Arbitraje: Escaneando oportunidades...
+11:13:26 [polybot.arbitrage] INFO:    No hay oportunidades de arbitraje ahora
+11:13:26 [polybot.main] INFO: 
+============================================================
+11:13:26 [polybot.main] INFO: 📋 RESUMEN DEL CICLO
+11:13:26 [polybot.main] INFO: ============================================================
+11:13:26 [polybot.main] INFO: 📋 RESUMEN DE ÓRDENES
+==================================================
+
+1. [LIVE] YES $10.00
+   Mercado: Will the price of Bitcoin be between $64,000 and $66,00
+   Precio: $0.250 | Edge: 60.0% | Estado: PENDING_SETUP
+
+==================================================
+Total órdenes: 1
+Bankroll: $100.00
+11:13:26 [polybot.main] INFO: ₿ BTC 15-min: 0 trades | Win: 0 | Loss: 0 | WR: 0% | P&L: $+0.00
+11:13:26 [polybot.main] INFO: 👥 Copy Trading: 0 trades copiados | Traders monitoreados: 0
+11:13:26 [polybot.main] INFO: ⚖️ Arbitraje: 0 oportunidades | Trades: 0 | Profit total: $0.0000
+11:13:26 [polybot.main] INFO: 💰 Bankroll: $100.00 | Total trades: 0
+11:13:26 [polybot.main] INFO: ============================================================
+11:13:26 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260331_1113.json
+11:17:59 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+11:17:59 [polybot.main] WARNING:    MODO LIVE ACTIVADO - DINERO REAL
+11:17:59 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+11:17:59 [polybot.main] INFO: 🤖 PolyBot MULTI-ESTRATEGIA iniciado
+11:17:59 [polybot.main] INFO:    Capital inicial: $100.00
+11:17:59 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+11:17:59 [polybot.main] INFO:    Edge mínimo: 5%
+11:17:59 [polybot.main] INFO:    Kelly fracción: 0.5
+11:17:59 [polybot.main] INFO:    Escaneo cada: 15 min
+11:17:59 [polybot.main] INFO:    Estrategias activas:
+11:17:59 [polybot.main] INFO:      1. IA Value Bets (análisis con Claude)
+11:17:59 [polybot.main] INFO:      2. BTC 15-min Up/Down (momentum)
+11:17:59 [polybot.main] INFO:      3. Copy Trading (copiar traders top)
+11:17:59 [polybot.main] INFO:      4. Arbitraje YES+NO
+11:17:59 [polybot.main] INFO: ============================================================
+11:17:59 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-31 11:17:59
+11:17:59 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+11:17:59 [polybot.main] INFO:    Modo: 💰 LIVE (dinero real)
+11:17:59 [polybot.main] INFO:    Estrategias: IA + BTC 15m + Copy Trading + Arbitraje
+11:17:59 [polybot.main] INFO: ============================================================
+11:17:59 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+11:17:59 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+11:18:00 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:18:00 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:18:01 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:18:02 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:18:03 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:18:03 [polybot.scanner] INFO: ✅ 16 mercados pasan los filtros (de 500 totales)
+11:18:03 [polybot.main] INFO:    Encontrados 16 mercados elegibles
+11:18:03 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+11:18:03 [polybot.analyzer] INFO: 🧠 Analizando: S&P 500 (SPX) Up or Down on March 31?...
+11:18:17 [polybot.analyzer] INFO:    → Edge: -21.3% | Prob: 75.0% | Acción: BET
+11:18:17 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:18:42 [polybot.analyzer] INFO: 🧠 Analizando: Kosovo vs. Türkiye: O/U 1.5...
+11:19:01 [polybot.analyzer] INFO:    → Edge: 8.0% | Prob: 82.0% | Acción: BET
+11:19:01 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:19:26 [polybot.analyzer] INFO: 🧠 Analizando: Spread: Knicks (-1.5)...
+11:19:26 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbTjZWUwGPCveQcKCZPH"}
+11:19:26 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:19:51 [polybot.analyzer] INFO: 🧠 Analizando: Will the price of Bitcoin be between $64,000 and $66,000 on ...
+11:19:51 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbTmRQdGboKdbsVoUctM"}
+11:19:51 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:20:16 [polybot.analyzer] INFO: 🧠 Analizando: LoL: Team Insidious vs Gamespace Mediterranean College Espor...
+11:20:37 [polybot.analyzer] INFO:    → Edge: 67.0% | Prob: 80.0% | Acción: BET
+11:20:37 [polybot.analyzer] INFO: ✅ Análisis completo: 3 mercados analizados, 3 recomendados para apostar
+11:20:37 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+11:20:37 [polybot.main] INFO:    ✅ APOSTAR $10.00 | Edge: 67.0% | Kelly: 38.5% | Prob estimada: 80.0% vs mercado: 13.0%
+11:20:37 [polybot.main] INFO:    ✅ APOSTAR $10.00 | Edge: 8.0% | Kelly: 15.4% | Prob estimada: 82.0% vs mercado: 74.0%
+11:20:37 [polybot.main] INFO:    ❌ S&P 500 (SPX) Up or Down on March 31?: Edge insuficiente: -21.3% < 5.0%
+11:20:37 [polybot.main] INFO: 🎯 Ejecutando 2 apuestas de valor...
+11:20:40 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/auth/api-key "HTTP/2 400 Bad Request"
+11:20:40 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/auth/derive-api-key "HTTP/2 200 OK"
+11:20:40 [polybot.executor] INFO: ✅ Cliente CLOB listo para trading LIVE
+11:20:40 [polybot.executor] INFO: 💰 [LIVE] Ejecutando apuesta REAL:
+   Mercado: LoL: Team Insidious vs Gamespace Mediterranean College Espor
+   Lado: NO
+   Monto: $10.00
+   Precio: $0.130
+11:20:40 [polybot.executor] INFO:    Token ID: 78532189951112438617...
+11:20:40 [polybot.executor] INFO:    Enviando orden de mercado: $10.00...
+11:20:40 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/tick-size?token_id=78532189951112438617005972747094586620181499595797057845541761830371447027045 "HTTP/2 200 OK"
+11:20:41 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/book?token_id=78532189951112438617005972747094586620181499595797057845541761830371447027045 "HTTP/2 200 OK"
+11:20:41 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/neg-risk?token_id=78532189951112438617005972747094586620181499595797057845541761830371447027045 "HTTP/2 200 OK"
+11:20:41 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/fee-rate?token_id=78532189951112438617005972747094586620181499595797057845541761830371447027045 "HTTP/2 200 OK"
+11:20:41 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 400 Bad Request"
+11:20:42 [polybot.executor] WARNING:    Error orden de mercado: PolyApiException[status_code=400, error_message={'error': 'not enough balance / allowance: the balance is not enough -> balance: 0, order amount: 10000000'}]
+11:20:42 [polybot.executor] INFO:    Intentando orden límite...
+11:20:42 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 400 Bad Request"
+11:20:42 [polybot.executor] ERROR:    Error límite: PolyApiException[status_code=400, error_message={'error': 'not enough balance / allowance: the balance is not enough -> balance: 0, order amount: 9999600'}]
+11:20:42 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T11:20:42.301076",
+  "market_id": "1805487",
+  "question": "LoL: Team Insidious vs Gamespace Mediterranean College Esports - Game 2 Winner",
+  "side": "NO",
+  "amount": 10.0,
+  "price": 0.13,
+  "estimated_prob": 0.8,
+  "edge": 0.67,
+  "result": null,
+  "bankroll_after": 100.0
+}
+11:20:42 [polybot.main] INFO:    Orden: ERROR_LIMIT
+11:20:42 [polybot.executor] INFO: 💰 [LIVE] Ejecutando apuesta REAL:
+   Mercado: Kosovo vs. Türkiye: O/U 1.5
+   Lado: YES
+   Monto: $10.00
+   Precio: $0.740
+11:20:42 [polybot.executor] INFO:    Token ID: 67419374597936330424...
+11:20:42 [polybot.executor] INFO:    Enviando orden de mercado: $10.00...
+11:20:42 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/tick-size?token_id=67419374597936330424086954399897707616387618156604594696403810830675410067465 "HTTP/2 200 OK"
+11:20:43 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/book?token_id=67419374597936330424086954399897707616387618156604594696403810830675410067465 "HTTP/2 200 OK"
+11:20:43 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/neg-risk?token_id=67419374597936330424086954399897707616387618156604594696403810830675410067465 "HTTP/2 200 OK"
+11:20:43 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/fee-rate?token_id=67419374597936330424086954399897707616387618156604594696403810830675410067465 "HTTP/2 200 OK"
+11:20:43 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 400 Bad Request"
+11:20:43 [polybot.executor] WARNING:    Error orden de mercado: PolyApiException[status_code=400, error_message={'error': 'not enough balance / allowance: the balance is not enough -> balance: 0, order amount: 10000000'}]
+11:20:43 [polybot.executor] INFO:    Intentando orden límite...
+11:20:44 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 400 Bad Request"
+11:20:44 [polybot.executor] ERROR:    Error límite: PolyApiException[status_code=400, error_message={'error': 'not enough balance / allowance: the balance is not enough -> balance: 0, order amount: 9997400'}]
+11:20:44 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T11:20:44.142797",
+  "market_id": "1746609",
+  "question": "Kosovo vs. T\u00fcrkiye: O/U 1.5",
+  "side": "YES",
+  "amount": 10.0,
+  "price": 0.74,
+  "estimated_prob": 0.82,
+  "edge": 0.07999999999999996,
+  "result": null,
+  "bankroll_after": 100.0
+}
+11:20:44 [polybot.main] INFO:    Orden: ERROR_LIMIT
+11:20:44 [polybot.main] INFO: 
+==================================================
+11:20:44 [polybot.main] INFO: ₿ ESTRATEGIA 2: BTC 15-Min Up/Down
+11:20:44 [polybot.main] INFO: ==================================================
+11:20:44 [polybot.btc15m] INFO: ₿ BTC 15-min: Escaneando oportunidad...
+11:20:44 [polybot.btc15m] INFO:    BTC: $66,980 | 1m: -0.044% | 5m: -0.023% | Dir: DOWN
+11:20:45 [polybot.btc15m] INFO:    Mercado: Bitcoin Up or Down - April 1, 12:10PM-12:15PM ET
+11:20:45 [polybot.btc15m] INFO:    🎯 SEÑAL DOWN! Edge: 40.5% | Conf: 90.0% | Apuesta: $8.00
+11:20:45 [polybot.btc15m] INFO:    💰 [LIVE] Apuesta BTC real: $8.00 DOWN
+11:20:45 [polybot.main] INFO:    ✅ Trade BTC ejecutado: $8.00
+11:20:45 [polybot.main] INFO: 
+==================================================
+11:20:45 [polybot.main] INFO: 👥 ESTRATEGIA 3: Copy Trading
+11:20:45 [polybot.main] INFO: ==================================================
+11:20:45 [polybot.copytrading] INFO: 👥 Copy Trading: Buscando trades para copiar...
+11:20:49 [polybot.copytrading] INFO:    No se encontraron traders via API. Esto es normal si la API de leaderboard cambió.
+11:20:49 [polybot.copytrading] INFO:    No se encontraron traders top en esta sesión
+11:20:49 [polybot.main] INFO: 
+==================================================
+11:20:49 [polybot.main] INFO: ⚖️ ESTRATEGIA 4: Arbitraje YES+NO
+11:20:49 [polybot.main] INFO: ==================================================
+11:20:49 [polybot.arbitrage] INFO: ⚖️ Arbitraje: Escaneando oportunidades...
+11:20:49 [polybot.arbitrage] INFO:    No hay oportunidades de arbitraje ahora
+11:20:49 [polybot.main] INFO: 
+============================================================
+11:20:49 [polybot.main] INFO: 📋 RESUMEN DEL CICLO
+11:20:49 [polybot.main] INFO: ============================================================
+11:20:49 [polybot.main] INFO: 📋 RESUMEN DE ÓRDENES
+==================================================
+
+1. [LIVE] NO $10.00
+   Mercado: LoL: Team Insidious vs Gamespace Mediterranean College 
+   Precio: $0.130 | Edge: 67.0% | Estado: ERROR_LIMIT
+
+2. [LIVE] YES $10.00
+   Mercado: Kosovo vs. Türkiye: O/U 1.5
+   Precio: $0.740 | Edge: 8.0% | Estado: ERROR_LIMIT
+
+==================================================
+Total órdenes: 2
+Bankroll: $100.00
+11:20:49 [polybot.main] INFO: ₿ BTC 15-min: 0 trades | Win: 0 | Loss: 0 | WR: 0% | P&L: $+0.00
+11:20:49 [polybot.main] INFO: 👥 Copy Trading: 0 trades copiados | Traders monitoreados: 0
+11:20:49 [polybot.main] INFO: ⚖️ Arbitraje: 0 oportunidades | Trades: 0 | Profit total: $0.0000
+11:20:49 [polybot.main] INFO: 💰 Bankroll: $100.00 | Total trades: 1
+11:20:49 [polybot.main] INFO: ============================================================
+11:20:49 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260331_1120.json
+11:36:31 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+11:36:31 [polybot.main] WARNING:    MODO LIVE ACTIVADO - DINERO REAL
+11:36:31 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+11:36:31 [polybot.main] INFO: 🤖 PolyBot MULTI-ESTRATEGIA iniciado
+11:36:31 [polybot.main] INFO:    Capital inicial: $100.00
+11:36:31 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+11:36:31 [polybot.main] INFO:    Edge mínimo: 5%
+11:36:31 [polybot.main] INFO:    Kelly fracción: 0.5
+11:36:31 [polybot.main] INFO:    Escaneo cada: 15 min
+11:36:31 [polybot.main] INFO:    Estrategias activas:
+11:36:31 [polybot.main] INFO:      1. IA Value Bets (análisis con Claude)
+11:36:31 [polybot.main] INFO:      2. BTC 15-min Up/Down (momentum)
+11:36:31 [polybot.main] INFO:      3. Copy Trading (copiar traders top)
+11:36:31 [polybot.main] INFO:      4. Arbitraje YES+NO
+11:36:31 [polybot.main] INFO: ============================================================
+11:36:31 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-31 11:36:31
+11:36:31 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+11:36:31 [polybot.main] INFO:    Modo: 💰 LIVE (dinero real)
+11:36:31 [polybot.main] INFO:    Estrategias: IA + BTC 15m + Copy Trading + Arbitraje
+11:36:31 [polybot.main] INFO: ============================================================
+11:36:31 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+11:36:31 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+11:36:32 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:36:33 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:36:34 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:36:35 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:36:35 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:36:36 [polybot.scanner] INFO: ✅ 14 mercados pasan los filtros (de 500 totales)
+11:36:36 [polybot.main] INFO:    Encontrados 14 mercados elegibles
+11:36:36 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+11:36:36 [polybot.analyzer] INFO: 🧠 Analizando: Kosovo vs. Türkiye: O/U 1.5...
+11:36:51 [polybot.analyzer] INFO:    → Edge: 9.0% | Prob: 83.0% | Acción: BET
+11:36:51 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:37:16 [polybot.analyzer] INFO: 🧠 Analizando: LoL: Team Insidious vs Gamespace Mediterranean College Espor...
+11:37:34 [polybot.analyzer] INFO:    → Edge: 14.0% | Prob: 25.0% | Acción: BET
+11:37:34 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:37:59 [polybot.analyzer] INFO: 🧠 Analizando: Czechia vs. Denmark: Both Teams to Score...
+11:38:00 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbV9ekn43DEQ6w5fCRd4"}
+11:38:00 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:38:25 [polybot.analyzer] INFO: 🧠 Analizando: Czechia vs. Denmark: O/U 1.5...
+11:38:25 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbVBWn7bYt3RhZofvRfm"}
+11:38:25 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:38:50 [polybot.analyzer] INFO: 🧠 Analizando: Will Amazon (AMZN) close above $210 end of March?...
+11:39:05 [polybot.analyzer] INFO:    → Edge: 1.3% | Prob: 98.0% | Acción: BET
+11:39:05 [polybot.analyzer] INFO: ✅ Análisis completo: 3 mercados analizados, 3 recomendados para apostar
+11:39:05 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+11:39:05 [polybot.main] INFO:    ✅ APOSTAR $7.87 | Edge: 14.0% | Kelly: 7.9% | Prob estimada: 25.0% vs mercado: 11.0%
+11:39:05 [polybot.main] INFO:    ✅ APOSTAR $10.00 | Edge: 9.0% | Kelly: 17.3% | Prob estimada: 83.0% vs mercado: 74.0%
+11:39:05 [polybot.main] INFO:    ❌ Will Amazon (AMZN) close above $210 end : Edge insuficiente: 1.3% < 5.0%
+11:39:05 [polybot.main] INFO: 🎯 Ejecutando 2 apuestas de valor...
+11:39:07 [polybot.executor] INFO:    Usando proxy wallet: 0x57181175...
+11:39:07 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/auth/api-key "HTTP/2 400 Bad Request"
+11:39:07 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/auth/derive-api-key "HTTP/2 200 OK"
+11:39:07 [polybot.executor] INFO: ✅ Cliente CLOB listo para trading LIVE
+11:39:07 [polybot.executor] INFO: 💰 [LIVE] Ejecutando apuesta REAL:
+   Mercado: LoL: Team Insidious vs Gamespace Mediterranean College Espor
+   Lado: NO
+   Monto: $7.87
+   Precio: $0.110
+11:39:08 [polybot.executor] INFO:    Token ID: 78532189951112438617...
+11:39:08 [polybot.executor] INFO:    Enviando orden de mercado: $7.87...
+11:39:08 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/tick-size?token_id=78532189951112438617005972747094586620181499595797057845541761830371447027045 "HTTP/2 200 OK"
+11:39:08 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/book?token_id=78532189951112438617005972747094586620181499595797057845541761830371447027045 "HTTP/2 200 OK"
+11:39:08 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/neg-risk?token_id=78532189951112438617005972747094586620181499595797057845541761830371447027045 "HTTP/2 200 OK"
+11:39:08 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/fee-rate?token_id=78532189951112438617005972747094586620181499595797057845541761830371447027045 "HTTP/2 200 OK"
+11:39:09 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 400 Bad Request"
+11:39:09 [polybot.executor] WARNING:    Error orden de mercado: PolyApiException[status_code=400, error_message={'error': 'invalid signature'}]
+11:39:09 [polybot.executor] INFO:    Intentando orden límite...
+11:39:09 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 400 Bad Request"
+11:39:09 [polybot.executor] ERROR:    Error límite: PolyApiException[status_code=400, error_message={'error': 'invalid signature'}]
+11:39:09 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T11:39:09.425876",
+  "market_id": "1805487",
+  "question": "LoL: Team Insidious vs Gamespace Mediterranean College Esports - Game 2 Winner",
+  "side": "NO",
+  "amount": 7.87,
+  "price": 0.11,
+  "estimated_prob": 0.25,
+  "edge": 0.14,
+  "result": null,
+  "bankroll_after": 100.0
+}
+11:39:09 [polybot.main] INFO:    Orden: ERROR_LIMIT
+11:39:09 [polybot.executor] INFO: 💰 [LIVE] Ejecutando apuesta REAL:
+   Mercado: Kosovo vs. Türkiye: O/U 1.5
+   Lado: YES
+   Monto: $10.00
+   Precio: $0.740
+11:39:09 [polybot.executor] INFO:    Token ID: 67419374597936330424...
+11:39:09 [polybot.executor] INFO:    Enviando orden de mercado: $10.00...
+11:39:10 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/tick-size?token_id=67419374597936330424086954399897707616387618156604594696403810830675410067465 "HTTP/2 200 OK"
+11:39:10 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/book?token_id=67419374597936330424086954399897707616387618156604594696403810830675410067465 "HTTP/2 200 OK"
+11:39:10 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/neg-risk?token_id=67419374597936330424086954399897707616387618156604594696403810830675410067465 "HTTP/2 200 OK"
+11:39:10 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/fee-rate?token_id=67419374597936330424086954399897707616387618156604594696403810830675410067465 "HTTP/2 200 OK"
+11:39:10 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 400 Bad Request"
+11:39:10 [polybot.executor] WARNING:    Error orden de mercado: PolyApiException[status_code=400, error_message={'error': 'invalid signature'}]
+11:39:10 [polybot.executor] INFO:    Intentando orden límite...
+11:39:11 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 400 Bad Request"
+11:39:11 [polybot.executor] ERROR:    Error límite: PolyApiException[status_code=400, error_message={'error': 'invalid signature'}]
+11:39:11 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T11:39:11.023525",
+  "market_id": "1746609",
+  "question": "Kosovo vs. T\u00fcrkiye: O/U 1.5",
+  "side": "YES",
+  "amount": 10.0,
+  "price": 0.74,
+  "estimated_prob": 0.83,
+  "edge": 0.08999999999999997,
+  "result": null,
+  "bankroll_after": 100.0
+}
+11:39:11 [polybot.main] INFO:    Orden: ERROR_LIMIT
+11:39:11 [polybot.main] INFO: 
+==================================================
+11:39:11 [polybot.main] INFO: ₿ ESTRATEGIA 2: BTC 15-Min Up/Down
+11:39:11 [polybot.main] INFO: ==================================================
+11:39:11 [polybot.btc15m] INFO: ₿ BTC 15-min: Escaneando oportunidad...
+11:39:11 [polybot.btc15m] INFO:    BTC: $67,287 | 1m: -0.045% | 5m: +0.458% | Dir: DOWN
+11:39:11 [polybot.btc15m] INFO:    Mercado: Bitcoin Up or Down - April 1, 12:30PM-12:35PM ET
+11:39:11 [polybot.btc15m] INFO:    Sin señal clara, esperando...
+11:39:11 [polybot.main] INFO: 
+==================================================
+11:39:11 [polybot.main] INFO: 👥 ESTRATEGIA 3: Copy Trading
+11:39:11 [polybot.main] INFO: ==================================================
+11:39:11 [polybot.copytrading] INFO: 👥 Copy Trading: Buscando trades para copiar...
+11:39:16 [polybot.copytrading] INFO:    No se encontraron traders via API. Esto es normal si la API de leaderboard cambió.
+11:39:16 [polybot.copytrading] INFO:    No se encontraron traders top en esta sesión
+11:39:16 [polybot.main] INFO: 
+==================================================
+11:39:16 [polybot.main] INFO: ⚖️ ESTRATEGIA 4: Arbitraje YES+NO
+11:39:16 [polybot.main] INFO: ==================================================
+11:39:16 [polybot.arbitrage] INFO: ⚖️ Arbitraje: Escaneando oportunidades...
+11:39:16 [polybot.arbitrage] INFO:    No hay oportunidades de arbitraje ahora
+11:39:16 [polybot.main] INFO: 
+============================================================
+11:39:16 [polybot.main] INFO: 📋 RESUMEN DEL CICLO
+11:39:16 [polybot.main] INFO: ============================================================
+11:39:16 [polybot.main] INFO: 📋 RESUMEN DE ÓRDENES
+==================================================
+
+1. [LIVE] NO $7.87
+   Mercado: LoL: Team Insidious vs Gamespace Mediterranean College 
+   Precio: $0.110 | Edge: 14.0% | Estado: ERROR_LIMIT
+
+2. [LIVE] YES $10.00
+   Mercado: Kosovo vs. Türkiye: O/U 1.5
+   Precio: $0.740 | Edge: 9.0% | Estado: ERROR_LIMIT
+
+==================================================
+Total órdenes: 2
+Bankroll: $100.00
+11:39:16 [polybot.main] INFO: ₿ BTC 15-min: 0 trades | Win: 0 | Loss: 0 | WR: 0% | P&L: $+0.00
+11:39:16 [polybot.main] INFO: 👥 Copy Trading: 0 trades copiados | Traders monitoreados: 0
+11:39:16 [polybot.main] INFO: ⚖️ Arbitraje: 0 oportunidades | Trades: 0 | Profit total: $0.0000
+11:39:16 [polybot.main] INFO: 💰 Bankroll: $100.00 | Total trades: 0
+11:39:16 [polybot.main] INFO: ============================================================
+11:39:16 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260331_1139.json
+11:43:54 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+11:43:54 [polybot.main] WARNING:    MODO LIVE ACTIVADO - DINERO REAL
+11:43:54 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+11:43:54 [polybot.main] INFO: 🤖 PolyBot MULTI-ESTRATEGIA iniciado
+11:43:54 [polybot.main] INFO:    Capital inicial: $100.00
+11:43:54 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+11:43:54 [polybot.main] INFO:    Edge mínimo: 5%
+11:43:54 [polybot.main] INFO:    Kelly fracción: 0.5
+11:43:54 [polybot.main] INFO:    Escaneo cada: 15 min
+11:43:54 [polybot.main] INFO:    Estrategias activas:
+11:43:54 [polybot.main] INFO:      1. IA Value Bets (análisis con Claude)
+11:43:54 [polybot.main] INFO:      2. BTC 15-min Up/Down (momentum)
+11:43:54 [polybot.main] INFO:      3. Copy Trading (copiar traders top)
+11:43:54 [polybot.main] INFO:      4. Arbitraje YES+NO
+11:43:54 [polybot.main] INFO: ============================================================
+11:43:54 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-31 11:43:54
+11:43:54 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+11:43:54 [polybot.main] INFO:    Modo: 💰 LIVE (dinero real)
+11:43:54 [polybot.main] INFO:    Estrategias: IA + BTC 15m + Copy Trading + Arbitraje
+11:43:54 [polybot.main] INFO: ============================================================
+11:43:54 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+11:43:54 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+11:43:55 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:43:56 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:43:57 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:43:58 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:43:58 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:43:59 [polybot.scanner] INFO: ✅ 16 mercados pasan los filtros (de 500 totales)
+11:43:59 [polybot.main] INFO:    Encontrados 16 mercados elegibles
+11:43:59 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+11:43:59 [polybot.analyzer] INFO: 🧠 Analizando: Counter-Strike: HAVU vs Liquid (BO3) - DraculaN Playoffs...
+11:43:59 [polybot.analyzer] ERROR: Error Claude API (400): {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."},"request_id":"req_011CZbVcA8M1QbVJWWanjBg2"}
+11:43:59 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:44:24 [polybot.analyzer] INFO: 🧠 Analizando: LoL: G2 NORD vs BIG (BO3) - EMEA Masters Playoffs...
+11:44:25 [polybot.analyzer] ERROR: Error Claude API (400): {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."},"request_id":"req_011CZbVe2HrsXjbZPYvfirAw"}
+11:44:25 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:44:50 [polybot.analyzer] INFO: 🧠 Analizando: Will AA Argentinos Juniors win on 2026-03-31?...
+11:44:50 [polybot.analyzer] ERROR: Error Claude API (400): {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."},"request_id":"req_011CZbVftmEBTU3zVuteaF4J"}
+11:44:50 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:45:15 [polybot.analyzer] INFO: 🧠 Analizando: Will South Africa vs. Panama end in a draw?...
+11:45:31 [polybot.analyzer] INFO:    → Edge: 3.5% | Prob: 32.0% | Acción: BET
+11:45:31 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:45:35 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260331_1145.json
+11:45:44 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+11:45:44 [polybot.main] WARNING:    MODO LIVE ACTIVADO - DINERO REAL
+11:45:44 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+11:45:44 [polybot.main] INFO: 🤖 PolyBot MULTI-ESTRATEGIA iniciado
+11:45:44 [polybot.main] INFO:    Capital inicial: $100.00
+11:45:44 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+11:45:44 [polybot.main] INFO:    Edge mínimo: 5%
+11:45:44 [polybot.main] INFO:    Kelly fracción: 0.5
+11:45:44 [polybot.main] INFO:    Escaneo cada: 15 min
+11:45:44 [polybot.main] INFO:    Estrategias activas:
+11:45:44 [polybot.main] INFO:      1. IA Value Bets (análisis con Claude)
+11:45:44 [polybot.main] INFO:      2. BTC 15-min Up/Down (momentum)
+11:45:44 [polybot.main] INFO:      3. Copy Trading (copiar traders top)
+11:45:44 [polybot.main] INFO:      4. Arbitraje YES+NO
+11:45:44 [polybot.main] INFO: ============================================================
+11:45:44 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-31 11:45:44
+11:45:44 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+11:45:44 [polybot.main] INFO:    Modo: 💰 LIVE (dinero real)
+11:45:44 [polybot.main] INFO:    Estrategias: IA + BTC 15m + Copy Trading + Arbitraje
+11:45:44 [polybot.main] INFO: ============================================================
+11:45:44 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+11:45:44 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+11:45:44 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:45:45 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:45:45 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:45:46 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:45:47 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:45:47 [polybot.scanner] INFO: ✅ 17 mercados pasan los filtros (de 500 totales)
+11:45:47 [polybot.main] INFO:    Encontrados 17 mercados elegibles
+11:45:47 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+11:45:47 [polybot.analyzer] INFO: 🧠 Analizando: Counter-Strike: HAVU vs Liquid (BO3) - DraculaN Playoffs...
+11:46:00 [polybot.analyzer] INFO:    → Edge: -74.5% | Prob: 15.0% | Acción: BET
+11:46:00 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:46:25 [polybot.analyzer] INFO: 🧠 Analizando: LoL: G2 NORD vs BIG (BO3) - EMEA Masters Playoffs...
+11:46:26 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbVnxFmhQMMgi8gW3HT1"}
+11:46:26 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:46:51 [polybot.analyzer] INFO: 🧠 Analizando: Will AA Argentinos Juniors win on 2026-03-31?...
+11:47:04 [polybot.analyzer] INFO:    → Edge: 4.5% | Prob: 52.0% | Acción: BET
+11:47:04 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:47:29 [polybot.analyzer] INFO: 🧠 Analizando: Will South Africa vs. Panama end in a draw?...
+11:47:29 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbVsf2aEQDW9EVxowZ2h"}
+11:47:29 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:47:54 [polybot.analyzer] INFO: 🧠 Analizando: Czechia vs. Denmark: Both Teams to Score...
+11:48:19 [polybot.analyzer] INFO:    → Edge: 17.5% | Prob: 72.0% | Acción: BET
+11:48:19 [polybot.analyzer] INFO: ✅ Análisis completo: 3 mercados analizados, 3 recomendados para apostar
+11:48:19 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+11:48:19 [polybot.main] INFO:    ✅ APOSTAR $10.00 | Edge: 17.5% | Kelly: 19.2% | Prob estimada: 72.0% vs mercado: 54.5%
+11:48:19 [polybot.main] INFO:    ❌ Will AA Argentinos Juniors win on 2026-0: Edge insuficiente: 4.5% < 5.0%
+11:48:19 [polybot.main] INFO:    ❌ Counter-Strike: HAVU vs Liquid (BO3) - D: Edge insuficiente: -74.5% < 5.0%
+11:48:19 [polybot.main] INFO: 🎯 Ejecutando 1 apuestas de valor...
+11:48:21 [polybot.executor] INFO:    Usando proxy wallet: 0x5718117523...
+11:48:22 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/auth/api-key "HTTP/2 400 Bad Request"
+11:48:22 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/auth/derive-api-key "HTTP/2 200 OK"
+11:48:22 [polybot.executor] INFO: ✅ Cliente CLOB listo para trading LIVE
+11:48:22 [polybot.executor] INFO: 💰 [LIVE] Ejecutando apuesta REAL:
+   Mercado: Czechia vs. Denmark: Both Teams to Score
+   Lado: YES
+   Monto: $10.00
+   Precio: $0.545
+11:48:22 [polybot.executor] INFO:    Token ID: 25290055939138362888...
+11:48:22 [polybot.executor] INFO:    Enviando orden de mercado: $10.00...
+11:48:23 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/tick-size?token_id=25290055939138362888420456753363366570142649952220013049762716686835388459029 "HTTP/2 200 OK"
+11:48:23 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/book?token_id=25290055939138362888420456753363366570142649952220013049762716686835388459029 "HTTP/2 200 OK"
+11:48:23 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/neg-risk?token_id=25290055939138362888420456753363366570142649952220013049762716686835388459029 "HTTP/2 200 OK"
+11:48:24 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/fee-rate?token_id=25290055939138362888420456753363366570142649952220013049762716686835388459029 "HTTP/2 200 OK"
+11:48:24 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 400 Bad Request"
+11:48:24 [polybot.executor] WARNING:    Error orden de mercado: PolyApiException[status_code=400, error_message={'error': 'invalid signature'}]
+11:48:24 [polybot.executor] INFO:    Intentando orden límite...
+11:48:24 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 400 Bad Request"
+11:48:24 [polybot.executor] ERROR:    Error límite: PolyApiException[status_code=400, error_message={'error': 'invalid signature'}]
+11:48:24 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T11:48:24.703655",
+  "market_id": "1746608",
+  "question": "Czechia vs. Denmark: Both Teams to Score",
+  "side": "YES",
+  "amount": 10.0,
+  "price": 0.545,
+  "estimated_prob": 0.72,
+  "edge": 0.17499999999999993,
+  "result": null,
+  "bankroll_after": 100.0
+}
+11:48:24 [polybot.main] INFO:    Orden: ERROR_LIMIT
+11:48:24 [polybot.main] INFO: 
+==================================================
+11:48:24 [polybot.main] INFO: ₿ ESTRATEGIA 2: BTC 15-Min Up/Down
+11:48:24 [polybot.main] INFO: ==================================================
+11:48:24 [polybot.btc15m] INFO: ₿ BTC 15-min: Escaneando oportunidad...
+11:48:25 [polybot.btc15m] INFO:    BTC: $67,558 | 1m: -0.071% | 5m: -0.322% | Dir: DOWN
+11:48:25 [polybot.btc15m] INFO:    Mercado: Bitcoin Up or Down - April 1, 12:35PM-12:40PM ET
+11:48:25 [polybot.btc15m] INFO:    🎯 SEÑAL DOWN! Edge: 40.5% | Conf: 90.0% | Apuesta: $8.00
+11:48:25 [polybot.btc15m] INFO:    💰 [LIVE] Apuesta BTC real: $8.00 DOWN
+11:48:25 [polybot.main] INFO:    ✅ Trade BTC ejecutado: $8.00
+11:48:25 [polybot.main] INFO: 
+==================================================
+11:48:25 [polybot.main] INFO: 👥 ESTRATEGIA 3: Copy Trading
+11:48:25 [polybot.main] INFO: ==================================================
+11:48:25 [polybot.copytrading] INFO: 👥 Copy Trading: Buscando trades para copiar...
+11:48:30 [polybot.copytrading] INFO:    No se encontraron traders via API. Esto es normal si la API de leaderboard cambió.
+11:48:30 [polybot.copytrading] INFO:    No se encontraron traders top en esta sesión
+11:48:30 [polybot.main] INFO: 
+==================================================
+11:48:30 [polybot.main] INFO: ⚖️ ESTRATEGIA 4: Arbitraje YES+NO
+11:48:30 [polybot.main] INFO: ==================================================
+11:48:30 [polybot.arbitrage] INFO: ⚖️ Arbitraje: Escaneando oportunidades...
+11:48:30 [polybot.arbitrage] INFO:    No hay oportunidades de arbitraje ahora
+11:48:30 [polybot.main] INFO: 
+============================================================
+11:48:30 [polybot.main] INFO: 📋 RESUMEN DEL CICLO
+11:48:30 [polybot.main] INFO: ============================================================
+11:48:30 [polybot.main] INFO: 📋 RESUMEN DE ÓRDENES
+==================================================
+
+1. [LIVE] YES $10.00
+   Mercado: Czechia vs. Denmark: Both Teams to Score
+   Precio: $0.545 | Edge: 17.5% | Estado: ERROR_LIMIT
+
+==================================================
+Total órdenes: 1
+Bankroll: $100.00
+11:48:30 [polybot.main] INFO: ₿ BTC 15-min: 0 trades | Win: 0 | Loss: 0 | WR: 0% | P&L: $+0.00
+11:48:30 [polybot.main] INFO: 👥 Copy Trading: 0 trades copiados | Traders monitoreados: 0
+11:48:30 [polybot.main] INFO: ⚖️ Arbitraje: 0 oportunidades | Trades: 0 | Profit total: $0.0000
+11:48:30 [polybot.main] INFO: 💰 Bankroll: $100.00 | Total trades: 1
+11:48:30 [polybot.main] INFO: ============================================================
+11:48:30 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260331_1148.json
+11:56:33 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+11:56:33 [polybot.main] WARNING:    MODO LIVE ACTIVADO - DINERO REAL
+11:56:33 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+11:56:33 [polybot.main] INFO: 🤖 PolyBot MULTI-ESTRATEGIA iniciado
+11:56:33 [polybot.main] INFO:    Capital inicial: $100.00
+11:56:33 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+11:56:33 [polybot.main] INFO:    Edge mínimo: 5%
+11:56:33 [polybot.main] INFO:    Kelly fracción: 0.5
+11:56:33 [polybot.main] INFO:    Escaneo cada: 15 min
+11:56:33 [polybot.main] INFO:    Estrategias activas:
+11:56:33 [polybot.main] INFO:      1. IA Value Bets (análisis con Claude)
+11:56:33 [polybot.main] INFO:      2. BTC 15-min Up/Down (momentum)
+11:56:33 [polybot.main] INFO:      3. Copy Trading (copiar traders top)
+11:56:33 [polybot.main] INFO:      4. Arbitraje YES+NO
+11:56:33 [polybot.main] INFO: ============================================================
+11:56:33 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-31 11:56:33
+11:56:33 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+11:56:33 [polybot.main] INFO:    Modo: 💰 LIVE (dinero real)
+11:56:33 [polybot.main] INFO:    Estrategias: IA + BTC 15m + Copy Trading + Arbitraje
+11:56:33 [polybot.main] INFO: ============================================================
+11:56:33 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+11:56:33 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+11:56:33 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:56:34 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:56:35 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:56:36 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:56:36 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+11:56:37 [polybot.scanner] INFO: ✅ 13 mercados pasan los filtros (de 500 totales)
+11:56:37 [polybot.main] INFO:    Encontrados 13 mercados elegibles
+11:56:37 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+11:56:37 [polybot.analyzer] INFO: 🧠 Analizando: Will South Africa vs. Panama end in a draw?...
+11:56:50 [polybot.analyzer] ERROR: Error parseando análisis: Expecting value: line 6 column 22 (char 361)
+11:56:50 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:57:15 [polybot.analyzer] INFO: 🧠 Analizando: Sweden vs. Poland: Both Teams to Score...
+11:57:37 [polybot.analyzer] INFO:    → Edge: 15.5% | Prob: 70.0% | Acción: BET
+11:57:37 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:58:02 [polybot.analyzer] INFO: 🧠 Analizando: Czechia vs. Denmark: O/U 1.5...
+11:58:02 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbWgH2oSRGGQxY48HkAq"}
+11:58:02 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:58:27 [polybot.analyzer] INFO: 🧠 Analizando: Will the price of Ethereum be above $2,200 on April 1?...
+11:58:27 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbWi958GGdPqzMebMm6X"}
+11:58:27 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+11:58:52 [polybot.analyzer] INFO: 🧠 Analizando: Will Amazon (AMZN) close above $210 end of March?...
+11:59:04 [polybot.analyzer] INFO:    → Edge: -76.5% | Prob: 5.0% | Acción: BET
+11:59:04 [polybot.analyzer] INFO: ✅ Análisis completo: 2 mercados analizados, 2 recomendados para apostar
+11:59:04 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+11:59:04 [polybot.main] INFO:    ✅ APOSTAR $10.00 | Edge: 15.5% | Kelly: 17.0% | Prob estimada: 70.0% vs mercado: 54.5%
+11:59:04 [polybot.main] INFO:    ❌ Will Amazon (AMZN) close above $210 end : Edge insuficiente: -76.5% < 5.0%
+11:59:04 [polybot.main] INFO: 🎯 Ejecutando 1 apuestas de valor...
+11:59:09 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/auth/api-key "HTTP/2 400 Bad Request"
+11:59:09 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/auth/derive-api-key "HTTP/2 200 OK"
+11:59:09 [polybot.executor] INFO: ✅ Cliente CLOB listo para trading LIVE
+11:59:09 [polybot.executor] INFO: 💰 [LIVE] Ejecutando apuesta REAL:
+   Mercado: Sweden vs. Poland: Both Teams to Score
+   Lado: YES
+   Monto: $10.00
+   Precio: $0.545
+11:59:09 [polybot.executor] INFO:    Token ID: 64382713509399774835...
+11:59:09 [polybot.executor] INFO:    Enviando orden de mercado: $10.00...
+11:59:10 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/tick-size?token_id=64382713509399774835038930146283654721112027524528675190435888767987110887218 "HTTP/2 200 OK"
+11:59:10 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/book?token_id=64382713509399774835038930146283654721112027524528675190435888767987110887218 "HTTP/2 200 OK"
+11:59:10 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/neg-risk?token_id=64382713509399774835038930146283654721112027524528675190435888767987110887218 "HTTP/2 200 OK"
+11:59:10 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/fee-rate?token_id=64382713509399774835038930146283654721112027524528675190435888767987110887218 "HTTP/2 200 OK"
+11:59:11 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 400 Bad Request"
+11:59:11 [polybot.executor] WARNING:    Error orden de mercado: PolyApiException[status_code=400, error_message={'error': 'not enough balance / allowance: the balance is not enough -> balance: 0, order amount: 10000000'}]
+11:59:11 [polybot.executor] INFO:    Intentando orden límite...
+11:59:11 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 400 Bad Request"
+11:59:11 [polybot.executor] ERROR:    Error límite: PolyApiException[status_code=400, error_message={'error': 'not enough balance / allowance: the balance is not enough -> balance: 0, order amount: 10087000'}]
+11:59:11 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T11:59:11.366296",
+  "market_id": "1746619",
+  "question": "Sweden vs. Poland: Both Teams to Score",
+  "side": "YES",
+  "amount": 10.0,
+  "price": 0.545,
+  "estimated_prob": 0.7,
+  "edge": 0.15499999999999992,
+  "result": null,
+  "bankroll_after": 100.0
+}
+11:59:11 [polybot.main] INFO:    Orden: ERROR_LIMIT
+11:59:11 [polybot.main] INFO: 
+==================================================
+11:59:11 [polybot.main] INFO: ₿ ESTRATEGIA 2: BTC 15-Min Up/Down
+11:59:11 [polybot.main] INFO: ==================================================
+11:59:11 [polybot.btc15m] INFO: ₿ BTC 15-min: Escaneando oportunidad...
+11:59:11 [polybot.btc15m] INFO:    BTC: $67,616 | 1m: +0.019% | 5m: -0.014% | Dir: UP
+11:59:12 [polybot.btc15m] INFO:    Mercado: Bitcoin Up or Down - April 1, 12:50PM-12:55PM ET
+11:59:12 [polybot.btc15m] INFO:    Sin señal clara, esperando...
+11:59:12 [polybot.main] INFO: 
+==================================================
+11:59:12 [polybot.main] INFO: 👥 ESTRATEGIA 3: Copy Trading
+11:59:12 [polybot.main] INFO: ==================================================
+11:59:12 [polybot.copytrading] INFO: 👥 Copy Trading: Buscando trades para copiar...
+11:59:15 [polybot.copytrading] INFO:    No se encontraron traders via API. Esto es normal si la API de leaderboard cambió.
+11:59:15 [polybot.copytrading] INFO:    No se encontraron traders top en esta sesión
+11:59:15 [polybot.main] INFO: 
+==================================================
+11:59:15 [polybot.main] INFO: ⚖️ ESTRATEGIA 4: Arbitraje YES+NO
+11:59:15 [polybot.main] INFO: ==================================================
+11:59:15 [polybot.arbitrage] INFO: ⚖️ Arbitraje: Escaneando oportunidades...
+11:59:16 [polybot.arbitrage] INFO:    No hay oportunidades de arbitraje ahora
+11:59:16 [polybot.main] INFO: 
+============================================================
+11:59:16 [polybot.main] INFO: 📋 RESUMEN DEL CICLO
+11:59:16 [polybot.main] INFO: ============================================================
+11:59:16 [polybot.main] INFO: 📋 RESUMEN DE ÓRDENES
+==================================================
+
+1. [LIVE] YES $10.00
+   Mercado: Sweden vs. Poland: Both Teams to Score
+   Precio: $0.545 | Edge: 15.5% | Estado: ERROR_LIMIT
+
+==================================================
+Total órdenes: 1
+Bankroll: $100.00
+11:59:16 [polybot.main] INFO: ₿ BTC 15-min: 0 trades | Win: 0 | Loss: 0 | WR: 0% | P&L: $+0.00
+11:59:16 [polybot.main] INFO: 👥 Copy Trading: 0 trades copiados | Traders monitoreados: 0
+11:59:16 [polybot.main] INFO: ⚖️ Arbitraje: 0 oportunidades | Trades: 0 | Profit total: $0.0000
+11:59:16 [polybot.main] INFO: 💰 Bankroll: $100.00 | Total trades: 0
+11:59:16 [polybot.main] INFO: ============================================================
+11:59:16 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260331_1159.json
+12:24:05 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+12:24:05 [polybot.main] WARNING:    MODO LIVE ACTIVADO - DINERO REAL
+12:24:05 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+12:24:05 [polybot.main] INFO: 🤖 PolyBot MULTI-ESTRATEGIA iniciado
+12:24:05 [polybot.main] INFO:    Capital inicial: $100.00
+12:24:05 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+12:24:05 [polybot.main] INFO:    Edge mínimo: 5%
+12:24:05 [polybot.main] INFO:    Kelly fracción: 0.5
+12:24:05 [polybot.main] INFO:    Escaneo cada: 15 min
+12:24:05 [polybot.main] INFO:    Estrategias activas:
+12:24:05 [polybot.main] INFO:      1. IA Value Bets (análisis con Claude)
+12:24:05 [polybot.main] INFO:      2. BTC 15-min Up/Down (momentum)
+12:24:05 [polybot.main] INFO:      3. Copy Trading (copiar traders top)
+12:24:05 [polybot.main] INFO:      4. Arbitraje YES+NO
+12:24:05 [polybot.main] INFO: ============================================================
+12:24:05 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-31 12:24:05
+12:24:05 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+12:24:05 [polybot.main] INFO:    Modo: 💰 LIVE (dinero real)
+12:24:05 [polybot.main] INFO:    Estrategias: IA + BTC 15m + Copy Trading + Arbitraje
+12:24:05 [polybot.main] INFO: ============================================================
+12:24:05 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+12:24:05 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+12:24:06 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+12:24:07 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+12:24:07 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+12:24:08 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+12:24:09 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+12:24:10 [polybot.scanner] INFO: ✅ 16 mercados pasan los filtros (de 500 totales)
+12:24:10 [polybot.main] INFO:    Encontrados 16 mercados elegibles
+12:24:10 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+12:24:10 [polybot.analyzer] INFO: 🧠 Analizando: Canadiens vs. Lightning...
+12:24:23 [polybot.analyzer] INFO:    → Edge: 1.5% | Prob: 62.0% | Acción: BET
+12:24:23 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+12:24:48 [polybot.analyzer] INFO: 🧠 Analizando: Will the price of Bitcoin be above $66,000 on April 1?...
+12:25:02 [polybot.analyzer] INFO:    → Edge: 5.0% | Prob: 95.0% | Acción: BET
+12:25:02 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+12:25:27 [polybot.analyzer] INFO: 🧠 Analizando: Will Sweden win on 2026-03-31?...
+12:25:28 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbYmbTCZvvC5ubvG2P4V"}
+12:25:28 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+12:25:53 [polybot.analyzer] INFO: 🧠 Analizando: Czechia vs. Denmark: O/U 1.5...
+12:26:11 [polybot.analyzer] INFO:    → Edge: 10.0% | Prob: 85.0% | Acción: BET
+12:26:11 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+12:26:36 [polybot.analyzer] INFO: 🧠 Analizando: Will South Africa vs. Panama end in a draw?...
+12:26:36 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZbYrefpCx12Vx5SYwkmX"}
+12:26:36 [polybot.analyzer] INFO: ✅ Análisis completo: 3 mercados analizados, 3 recomendados para apostar
+12:26:36 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+12:26:36 [polybot.main] INFO:    ✅ APOSTAR $10.00 | Edge: 10.0% | Kelly: 20.0% | Prob estimada: 85.0% vs mercado: 75.0%
+12:26:36 [polybot.main] INFO:    ❌ Will the price of Bitcoin be above $66,0: Edge insuficiente: 5.0% < 5.0%
+12:26:36 [polybot.main] INFO:    ❌ Canadiens vs. Lightning: Edge insuficiente: 1.5% < 5.0%
+12:26:36 [polybot.main] INFO: 🎯 Ejecutando 1 apuestas de valor...
+12:26:38 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/auth/api-key "HTTP/2 400 Bad Request"
+12:26:38 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/auth/derive-api-key "HTTP/2 200 OK"
+12:26:38 [polybot.executor] INFO: ✅ Cliente CLOB listo para trading LIVE
+12:26:38 [polybot.executor] INFO: 💰 [LIVE] Ejecutando apuesta REAL:
+   Mercado: Czechia vs. Denmark: O/U 1.5
+   Lado: YES
+   Monto: $10.00
+   Precio: $0.750
+12:26:38 [polybot.executor] INFO:    Token ID: 38437232868716064829...
+12:26:38 [polybot.executor] INFO:    Enviando orden de mercado: $10.00...
+12:26:39 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/tick-size?token_id=38437232868716064829474102550384963628940778428863614537167475854225493340099 "HTTP/2 200 OK"
+12:26:39 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/book?token_id=38437232868716064829474102550384963628940778428863614537167475854225493340099 "HTTP/2 200 OK"
+12:26:39 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/neg-risk?token_id=38437232868716064829474102550384963628940778428863614537167475854225493340099 "HTTP/2 200 OK"
+12:26:39 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/fee-rate?token_id=38437232868716064829474102550384963628940778428863614537167475854225493340099 "HTTP/2 200 OK"
+12:26:40 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 200 OK"
+12:26:40 [polybot.executor] INFO:    Respuesta: {'errorMsg': '', 'orderID': '0xc5462cdb297330c8c0a579e9dbe493191156f6b6567719e162e979457447f555', 'takingAmount': '13.157891', 'makingAmount': '9.999997', 'status': 'matched', 'transactionsHashes': ['0x7c934a027154dca0af1317aa3b18c0c65d81901c76b7020d60d113f7b36407cd'], 'success': True}
+12:26:40 [polybot.executor] INFO:    ✅ ¡ORDEN EJECUTADA! ID: 0xc5462cdb297330c8c0a579e9dbe493191156f6b6567719e162e979457447f555
+12:26:40 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T12:26:40.114600",
+  "market_id": "1746604",
+  "question": "Czechia vs. Denmark: O/U 1.5",
+  "side": "YES",
+  "amount": 10.0,
+  "price": 0.75,
+  "estimated_prob": 0.85,
+  "edge": 0.09999999999999998,
+  "result": null,
+  "bankroll_after": 100.0
+}
+12:26:40 [polybot.main] INFO:    Orden: EXECUTED
+12:26:40 [polybot.main] INFO: 
+==================================================
+12:26:40 [polybot.main] INFO: ₿ ESTRATEGIA 2: BTC 15-Min Up/Down
+12:26:40 [polybot.main] INFO: ==================================================
+12:26:40 [polybot.btc15m] INFO: ₿ BTC 15-min: Escaneando oportunidad...
+12:26:40 [polybot.btc15m] INFO:    BTC: $68,085 | 1m: -0.087% | 5m: -0.284% | Dir: DOWN
+12:26:41 [polybot.btc15m] INFO:    Mercado: Bitcoin Up or Down - April 1, 1:15PM-1:30PM ET
+12:26:41 [polybot.btc15m] INFO:    🎯 SEÑAL DOWN! Edge: 40.0% | Conf: 90.0% | Apuesta: $8.00
+12:26:41 [polybot.btc15m] INFO:    💰 [LIVE] Apuesta BTC real: $8.00 DOWN
+12:26:41 [polybot.main] INFO:    ✅ Trade BTC ejecutado: $8.00
+12:26:41 [polybot.main] INFO: 
+==================================================
+12:26:41 [polybot.main] INFO: 👥 ESTRATEGIA 3: Copy Trading
+12:26:41 [polybot.main] INFO: ==================================================
+12:26:41 [polybot.copytrading] INFO: 👥 Copy Trading: Buscando trades para copiar...
+12:26:45 [polybot.copytrading] INFO:    No se encontraron traders via API. Esto es normal si la API de leaderboard cambió.
+12:26:45 [polybot.copytrading] INFO:    No se encontraron traders top en esta sesión
+12:26:45 [polybot.main] INFO: 
+==================================================
+12:26:45 [polybot.main] INFO: ⚖️ ESTRATEGIA 4: Arbitraje YES+NO
+12:26:45 [polybot.main] INFO: ==================================================
+12:26:45 [polybot.arbitrage] INFO: ⚖️ Arbitraje: Escaneando oportunidades...
+12:26:45 [polybot.arbitrage] INFO:    No hay oportunidades de arbitraje ahora
+12:26:45 [polybot.main] INFO: 
+============================================================
+12:26:45 [polybot.main] INFO: 📋 RESUMEN DEL CICLO
+12:26:45 [polybot.main] INFO: ============================================================
+12:26:45 [polybot.main] INFO: 📋 RESUMEN DE ÓRDENES
+==================================================
+
+1. [LIVE] YES $10.00
+   Mercado: Czechia vs. Denmark: O/U 1.5
+   Precio: $0.750 | Edge: 10.0% | Estado: EXECUTED
+
+==================================================
+Total órdenes: 1
+Bankroll: $100.00
+12:26:45 [polybot.main] INFO: ₿ BTC 15-min: 0 trades | Win: 0 | Loss: 0 | WR: 0% | P&L: $+0.00
+12:26:45 [polybot.main] INFO: 👥 Copy Trading: 0 trades copiados | Traders monitoreados: 0
+12:26:45 [polybot.main] INFO: ⚖️ Arbitraje: 0 oportunidades | Trades: 0 | Profit total: $0.0000
+12:26:45 [polybot.main] INFO: 💰 Bankroll: $100.00 | Total trades: 2
+12:26:45 [polybot.main] INFO: ============================================================
+12:26:45 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260331_1226.json
+12:57:20 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+12:57:20 [polybot.main] WARNING:    MODO LIVE ACTIVADO - DINERO REAL
+12:57:20 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+12:57:20 [polybot.main] INFO: 🤖 PolyBot MULTI-ESTRATEGIA iniciado
+12:57:20 [polybot.main] INFO:    Capital inicial: $100.00
+12:57:20 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+12:57:20 [polybot.main] INFO:    Edge mínimo: 5%
+12:57:20 [polybot.main] INFO:    Kelly fracción: 0.5
+12:57:20 [polybot.main] INFO:    Escaneo cada: 15 min
+12:57:20 [polybot.main] INFO:    Estrategias activas:
+12:57:20 [polybot.main] INFO:      1. IA Value Bets (análisis con Claude)
+12:57:20 [polybot.main] INFO:      2. BTC 15-min Up/Down (momentum)
+12:57:20 [polybot.main] INFO:      3. Copy Trading (copiar traders top)
+12:57:20 [polybot.main] INFO:      4. Arbitraje YES+NO
+12:57:20 [polybot.main] INFO: ============================================================
+12:57:20 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-31 12:57:20
+12:57:20 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+12:57:20 [polybot.main] INFO:    Modo: 💰 LIVE (dinero real)
+12:57:20 [polybot.main] INFO:    Estrategias: IA + BTC 15m + Copy Trading + Arbitraje
+12:57:20 [polybot.main] INFO: ============================================================
+12:57:20 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+12:57:20 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+12:57:20 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+12:57:21 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+12:57:22 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+12:57:23 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+12:57:24 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+12:57:24 [polybot.scanner] INFO: ✅ 14 mercados pasan los filtros (de 500 totales)
+12:57:24 [polybot.main] INFO:    Encontrados 14 mercados elegibles
+12:57:24 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+12:57:24 [polybot.analyzer] INFO: 🧠 Analizando: Counter-Strike: M80 vs Aurora Gaming (BO3) - DraculaN Playof...
+12:57:28 [polybot.analyzer] INFO:    → Edge: 14.0% | Prob: 35.0% | Acción: BET
+12:57:28 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+12:57:53 [polybot.analyzer] INFO: 🧠 Analizando: Czechia vs. Denmark: O/U 1.5...
+12:57:57 [polybot.analyzer] INFO:    → Edge: 3.0% | Prob: 28.0% | Acción: SKIP
+12:57:57 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+12:58:22 [polybot.analyzer] INFO: 🧠 Analizando: Spread: Red Wings (-1.5)...
+12:58:27 [polybot.analyzer] INFO:    → Edge: 3.5% | Prob: 32.0% | Acción: BET
+12:58:27 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+12:58:52 [polybot.analyzer] INFO: 🧠 Analizando: Will Amazon (AMZN) close above $210 end of March?...
+12:58:55 [polybot.analyzer] INFO:    → Edge: 8.5% | Prob: 85.0% | Acción: BET
+12:58:55 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+12:59:20 [polybot.analyzer] INFO: 🧠 Analizando: Counter-Strike: Z7 Esports vs WAZABI (BO1) - Parken Challeng...
+12:59:26 [polybot.analyzer] INFO:    → Edge: 14.0% | Prob: 25.0% | Acción: SKIP
+12:59:26 [polybot.analyzer] INFO: ✅ Análisis completo: 5 mercados analizados, 3 recomendados para apostar
+12:59:26 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+12:59:26 [polybot.main] INFO:    ✅ APOSTAR $7.87 | Edge: 14.0% | Kelly: 7.9% | Prob estimada: 25.0% vs mercado: 11.0%
+12:59:26 [polybot.main] INFO:    ✅ APOSTAR $8.86 | Edge: 14.0% | Kelly: 8.9% | Prob estimada: 35.0% vs mercado: 21.0%
+12:59:26 [polybot.main] INFO:    ✅ APOSTAR $10.00 | Edge: 8.5% | Kelly: 18.1% | Prob estimada: 85.0% vs mercado: 76.5%
+12:59:26 [polybot.main] INFO:    ❌ Spread: Red Wings (-1.5): Edge insuficiente: 3.5% < 5.0%
+12:59:26 [polybot.main] INFO:    ❌ Czechia vs. Denmark: O/U 1.5: Edge insuficiente: 3.0% < 5.0%
+12:59:26 [polybot.main] INFO: 🎯 Ejecutando 3 apuestas de valor...
+12:59:27 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/auth/api-key "HTTP/2 400 Bad Request"
+12:59:27 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/auth/derive-api-key "HTTP/2 200 OK"
+12:59:27 [polybot.executor] INFO: ✅ Cliente CLOB listo para trading LIVE
+12:59:27 [polybot.executor] INFO: 💰 [LIVE] Ejecutando apuesta REAL:
+   Mercado: Counter-Strike: Z7 Esports vs WAZABI (BO1) - Parken Challeng
+   Lado: YES
+   Monto: $7.87
+   Precio: $0.110
+12:59:28 [polybot.executor] INFO:    Token ID: 48683109246382830369...
+12:59:28 [polybot.executor] INFO:    Enviando orden de mercado: $7.87...
+12:59:28 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/tick-size?token_id=48683109246382830369308307630688605424078851993583214294960705546688601446694 "HTTP/2 200 OK"
+12:59:28 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/book?token_id=48683109246382830369308307630688605424078851993583214294960705546688601446694 "HTTP/2 200 OK"
+12:59:28 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/neg-risk?token_id=48683109246382830369308307630688605424078851993583214294960705546688601446694 "HTTP/2 200 OK"
+12:59:28 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/fee-rate?token_id=48683109246382830369308307630688605424078851993583214294960705546688601446694 "HTTP/2 200 OK"
+12:59:29 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 200 OK"
+12:59:29 [polybot.executor] INFO:    Respuesta: {'errorMsg': '', 'orderID': '0x733b0fb9cdaa276fcea84129c3214780d5150440a73d6838783fbd26e2691356', 'takingAmount': '56.214284', 'makingAmount': '7.869999', 'status': 'matched', 'transactionsHashes': ['0xd9305f8a8450c84f0dff36cf553996b92146e518ea32b6e9eefcff76e59e6c80'], 'success': True}
+12:59:29 [polybot.executor] INFO:    ✅ ¡ORDEN EJECUTADA! ID: 0x733b0fb9cdaa276fcea84129c3214780d5150440a73d6838783fbd26e2691356
+12:59:29 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T12:59:29.131614",
+  "market_id": "1773087",
+  "question": "Counter-Strike: Z7 Esports vs WAZABI (BO1) - Parken Challenger Championship Group A",
+  "side": "YES",
+  "amount": 7.87,
+  "price": 0.11,
+  "estimated_prob": 0.25,
+  "edge": 0.14,
+  "result": null,
+  "bankroll_after": 100.0
+}
+12:59:29 [polybot.main] INFO:    Orden: EXECUTED
+12:59:29 [polybot.executor] INFO: 💰 [LIVE] Ejecutando apuesta REAL:
+   Mercado: Counter-Strike: M80 vs Aurora Gaming (BO3) - DraculaN Playof
+   Lado: YES
+   Monto: $8.86
+   Precio: $0.210
+12:59:29 [polybot.executor] INFO:    Token ID: 66619712495712185754...
+12:59:29 [polybot.executor] INFO:    Enviando orden de mercado: $8.86...
+12:59:29 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/tick-size?token_id=66619712495712185754585339241526042618823877713724307983259821078145154658873 "HTTP/2 200 OK"
+12:59:29 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/book?token_id=66619712495712185754585339241526042618823877713724307983259821078145154658873 "HTTP/2 200 OK"
+12:59:30 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/neg-risk?token_id=66619712495712185754585339241526042618823877713724307983259821078145154658873 "HTTP/2 200 OK"
+12:59:30 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/fee-rate?token_id=66619712495712185754585339241526042618823877713724307983259821078145154658873 "HTTP/2 200 OK"
+12:59:30 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 200 OK"
+12:59:30 [polybot.executor] INFO:    Respuesta: {'errorMsg': '', 'orderID': '0x9a46fa1b585fa460f051102fd541d08aee15303def7927fcf38d9dda50f6ed52', 'takingAmount': '38.521738', 'makingAmount': '8.859999', 'status': 'matched', 'transactionsHashes': ['0x2f26f7e56f1aca2d98034eca7ac0a5fb03492e35bde6a62ab2083e0d1b1a79c0'], 'success': True}
+12:59:30 [polybot.executor] INFO:    ✅ ¡ORDEN EJECUTADA! ID: 0x9a46fa1b585fa460f051102fd541d08aee15303def7927fcf38d9dda50f6ed52
+12:59:30 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T12:59:30.534737",
+  "market_id": "1806533",
+  "question": "Counter-Strike: M80 vs Aurora Gaming (BO3) - DraculaN Playoffs",
+  "side": "YES",
+  "amount": 8.86,
+  "price": 0.21,
+  "estimated_prob": 0.35,
+  "edge": 0.13999999999999999,
+  "result": null,
+  "bankroll_after": 100.0
+}
+12:59:30 [polybot.main] INFO:    Orden: EXECUTED
+12:59:30 [polybot.executor] INFO: 💰 [LIVE] Ejecutando apuesta REAL:
+   Mercado: Will Amazon (AMZN) close above $210 end of March?
+   Lado: NO
+   Monto: $10.00
+   Precio: $0.765
+12:59:30 [polybot.executor] INFO:    Token ID: 10310814040054635113...
+12:59:30 [polybot.executor] INFO:    Enviando orden de mercado: $10.00...
+12:59:31 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/tick-size?token_id=103108140400546351131793972772223368742185262770235042895105856266030042645134 "HTTP/2 200 OK"
+12:59:31 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/book?token_id=103108140400546351131793972772223368742185262770235042895105856266030042645134 "HTTP/2 200 OK"
+12:59:31 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/neg-risk?token_id=103108140400546351131793972772223368742185262770235042895105856266030042645134 "HTTP/2 200 OK"
+12:59:31 [httpx] INFO: HTTP Request: GET https://clob.polymarket.com/fee-rate?token_id=103108140400546351131793972772223368742185262770235042895105856266030042645134 "HTTP/2 200 OK"
+12:59:31 [httpx] INFO: HTTP Request: POST https://clob.polymarket.com/order "HTTP/2 200 OK"
+12:59:31 [polybot.executor] INFO:    Respuesta: {'errorMsg': '', 'orderID': '0xbadf01345d5f2d4bd42475e38280900f7ab48a5db00d61bc75d1fb5d902ad076', 'takingAmount': '10.718104', 'makingAmount': '9.999991', 'status': 'matched', 'transactionsHashes': ['0xb51d855430ece7ce84350559b887de0d774ecf41a3154bb039c808911d07b347'], 'success': True}
+12:59:31 [polybot.executor] INFO:    ✅ ¡ORDEN EJECUTADA! ID: 0xbadf01345d5f2d4bd42475e38280900f7ab48a5db00d61bc75d1fb5d902ad076
+12:59:31 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-31T12:59:31.988439",
+  "market_id": "1460675",
+  "question": "Will Amazon (AMZN) close above $210 end of March?",
+  "side": "NO",
+  "amount": 10.0,
+  "price": 0.765,
+  "estimated_prob": 0.85,
+  "edge": 0.08499999999999996,
+  "result": null,
+  "bankroll_after": 100.0
+}
+12:59:31 [polybot.main] INFO:    Orden: EXECUTED
+12:59:31 [polybot.main] INFO: 
+==================================================
+12:59:31 [polybot.main] INFO: ₿ ESTRATEGIA 2: BTC 15-Min Up/Down
+12:59:31 [polybot.main] INFO: ==================================================
+12:59:31 [polybot.btc15m] INFO: ₿ BTC 15-min: Escaneando oportunidad...
+12:59:32 [polybot.btc15m] INFO:    BTC: $67,505 | 1m: +0.035% | 5m: -0.054% | Dir: UP
+12:59:32 [polybot.btc15m] INFO:    Mercado: Bitcoin Up or Down - April 1, 1:50PM-1:55PM ET
+12:59:32 [polybot.btc15m] INFO:    Sin señal clara, esperando...
+12:59:32 [polybot.main] INFO: 
+==================================================
+12:59:32 [polybot.main] INFO: 👥 ESTRATEGIA 3: Copy Trading
+12:59:32 [polybot.main] INFO: ==================================================
+12:59:32 [polybot.copytrading] INFO: 👥 Copy Trading: Buscando trades para copiar...
+12:59:36 [polybot.copytrading] INFO:    No se encontraron traders via API. Esto es normal si la API de leaderboard cambió.
+12:59:36 [polybot.copytrading] INFO:    No se encontraron traders top en esta sesión
+12:59:36 [polybot.main] INFO: 
+==================================================
+12:59:36 [polybot.main] INFO: ⚖️ ESTRATEGIA 4: Arbitraje YES+NO
+12:59:36 [polybot.main] INFO: ==================================================
+12:59:36 [polybot.arbitrage] INFO: ⚖️ Arbitraje: Escaneando oportunidades...
+12:59:37 [polybot.arbitrage] INFO:    No hay oportunidades de arbitraje ahora
+12:59:37 [polybot.main] INFO: 
+============================================================
+12:59:37 [polybot.main] INFO: 📋 RESUMEN DEL CICLO
+12:59:37 [polybot.main] INFO: ============================================================
+12:59:37 [polybot.main] INFO: 📋 RESUMEN DE ÓRDENES
+==================================================
+
+1. [LIVE] YES $7.87
+   Mercado: Counter-Strike: Z7 Esports vs WAZABI (BO1) - Parken Cha
+   Precio: $0.110 | Edge: 14.0% | Estado: EXECUTED
+
+2. [LIVE] YES $8.86
+   Mercado: Counter-Strike: M80 vs Aurora Gaming (BO3) - DraculaN P
+   Precio: $0.210 | Edge: 14.0% | Estado: EXECUTED
+
+3. [LIVE] NO $10.00
+   Mercado: Will Amazon (AMZN) close above $210 end of March?
+   Precio: $0.765 | Edge: 8.5% | Estado: EXECUTED
+
+==================================================
+Total órdenes: 3
+Bankroll: $100.00
+12:59:37 [polybot.main] INFO: ₿ BTC 15-min: 0 trades | Win: 0 | Loss: 0 | WR: 0% | P&L: $+0.00
+12:59:37 [polybot.main] INFO: 👥 Copy Trading: 0 trades copiados | Traders monitoreados: 0
+12:59:37 [polybot.main] INFO: ⚖️ Arbitraje: 0 oportunidades | Trades: 0 | Profit total: $0.0000
+12:59:37 [polybot.main] INFO: 💰 Bankroll: $100.00 | Total trades: 3
+12:59:37 [polybot.main] INFO: ============================================================
+12:59:37 [polybot.main] INFO: 
+⏰ Próximo escaneo en 15 minutos...
+
+12:59:43 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260331_1259.json
+13:05:30 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+13:05:30 [polybot.main] WARNING:    MODO LIVE ACTIVADO - DINERO REAL
+13:05:30 [polybot.main] WARNING: ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ 
+13:05:30 [polybot.main] INFO: 🤖 PolyBot MULTI-ESTRATEGIA iniciado
+13:05:32 [polybot.main] INFO:    Capital: $100.00
+13:05:32 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+13:05:32 [polybot.main] INFO:    Edge mínimo: 5%
+13:05:32 [polybot.main] INFO:    Kelly fracción: 0.5
+13:05:32 [polybot.main] INFO:    Escaneo cada: 15 min
+13:05:32 [polybot.main] INFO:    Estrategias activas:
+13:05:32 [polybot.main] INFO:      1. IA Value Bets (análisis con Claude)
+13:05:32 [polybot.main] INFO:      2. BTC 15-min Up/Down (momentum)
+13:05:32 [polybot.main] INFO:      3. Copy Trading (copiar traders top)
+13:05:32 [polybot.main] INFO:      4. Arbitraje YES+NO
+13:05:32 [polybot.main] INFO: ============================================================
+13:05:32 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-31 13:05:32
+13:05:32 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+13:05:32 [polybot.main] INFO:    Modo: 💰 LIVE (dinero real)
+13:05:32 [polybot.main] INFO:    Estrategias: IA + BTC 15m + Copy Trading + Arbitraje
+13:05:32 [polybot.main] INFO: ============================================================
+13:05:32 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+13:05:32 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+13:05:32 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+13:05:33 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+13:05:34 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+13:05:34 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+13:05:35 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+13:05:36 [polybot.scanner] INFO: ✅ 15 mercados pasan los filtros (de 500 totales)
+13:05:36 [polybot.main] INFO:    Encontrados 15 mercados elegibles
+13:05:36 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+13:05:36 [polybot.analyzer] INFO: 🧠 Analizando: Will Morocco win on 2026-03-31?...
+13:05:38 [polybot.analyzer] INFO:    → Edge: 49.5% | Prob: 100.0% | Acción: SKIP
+13:05:38 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+13:06:03 [polybot.analyzer] INFO: 🧠 Analizando: Counter-Strike: BESTIA vs Falcons Force (BO1) - Parken Chall...
+13:06:04 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260331_1306.json

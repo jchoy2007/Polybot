@@ -1,0 +1,361 @@
+22:28:34 [polybot.main] INFO: 🏃 Modo DRY RUN (simulación)
+22:28:34 [polybot.main] ERROR: ❌ ANTHROPIC_API_KEY no encontrada en .env
+22:28:34 [polybot.main] ERROR:    Crea un archivo .env con tu API key de Anthropic
+22:33:26 [polybot.main] INFO: 🏃 Modo DRY RUN (simulación)
+22:33:26 [polybot.main] ERROR: ❌ ANTHROPIC_API_KEY no encontrada en .env
+22:33:26 [polybot.main] ERROR:    Crea un archivo .env con tu API key de Anthropic
+22:36:15 [polybot.main] INFO: 🏃 Modo DRY RUN (simulación)
+22:36:15 [polybot.main] ERROR: ❌ ANTHROPIC_API_KEY no encontrada en .env
+22:36:15 [polybot.main] ERROR:    Crea un archivo .env con tu API key de Anthropic
+22:41:29 [polybot.main] INFO: 🏃 Modo DRY RUN (simulación)
+22:41:29 [polybot.main] INFO: 🤖 PolyBot iniciado
+22:41:29 [polybot.main] INFO:    Capital inicial: $100.00
+22:41:29 [polybot.main] INFO:    Máx por apuesta: $5.00 (5%)
+22:41:29 [polybot.main] INFO:    Edge mínimo: 8%
+22:41:29 [polybot.main] INFO:    Kelly fracción: 0.25
+22:41:29 [polybot.main] INFO:    Escaneo cada: 30 min
+22:41:29 [polybot.main] INFO:    Categorías: politics, economics, crypto, sports, science, technology, entertainment, world
+22:41:29 [polybot.main] INFO: ============================================================
+22:41:29 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-30 22:41:29
+22:41:29 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/10
+22:41:29 [polybot.main] INFO:    Modo: 🏃 DRY RUN (simulación)
+22:41:29 [polybot.main] INFO: ============================================================
+22:41:29 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+22:41:29 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+22:41:29 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:41:30 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:41:31 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:41:32 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:41:32 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:41:33 [polybot.scanner] INFO: ✅ 58 mercados pasan los filtros (de 500 totales)
+22:41:33 [polybot.main] INFO:    Encontrados 58 mercados elegibles
+22:41:33 [polybot.main] INFO: 
+📋 TOP 10 MERCADOS POR VOLUMEN:
+22:41:33 [polybot.main] INFO:    1. Will Manchester City win the 2025–26 English Premi
+      YES: $0.115 | Liquidez: $1,015,615 | Vol: $9,727,683
+22:41:33 [polybot.main] INFO:    2. Will Pete Buttigieg win the 2028 Democratic presid
+      YES: $0.036 | Liquidez: $510,449 | Vol: $9,582,179
+22:41:33 [polybot.main] INFO:    3. Will Tucker Carlson win the 2028 US Presidential E
+      YES: $0.033 | Liquidez: $218,572 | Vol: $9,514,416
+22:41:33 [polybot.main] INFO:    4. Will Mojtaba Khamenei be head of state in Iran end
+      YES: $0.551 | Liquidez: $57,613 | Vol: $990,587
+22:41:33 [polybot.main] INFO:    5. Netanyahu out by end of 2026?
+      YES: $0.415 | Liquidez: $48,813 | Vol: $990,239
+22:41:33 [polybot.main] INFO:    6. Will the People Power Party (PPP) win the 2026 Sou
+      YES: $0.041 | Liquidez: $26,366 | Vol: $987,783
+22:41:33 [polybot.main] INFO:    7. Will Amanda Anisimova be the 2026 Women’s Wimbledo
+      YES: $0.059 | Liquidez: $26,053 | Vol: $981,384
+22:41:33 [polybot.main] INFO:    8. Will MegaETH perform an airdrop by June 30? 
+      YES: $0.458 | Liquidez: $10,913 | Vol: $968,603
+22:41:33 [polybot.main] INFO:    9. Will Renan Santos finish in second place in the fi
+      YES: $0.072 | Liquidez: $12,258 | Vol: $953,752
+22:41:33 [polybot.main] INFO:    10. Will Elon Musk post 200-219 tweets from March 24 t
+      YES: $0.151 | Liquidez: $32,230 | Vol: $953,676
+22:41:33 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260330_2241.json
+22:43:48 [polybot.main] INFO: 🏃 Modo DRY RUN (simulación)
+22:43:48 [polybot.main] INFO: 🤖 PolyBot iniciado
+22:43:48 [polybot.main] INFO:    Capital inicial: $100.00
+22:43:48 [polybot.main] INFO:    Máx por apuesta: $5.00 (5%)
+22:43:48 [polybot.main] INFO:    Edge mínimo: 8%
+22:43:48 [polybot.main] INFO:    Kelly fracción: 0.25
+22:43:48 [polybot.main] INFO:    Escaneo cada: 30 min
+22:43:48 [polybot.main] INFO:    Categorías: politics, economics, crypto, sports, science, technology, entertainment, world
+22:43:48 [polybot.main] INFO: ============================================================
+22:43:48 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-30 22:43:48
+22:43:48 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/10
+22:43:48 [polybot.main] INFO:    Modo: 🏃 DRY RUN (simulación)
+22:43:48 [polybot.main] INFO: ============================================================
+22:43:48 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+22:43:48 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+22:43:48 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:43:49 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:43:50 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:43:51 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:43:51 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:43:52 [polybot.scanner] INFO: ✅ 58 mercados pasan los filtros (de 500 totales)
+22:43:52 [polybot.main] INFO:    Encontrados 58 mercados elegibles
+22:43:52 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+22:43:52 [polybot.analyzer] INFO: 🧠 Analizando: Will Manchester City win the 2025–26 English Premier League?...
+22:44:08 [polybot.analyzer] INFO:    → Edge: 8.5% | Prob: 20.0% | Acción: BET
+22:44:10 [polybot.analyzer] INFO: 🧠 Analizando: Will Pete Buttigieg win the 2028 Democratic presidential nom...
+22:44:10 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaU5q1SabdULsURFku4B"}
+22:44:12 [polybot.analyzer] INFO: 🧠 Analizando: Will Tucker Carlson win the 2028 US Presidential Election?...
+22:44:12 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaU5zq37CEgubh1NqfK9"}
+22:44:14 [polybot.analyzer] INFO: 🧠 Analizando: Will Mojtaba Khamenei be head of state in Iran end of 2026?...
+22:44:15 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaU6ADqhesbLaHvTRDdH"}
+22:44:17 [polybot.analyzer] INFO: 🧠 Analizando: Netanyahu out by end of 2026?...
+22:44:17 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaU6Kkacu9fQ3MdvUNDa"}
+22:44:19 [polybot.analyzer] INFO: 🧠 Analizando: Will the People Power Party (PPP) win the 2026 South Korean ...
+22:44:39 [polybot.analyzer] INFO:    → Edge: -10.9% | Prob: 85.0% | Acción: BET
+22:44:41 [polybot.analyzer] INFO: 🧠 Analizando: Will Amanda Anisimova be the 2026 Women’s Wimbledon Winner?...
+22:44:42 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaU89N42UwLCjMtmYfBC"}
+22:44:44 [polybot.analyzer] INFO: 🧠 Analizando: Will MegaETH perform an airdrop by June 30? ...
+22:44:44 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaU8KSXqXcUoVJQ4nEVE"}
+22:44:46 [polybot.analyzer] INFO: 🧠 Analizando: Will Renan Santos finish in second place in the first round ...
+22:44:47 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaU8Wbk3p9Cd9zVVUKiv"}
+22:44:49 [polybot.analyzer] INFO: 🧠 Analizando: Will Elon Musk post 200-219 tweets from March 24 to March 31...
+22:44:49 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaU8g13Ec5WtW6miL1ub"}
+22:44:49 [polybot.analyzer] INFO: ✅ Análisis completo: 2 mercados analizados, 2 recomendados para apostar
+22:44:49 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+22:44:49 [polybot.main] INFO: No hay apuestas de valor en este ciclo. Esperando...
+22:44:49 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260330_2244.json
+22:49:11 [polybot.main] INFO: 🏃 Modo DRY RUN (simulación)
+22:49:11 [polybot.main] INFO: 🤖 PolyBot iniciado
+22:49:11 [polybot.main] INFO:    Capital inicial: $100.00
+22:49:11 [polybot.main] INFO:    Máx por apuesta: $5.00 (5%)
+22:49:11 [polybot.main] INFO:    Edge mínimo: 8%
+22:49:11 [polybot.main] INFO:    Kelly fracción: 0.25
+22:49:11 [polybot.main] INFO:    Escaneo cada: 30 min
+22:49:11 [polybot.main] INFO:    Categorías: politics, economics, crypto, sports, science, technology, entertainment, world
+22:49:11 [polybot.main] INFO: ============================================================
+22:49:11 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-30 22:49:11
+22:49:11 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/10
+22:49:11 [polybot.main] INFO:    Modo: 🏃 DRY RUN (simulación)
+22:49:11 [polybot.main] INFO: ============================================================
+22:49:11 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+22:49:11 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+22:49:11 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:49:12 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:49:13 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:49:14 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:49:15 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+22:49:15 [polybot.scanner] INFO: ✅ 10 mercados pasan los filtros (de 500 totales)
+22:49:15 [polybot.main] INFO:    Encontrados 10 mercados elegibles
+22:49:15 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+22:49:15 [polybot.analyzer] INFO: 🧠 Analizando: Will Elon Musk post 200-219 tweets from March 24 to March 31...
+22:49:30 [polybot.analyzer] INFO:    → Edge: 10.0% | Prob: 26.0% | Acción: BET
+22:49:30 [polybot.analyzer] INFO:    ⏳ Esperando 15s (rate limit)...
+22:49:45 [polybot.analyzer] INFO: 🧠 Analizando: Raptors vs. Pistons...
+22:50:00 [polybot.analyzer] INFO:    → Edge: 17.5% | Prob: 75.0% | Acción: BET
+22:50:00 [polybot.analyzer] INFO:    ⏳ Esperando 15s (rate limit)...
+22:50:15 [polybot.analyzer] INFO: 🧠 Analizando: Will Kosovo qualify for the 2026 FIFA World Cup?...
+22:50:15 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaUYhqb3wWChpCEC8nxv"}
+22:50:15 [polybot.analyzer] INFO:    ⏳ Esperando 15s (rate limit)...
+22:50:30 [polybot.analyzer] INFO: 🧠 Analizando: Will Ethereum dip to $1,900 March 30-April 5?...
+22:50:47 [polybot.analyzer] INFO:    → Edge: 17.0% | Prob: 85.0% | Acción: BET
+22:50:47 [polybot.analyzer] INFO:    ⏳ Esperando 15s (rate limit)...
+22:51:02 [polybot.analyzer] INFO: 🧠 Analizando: Will the price of Bitcoin be above $58,000 on April 6?...
+22:51:03 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaUcEdb1V7Jp8QGaQHwW"}
+22:51:03 [polybot.analyzer] INFO: ✅ Análisis completo: 3 mercados analizados, 3 recomendados para apostar
+22:51:03 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+22:51:03 [polybot.main] INFO: No hay apuestas de valor en este ciclo. Esperando...
+22:51:03 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260330_2251.json
+23:00:44 [polybot.main] INFO: 🏃 Modo DRY RUN (simulación)
+23:00:44 [polybot.main] INFO: 🤖 PolyBot iniciado
+23:00:44 [polybot.main] INFO:    Capital inicial: $100.00
+23:00:44 [polybot.main] INFO:    Máx por apuesta: $5.00 (5%)
+23:00:44 [polybot.main] INFO:    Edge mínimo: 8%
+23:00:44 [polybot.main] INFO:    Kelly fracción: 0.25
+23:00:44 [polybot.main] INFO:    Escaneo cada: 15 min
+23:00:44 [polybot.main] INFO:    Categorías: politics, economics, crypto, sports, science, technology, entertainment, world
+23:00:44 [polybot.main] INFO: ============================================================
+23:00:44 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-30 23:00:44
+23:00:44 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/10
+23:00:44 [polybot.main] INFO:    Modo: 🏃 DRY RUN (simulación)
+23:00:44 [polybot.main] INFO: ============================================================
+23:00:44 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+23:00:44 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+23:00:45 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:00:46 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:00:47 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:00:47 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:00:48 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:00:49 [polybot.scanner] INFO: ✅ 5 mercados pasan los filtros (de 500 totales)
+23:00:49 [polybot.main] INFO:    Encontrados 5 mercados elegibles
+23:00:49 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+23:00:49 [polybot.analyzer] INFO: 🧠 Analizando: Stars vs. Bruins...
+23:01:04 [polybot.analyzer] INFO:    → Edge: 6.5% | Prob: 53.0% | Acción: BET
+23:01:04 [polybot.analyzer] INFO:    ⏳ Esperando 15s (rate limit)...
+23:01:19 [polybot.analyzer] INFO: 🧠 Analizando: Raptors vs. Pistons...
+23:01:37 [polybot.analyzer] INFO:    → Edge: 12.5% | Prob: 70.0% | Acción: BET
+23:01:37 [polybot.analyzer] INFO:    ⏳ Esperando 15s (rate limit)...
+23:01:52 [polybot.analyzer] INFO: 🧠 Analizando: Flyers vs. Capitals...
+23:01:52 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaVS7K93Rj43NkwF2Q5Z"}
+23:01:52 [polybot.analyzer] INFO:    ⏳ Esperando 15s (rate limit)...
+23:02:07 [polybot.analyzer] INFO: 🧠 Analizando: UFC Fight Night: Virna Jandiroba vs. Tabatha Ricci (Women's ...
+23:02:07 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaVTEkteeB8ptiRAwvKj"}
+23:02:07 [polybot.analyzer] INFO:    ⏳ Esperando 15s (rate limit)...
+23:02:22 [polybot.analyzer] INFO: 🧠 Analizando: Will Ethereum dip to $1,900 March 30-April 5?...
+23:02:23 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaVUMzkDxPg8D2dSXrfA"}
+23:02:23 [polybot.analyzer] INFO: ✅ Análisis completo: 2 mercados analizados, 2 recomendados para apostar
+23:02:23 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+23:02:23 [polybot.main] INFO: No hay apuestas de valor en este ciclo. Esperando...
+23:02:23 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260330_2302.json
+23:07:27 [polybot.main] INFO: 🏃 Modo DRY RUN (simulación)
+23:07:27 [polybot.main] INFO: 🤖 PolyBot iniciado
+23:07:27 [polybot.main] INFO:    Capital inicial: $100.00
+23:07:27 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+23:07:27 [polybot.main] INFO:    Edge mínimo: 5%
+23:07:27 [polybot.main] INFO:    Kelly fracción: 0.5
+23:07:27 [polybot.main] INFO:    Escaneo cada: 15 min
+23:07:27 [polybot.main] INFO:    Categorías: politics, economics, crypto, sports, science, technology, entertainment, world, general, pop-culture, weather, gaming, business, finance, health, mma, soccer, basketball, football, baseball, hockey, tennis, esports, culture, media
+23:07:27 [polybot.main] INFO: ============================================================
+23:07:27 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-30 23:07:27
+23:07:27 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+23:07:27 [polybot.main] INFO:    Modo: 🏃 DRY RUN (simulación)
+23:07:27 [polybot.main] INFO: ============================================================
+23:07:27 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+23:07:27 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+23:07:28 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:07:29 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:07:30 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:07:30 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:07:31 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:07:32 [polybot.scanner] INFO: ✅ 10 mercados pasan los filtros (de 500 totales)
+23:07:32 [polybot.main] INFO:    Encontrados 10 mercados elegibles
+23:07:32 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+23:07:32 [polybot.analyzer] INFO: 🧠 Analizando: Will Elon Musk post 200-219 tweets from March 24 to March 31...
+23:07:44 [polybot.analyzer] INFO:    → Edge: 3.6% | Prob: 88.0% | Acción: BET
+23:07:44 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+23:08:09 [polybot.analyzer] INFO: 🧠 Analizando: Stars vs. Bruins...
+23:08:24 [polybot.analyzer] INFO:    → Edge: 6.5% | Prob: 60.0% | Acción: BET
+23:08:24 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+23:08:49 [polybot.analyzer] INFO: 🧠 Analizando: Raptors vs. Pistons...
+23:09:03 [polybot.analyzer] INFO:    → Edge: -17.5% | Prob: 25.0% | Acción: BET
+23:09:03 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+23:09:28 [polybot.analyzer] INFO: 🧠 Analizando: Flyers vs. Capitals...
+23:09:29 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaW1mNHZJsQEna45ZMzJ"}
+23:09:29 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+23:09:54 [polybot.analyzer] INFO: 🧠 Analizando: Will Donald Trump post 80-99 Truth Social posts from March 2...
+23:10:10 [polybot.analyzer] INFO:    → Edge: 20.5% | Prob: 72.0% | Acción: BET
+23:10:10 [polybot.analyzer] INFO: ✅ Análisis completo: 4 mercados analizados, 4 recomendados para apostar
+23:10:10 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+23:10:10 [polybot.main] INFO:    ✅ APOSTAR $10.00 | Edge: 20.5% | Kelly: 21.1% | Prob estimada: 72.0% vs mercado: 51.5%
+23:10:10 [polybot.main] INFO:    ✅ APOSTAR $6.99 | Edge: 6.5% | Kelly: 7.0% | Prob estimada: 60.0% vs mercado: 53.5%
+23:10:10 [polybot.main] INFO:    ❌ Will Elon Musk post 200-219 tweets from : Edge insuficiente: 3.6% < 5.0%
+23:10:10 [polybot.main] INFO:    ❌ Raptors vs. Pistons: Edge insuficiente: -17.5% < 5.0%
+23:10:10 [polybot.main] INFO: 🎯 Paso 4/4: Ejecutando 2 apuestas...
+23:10:10 [polybot.executor] INFO: 🏃 [DRY RUN] Apuesta simulada:
+   Mercado: Will Donald Trump post 80-99 Truth Social posts from March 2
+   Lado: YES
+   Monto: $10.00
+   Precio: $0.515
+   Shares: 19.4175
+   Edge: 20.5%
+   Confianza: 85.0%
+23:10:10 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-30T23:10:10.681105",
+  "market_id": "1698750",
+  "question": "Will Donald Trump post 80-99 Truth Social posts from March 27 to April 3, 2026?",
+  "side": "YES",
+  "amount": 10.0,
+  "price": 0.515,
+  "estimated_prob": 0.72,
+  "edge": 0.20499999999999996,
+  "result": null,
+  "bankroll_after": 100.0
+}
+23:10:10 [polybot.main] INFO:    Orden: SIMULATED
+23:10:10 [polybot.executor] INFO: 🏃 [DRY RUN] Apuesta simulada:
+   Mercado: Stars vs. Bruins
+   Lado: YES
+   Monto: $6.99
+   Precio: $0.535
+   Shares: 13.0654
+   Edge: 6.5%
+   Confianza: 75.0%
+23:10:10 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-30T23:10:10.682587",
+  "market_id": "1499938",
+  "question": "Stars vs. Bruins",
+  "side": "YES",
+  "amount": 6.99,
+  "price": 0.535,
+  "estimated_prob": 0.6,
+  "edge": 0.06499999999999995,
+  "result": null,
+  "bankroll_after": 100.0
+}
+23:10:10 [polybot.main] INFO:    Orden: SIMULATED
+23:10:10 [polybot.main] INFO: 
+📋 RESUMEN DE ÓRDENES
+==================================================
+
+1. [DRY_RUN] YES $10.00
+   Mercado: Will Donald Trump post 80-99 Truth Social posts from Ma
+   Precio: $0.515 | Edge: 20.5% | Estado: SIMULATED
+
+2. [DRY_RUN] YES $6.99
+   Mercado: Stars vs. Bruins
+   Precio: $0.535 | Edge: 6.5% | Estado: SIMULATED
+
+==================================================
+Total órdenes: 2
+Bankroll: $100.00
+23:10:10 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260330_2310.json
+23:13:21 [polybot.main] INFO: 🏃 Modo DRY RUN (simulación)
+23:13:21 [polybot.main] INFO: 🤖 PolyBot iniciado
+23:13:21 [polybot.main] INFO:    Capital inicial: $100.00
+23:13:21 [polybot.main] INFO:    Máx por apuesta: $10.00 (10%)
+23:13:21 [polybot.main] INFO:    Edge mínimo: 5%
+23:13:21 [polybot.main] INFO:    Kelly fracción: 0.5
+23:13:21 [polybot.main] INFO:    Escaneo cada: 15 min
+23:13:21 [polybot.main] INFO:    Categorías: politics, economics, crypto, sports, science, technology, entertainment, world, general, pop-culture, weather, gaming, business, finance, health, mma, soccer, basketball, football, baseball, hockey, tennis, esports, culture, media
+23:13:21 [polybot.main] INFO: ============================================================
+23:13:21 [polybot.main] INFO: 🔄 NUEVO CICLO - 2026-03-30 23:13:21
+23:13:21 [polybot.main] INFO:    Bankroll: $100.00 | P&L diario: $+0.00 | Posiciones: 0/15
+23:13:21 [polybot.main] INFO:    Modo: 🏃 DRY RUN (simulación)
+23:13:21 [polybot.main] INFO: ============================================================
+23:13:21 [polybot.main] INFO: 📊 Paso 1/4: Escaneando mercados...
+23:13:21 [polybot.scanner] INFO: 🔍 Iniciando escaneo de mercados...
+23:13:22 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:13:23 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:13:23 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:13:24 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:13:25 [polybot.scanner] INFO: 📊 Obtenidos 100 mercados activos
+23:13:26 [polybot.scanner] INFO: ✅ 10 mercados pasan los filtros (de 500 totales)
+23:13:26 [polybot.main] INFO:    Encontrados 10 mercados elegibles
+23:13:26 [polybot.main] INFO: 🧠 Paso 2/4: Analizando mercados con IA...
+23:13:26 [polybot.analyzer] INFO: 🧠 Analizando: Will Elon Musk post 200-219 tweets from March 24 to March 31...
+23:13:43 [polybot.analyzer] INFO:    → Edge: 11.3% | Prob: 95.0% | Acción: BET
+23:13:43 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+23:14:08 [polybot.analyzer] INFO: 🧠 Analizando: Stars vs. Bruins...
+23:14:24 [polybot.analyzer] INFO:    → Edge: 0.5% | Prob: 47.0% | Acción: BET
+23:14:24 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+23:14:49 [polybot.analyzer] INFO: 🧠 Analizando: Stars vs. Bruins...
+23:14:50 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaWRRWNCtWPuZBEzoZeM"}
+23:14:50 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+23:15:15 [polybot.analyzer] INFO: 🧠 Analizando: Raptors vs. Pistons...
+23:15:32 [polybot.analyzer] INFO:    → Edge: -32.5% | Prob: 25.0% | Acción: BET
+23:15:32 [polybot.analyzer] INFO:    ⏳ Esperando 25s (rate limit)...
+23:15:57 [polybot.analyzer] INFO: 🧠 Analizando: Flyers vs. Capitals...
+23:15:58 [polybot.analyzer] ERROR: Error Claude API (429): {"type":"error","error":{"type":"rate_limit_error","message":"This request would exceed your organization's rate limit of 30,000 input tokens per minute (org: 6318a822-704a-4fde-b57a-9a06b5453075, model: claude-sonnet-4-20250514). For details, refer to: https://docs.claude.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://claude.com/contact-sales to discuss your options for a rate limit increase."},"request_id":"req_011CZaWWQaC9vYewPB4Fbnju"}
+23:15:58 [polybot.analyzer] INFO: ✅ Análisis completo: 3 mercados analizados, 3 recomendados para apostar
+23:15:58 [polybot.main] INFO: 📐 Paso 3/4: Evaluando oportunidades...
+23:15:58 [polybot.main] INFO:    ✅ APOSTAR $10.00 | Edge: 11.3% | Kelly: 34.7% | Prob estimada: 95.0% vs mercado: 83.7%
+23:15:58 [polybot.main] INFO:    ❌ Stars vs. Bruins: Edge insuficiente: 0.5% < 5.0%
+23:15:58 [polybot.main] INFO:    ❌ Raptors vs. Pistons: Edge insuficiente: -32.5% < 5.0%
+23:15:58 [polybot.main] INFO: 🎯 Paso 4/4: Ejecutando 1 apuestas...
+23:15:58 [polybot.executor] INFO: 🏃 [DRY RUN] Apuesta simulada:
+   Mercado: Will Elon Musk post 200-219 tweets from March 24 to March 31
+   Lado: NO
+   Monto: $10.00
+   Precio: $0.837
+   Shares: 11.9474
+   Edge: 11.3%
+   Confianza: 85.0%
+23:15:58 [polybot.risk] INFO: 📝 Trade: {
+  "timestamp": "2026-03-30T23:15:58.188007",
+  "market_id": "1668611",
+  "question": "Will Elon Musk post 200-219 tweets from March 24 to March 31, 2026?",
+  "side": "NO",
+  "amount": 10.0,
+  "price": 0.837,
+  "estimated_prob": 0.95,
+  "edge": 0.11299999999999999,
+  "result": null,
+  "bankroll_after": 100.0
+}
+23:15:58 [polybot.main] INFO:    Orden: SIMULATED
+23:15:58 [polybot.main] INFO: 
+📋 RESUMEN DE ÓRDENES
+==================================================
+
+1. [DRY_RUN] NO $10.00
+   Mercado: Will Elon Musk post 200-219 tweets from March 24 to Mar
+   Precio: $0.837 | Edge: 11.3% | Estado: SIMULATED
+
+==================================================
+Total órdenes: 1
+Bankroll: $100.00
+23:15:58 [polybot.main] INFO: 📁 Resumen guardado en data\summary_20260330_2315.json

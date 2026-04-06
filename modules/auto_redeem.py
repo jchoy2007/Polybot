@@ -1,0 +1,423 @@
+"""
+PolyBot - Auto-Cobro Automático
+================================
+Cada ciclo revisa si hay mercados resueltos donde tenemos
+tokens ganadores y los cobra automáticamente.
+
+Funciona en 3 pasos:
+1. Busca mercados cerrados recientes vía Gamma API
+2. Verifica si tenemos tokens (balance > 0) en el CTF contract
+3. Ejecuta redeemPositions para cobrar USDC.e
+
+Se integra al loop principal del bot.
+"""
+
+import os
+import json
+import time
+import logging
+import asyncio
+from typing import Optional, Dict, List, Tuple
+from datetime import datetime
+
+import aiohttp
+
+from config.settings import STATE
+
+logger = logging.getLogger("polybot.redeem")
+
+# Contratos de Polymarket en Polygon
+CTF_ADDRESS = "0x4D97DCd97eC945f40cF65F87097ACe5EA0476045"
+NEG_RISK_ADAPTER = "0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296"
+USDC_E_ADDRESS = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+GAMMA_API_URL = "https://gamma-api.polymarket.com"
+
+# ABI mínimas
+CTF_ABI = [
+    {
+        "inputs": [
+            {"name": "collateralToken", "type": "address"},
+            {"name": "parentCollectionId", "type": "bytes32"},
+            {"name": "conditionId", "type": "bytes32"},
+            {"name": "indexSets", "type": "uint256[]"}
+        ],
+        "name": "redeemPositions",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {"name": "account", "type": "address"},
+            {"name": "id", "type": "uint256"}
+        ],
+        "name": "balanceOf",
+        "outputs": [{"name": "", "type": "uint256"}],
+        "type": "function"
+    },
+    {
+        "inputs": [{"name": "conditionId", "type": "bytes32"}],
+        "name": "payoutDenominator",
+        "outputs": [{"name": "", "type": "uint256"}],
+        "type": "function"
+    }
+]
+
+NEG_RISK_ABI = [
+    {
+        "inputs": [
+            {"name": "conditionId", "type": "bytes32"},
+            {"name": "amounts", "type": "uint256[]"}
+        ],
+        "name": "redeemPositions",
+        "outputs": [],
+        "type": "function"
+    }
+]
+
+ERC20_ABI = [
+    {
+        "inputs": [{"name": "account", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"name": "", "type": "uint256"}],
+        "type": "function"
+    }
+]
+
+
+class AutoRedeemer:
+    """
+    Cobra automáticamente ganancias de mercados resueltos.
+    Se ejecuta una vez por ciclo del bot (cada 15 min).
+    """
+
+    def __init__(self):
+        self.session: Optional[aiohttp.ClientSession] = None
+        self.w3 = None
+        self.account = None
+        self.address = None
+        self.ctf_contract = None
+        self.usdc_contract = None
+
+        # Stats
+        self.total_redeemed = 0.0
+        self.redeem_count = 0
+        self.last_redeem_time = 0
+        self.min_redeem_interval = 300  # Mínimo 5 min entre intentos
+
+        # Cache de mercados ya cobrados (evitar reintentos)
+        self.redeemed_markets: set = set()
+
+        # Inicializar Web3
+        self._init_web3()
+
+    def _init_web3(self):
+        """Inicializa conexión a Polygon."""
+        try:
+            from web3 import Web3
+
+            pk = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
+            if not pk or pk == "0x...":
+                logger.debug("   Auto-redeem: clave privada no configurada")
+                return
+
+            rpcs = [
+                "https://polygon-bor-rpc.publicnode.com",
+                "https://1rpc.io/matic",
+                "https://polygon.meowrpc.com",
+                "https://polygon.drpc.org",
+                "https://polygon-rpc.com",
+                "https://rpc.ankr.com/polygon",
+                "https://polygon.llamarpc.com",
+            ]
+
+            for rpc in rpcs:
+                try:
+                    w3 = Web3(Web3.HTTPProvider(rpc, request_kwargs={'timeout': 10}))
+                    if w3.is_connected():
+                        self.w3 = w3
+                        break
+                except:
+                    continue
+
+            if not self.w3:
+                logger.warning("   Auto-redeem: no se pudo conectar a Polygon")
+                return
+
+            self.account = self.w3.eth.account.from_key(pk)
+            self.address = self.account.address
+
+            self.ctf_contract = self.w3.eth.contract(
+                address=self.w3.to_checksum_address(CTF_ADDRESS),
+                abi=CTF_ABI
+            )
+
+            self.usdc_contract = self.w3.eth.contract(
+                address=self.w3.to_checksum_address(USDC_E_ADDRESS),
+                abi=ERC20_ABI
+            )
+
+            logger.info("   ✅ Auto-redeem inicializado")
+
+        except Exception as e:
+            logger.warning(f"   Auto-redeem init error: {str(e)[:60]}")
+
+    async def _get_session(self) -> aiohttp.ClientSession:
+        if self.session is None or self.session.closed:
+            timeout = aiohttp.ClientTimeout(total=10)
+            self.session = aiohttp.ClientSession(timeout=timeout)
+        return self.session
+
+    # =================================================================
+    # BUSCAR MERCADOS RESUELTOS DONDE TENEMOS TOKENS
+    # =================================================================
+    async def find_redeemable_markets(self) -> List[Dict]:
+        """
+        Busca mercados cerrados y resueltos donde podríamos
+        tener tokens para cobrar.
+        """
+        session = await self._get_session()
+        redeemable = []
+
+        try:
+            # Obtener mercados cerrados recientemente
+            async with session.get(
+                f"{GAMMA_API_URL}/markets",
+                params={
+                    "limit": 100,
+                    "closed": "true",
+                    "order": "endDate",
+                    "ascending": "false"
+                }
+            ) as resp:
+                if resp.status != 200:
+                    return []
+
+                markets = await resp.json()
+
+                for m in markets:
+                    market_id = m.get("id", "")
+
+                    # Saltar si ya lo cobramos
+                    if market_id in self.redeemed_markets:
+                        continue
+
+                    condition_id = m.get("conditionId", "")
+                    if not condition_id:
+                        continue
+
+                    # Obtener token IDs
+                    tokens_str = m.get("clobTokenIds", "[]")
+                    if isinstance(tokens_str, str):
+                        try:
+                            tokens = json.loads(tokens_str)
+                        except:
+                            continue
+                    else:
+                        tokens = tokens_str
+
+                    if not tokens:
+                        continue
+
+                    # Verificar si tenemos tokens en este mercado
+                    has_tokens = False
+                    token_balances = []
+
+                    for i, token_id in enumerate(tokens):
+                        try:
+                            token_int = int(token_id) if isinstance(token_id, str) else token_id
+                            balance = self.ctf_contract.functions.balanceOf(
+                                self.address, token_int
+                            ).call()
+                            token_balances.append(balance)
+                            if balance > 0:
+                                has_tokens = True
+                        except:
+                            token_balances.append(0)
+
+                    if has_tokens:
+                        redeemable.append({
+                            "market_id": market_id,
+                            "question": m.get("question", ""),
+                            "condition_id": condition_id,
+                            "neg_risk": m.get("negRisk", False),
+                            "tokens": tokens,
+                            "token_balances": token_balances,
+                            "resolved": m.get("resolved", False)
+                        })
+
+        except Exception as e:
+            logger.debug(f"   Error buscando mercados: {str(e)[:60]}")
+
+        return redeemable
+
+    # =================================================================
+    # COBRAR UN MERCADO
+    # =================================================================
+    def redeem_market(self, market_info: Dict) -> Tuple[bool, float]:
+        """
+        Intenta cobrar tokens de un mercado resuelto.
+        Retorna (éxito, monto_cobrado).
+        """
+        if not self.w3 or not self.account:
+            return False, 0.0
+
+        pk = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
+        if not pk:
+            return False, 0.0
+
+        cid = market_info["condition_id"]
+        neg_risk = market_info["neg_risk"]
+
+        try:
+            # Verificar que el oráculo haya reportado
+            cid_bytes = bytes.fromhex(cid[2:]) if cid.startswith("0x") else bytes.fromhex(cid)
+            payout = self.ctf_contract.functions.payoutDenominator(cid_bytes).call()
+
+            if payout == 0:
+                logger.debug(f"   Mercado aún no resuelto por oráculo")
+                return False, 0.0
+
+            # Balance USDC antes
+            balance_before = self.usdc_contract.functions.balanceOf(self.address).call()
+
+            if neg_risk:
+                # Mercado NegRisk
+                neg_adapter = self.w3.eth.contract(
+                    address=self.w3.to_checksum_address(NEG_RISK_ADAPTER),
+                    abi=NEG_RISK_ABI
+                )
+                txn = neg_adapter.functions.redeemPositions(
+                    cid_bytes, []
+                ).build_transaction({
+                    'from': self.address,
+                    'nonce': self.w3.eth.get_transaction_count(self.address),
+                    'gas': 300000,
+                    'gasPrice': self.w3.eth.gas_price,
+                    'chainId': 137
+                })
+            else:
+                # Mercado estándar CTF
+                txn = self.ctf_contract.functions.redeemPositions(
+                    self.w3.to_checksum_address(USDC_E_ADDRESS),
+                    bytes.fromhex("00" * 32),
+                    cid_bytes,
+                    [1, 2]
+                ).build_transaction({
+                    'from': self.address,
+                    'nonce': self.w3.eth.get_transaction_count(self.address),
+                    'gas': 300000,
+                    'gasPrice': self.w3.eth.gas_price,
+                    'chainId': 137
+                })
+
+            signed = self.w3.eth.account.sign_transaction(txn, pk)
+            tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction)
+            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
+
+            if receipt.status == 1:
+                # Esperar un poco para que el balance se actualice
+                time.sleep(2)
+                balance_after = self.usdc_contract.functions.balanceOf(self.address).call()
+                gained = (balance_after - balance_before) / 1e6
+
+                logger.info(f"   ✅ COBRADO ${gained:.2f} | TX: {tx_hash.hex()[:20]}...")
+                return True, gained
+            else:
+                logger.warning(f"   ❌ TX falló en blockchain")
+                return False, 0.0
+
+        except Exception as e:
+            error_msg = str(e)[:80]
+            # Ignorar errores comunes (ya cobrado, sin tokens ganadores, etc.)
+            if "execution reverted" in error_msg.lower():
+                logger.debug(f"   Reverted (posiblemente ya cobrado): {error_msg[:40]}")
+            else:
+                logger.warning(f"   Error redeem: {error_msg}")
+            return False, 0.0
+
+    # =================================================================
+    # CICLO DE AUTO-COBRO
+    # =================================================================
+    async def run_cycle(self) -> Dict:
+        """
+        Ciclo completo de auto-cobro.
+        Retorna resumen de lo cobrado.
+        """
+        now = time.time()
+
+        # Respetar intervalo mínimo
+        if now - self.last_redeem_time < self.min_redeem_interval:
+            return {"checked": 0, "redeemed": 0, "amount": 0.0}
+
+        self.last_redeem_time = now
+
+        if not self.w3 or not self.account:
+            self._init_web3()
+            if not self.w3:
+                return {"checked": 0, "redeemed": 0, "amount": 0.0}
+
+        logger.info("   🔍 Buscando posiciones por cobrar...")
+
+        # Buscar mercados donde tenemos tokens
+        redeemable = await self.find_redeemable_markets()
+
+        if not redeemable:
+            logger.info("   No se encontraron posiciones por cobrar")
+            return {"checked": 0, "redeemed": 0, "amount": 0.0}
+
+        logger.info(f"   Encontradas {len(redeemable)} posiciones con tokens")
+
+        total_gained = 0.0
+        total_redeemed = 0
+
+        for market_info in redeemable:
+            question = market_info["question"][:50]
+
+            # Mostrar balances de tokens
+            balances_str = ", ".join(
+                f"${b / 1e6:.2f}" for b in market_info["token_balances"] if b > 0
+            )
+            logger.info(f"   🔄 Cobrando: {question}... (tokens: {balances_str})")
+
+            success, gained = self.redeem_market(market_info)
+
+            if success:
+                total_gained += gained
+                total_redeemed += 1
+                self.redeemed_markets.add(market_info["market_id"])
+                self.total_redeemed += gained
+                self.redeem_count += 1
+
+                # Actualizar bankroll
+                STATE.current_bankroll += gained
+            else:
+                # Marcar como intentado para no reintentar inmediatamente
+                # (se reintentará en el próximo ciclo)
+                pass
+
+        result = {
+            "checked": len(redeemable),
+            "redeemed": total_redeemed,
+            "amount": total_gained
+        }
+
+        if total_redeemed > 0:
+            logger.info(
+                f"   💰 Auto-cobro: {total_redeemed} posiciones cobradas, "
+                f"${total_gained:.2f} USDC.e recuperados | "
+                f"Bankroll: ${STATE.current_bankroll:.2f}"
+            )
+        else:
+            logger.info("   Sin posiciones listas para cobrar (oráculo pendiente)")
+
+        return result
+
+    def get_stats(self) -> str:
+        return (
+            f"💰 Auto-cobro: {self.redeem_count} cobrados | "
+            f"Total: ${self.total_redeemed:.2f}"
+        )
+
+    async def close(self):
+        if self.session and not self.session.closed:
+            await self.session.close()
