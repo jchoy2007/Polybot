@@ -304,24 +304,25 @@ class AutoRedeemer:
                 # v10 FIX: Para neg_risk, usar WrappedCollateral como collateral
                 wcol_before = wcol_contract.functions.balanceOf(self.address).call()
 
-                nonce = self.w3.eth.get_transaction_count(self.address)
+                time.sleep(3)  # Esperar nonce
+                nonce = self.w3.eth.get_transaction_count(self.address, 'pending')
                 txn = self.ctf_contract.functions.redeemPositions(
-                    self.w3.to_checksum_address(WCOL_ADDRESS),  # WCOL, no USDC.e
+                    self.w3.to_checksum_address(WCOL_ADDRESS),
                     bytes.fromhex("00" * 32),
                     cid_bytes,
                     [1, 2]
                 ).build_transaction({
                     'from': self.address, 'nonce': nonce, 'gas': 500000,
-                    'gasPrice': self.w3.eth.gas_price, 'chainId': 137
+                    'gasPrice': int(self.w3.eth.gas_price * 1.2), 'chainId': 137
                 })
 
                 signed = self.w3.eth.account.sign_transaction(txn, pk)
                 tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction)
                 receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
-                time.sleep(2)
+                time.sleep(3)
 
                 if receipt.status != 1:
-                    logger.warning(f"   ❌ WCOL redeem TX falló")
+                    logger.warning(f"   WCOL redeem TX fallo")
                     return False, 0.0
 
                 wcol_after = wcol_contract.functions.balanceOf(self.address).call()
@@ -330,28 +331,31 @@ class AutoRedeemer:
                 if wcol_gained > 0:
                     # Unwrap WCOL → USDC.e
                     try:
-                        nonce2 = self.w3.eth.get_transaction_count(self.address)
+                        time.sleep(3)
+                        nonce2 = self.w3.eth.get_transaction_count(self.address, 'pending')
                         txn2 = wcol_contract.functions.unwrap(
                             self.address, wcol_gained
                         ).build_transaction({
                             'from': self.address, 'nonce': nonce2, 'gas': 200000,
-                            'gasPrice': self.w3.eth.gas_price, 'chainId': 137
+                            'gasPrice': int(self.w3.eth.gas_price * 1.2), 'chainId': 137
                         })
                         signed2 = self.w3.eth.account.sign_transaction(txn2, pk)
                         tx_hash2 = self.w3.eth.send_raw_transaction(signed2.raw_transaction)
                         self.w3.eth.wait_for_transaction_receipt(tx_hash2, timeout=60)
-                        time.sleep(2)
+                        time.sleep(3)
                     except Exception as e:
-                        logger.warning(f"   Unwrap falló: {str(e)[:40]}")
+                        logger.warning(f"   Unwrap fallo: {str(e)[:40]}")
 
                 balance_after = self.usdc_contract.functions.balanceOf(self.address).call()
                 gained = (balance_after - balance_before) / 1e6
-                logger.info(f"   ✅ COBRADO ${gained:.2f} (neg_risk/WCOL)")
+                if gained > 0:
+                    logger.info(f"   COBRADO ${gained:.2f} (neg_risk/WCOL)")
                 return True, gained
 
             else:
                 # Mercado estándar CTF → USDC.e directo
-                nonce = self.w3.eth.get_transaction_count(self.address)
+                time.sleep(3)
+                nonce = self.w3.eth.get_transaction_count(self.address, 'pending')
                 txn = self.ctf_contract.functions.redeemPositions(
                     self.w3.to_checksum_address(USDC_E_ADDRESS),
                     bytes.fromhex("00" * 32),
@@ -359,7 +363,7 @@ class AutoRedeemer:
                     [1, 2]
                 ).build_transaction({
                     'from': self.address, 'nonce': nonce, 'gas': 500000,
-                    'gasPrice': self.w3.eth.gas_price, 'chainId': 137
+                    'gasPrice': int(self.w3.eth.gas_price * 1.2), 'chainId': 137
                 })
 
                 signed = self.w3.eth.account.sign_transaction(txn, pk)
@@ -367,10 +371,11 @@ class AutoRedeemer:
                 receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
 
                 if receipt.status == 1:
-                    time.sleep(2)
+                    time.sleep(3)
                     balance_after = self.usdc_contract.functions.balanceOf(self.address).call()
                     gained = (balance_after - balance_before) / 1e6
-                    logger.info(f"   ✅ COBRADO ${gained:.2f} (CTF directo)")
+                    if gained > 0:
+                        logger.info(f"   COBRADO ${gained:.2f} (CTF directo)")
                     return True, gained
                 else:
                     logger.warning(f"   ❌ TX falló")

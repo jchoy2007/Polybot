@@ -35,7 +35,6 @@ from modules.auto_redeem import AutoRedeemer
 from modules.no_harvester import NOHarvester
 from modules.weather_trader import WeatherTrader
 from modules.stock_trader import StockTrader
-from modules.flash_crash import FlashCrashDetector
 from modules.telegram_monitor import TelegramMonitor
 
 # ============================================================
@@ -267,7 +266,6 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     tracker: WinRateTracker,
                     weather_trader: WeatherTrader,
                     stock_trader: StockTrader,
-                    flash_crash: FlashCrashDetector,
                     telegram: TelegramMonitor = None,
                     scan_only: bool = False):
     """Ejecuta un ciclo completo con TODAS las estrategias."""
@@ -616,12 +614,6 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
     except Exception as e:
         logger.error(f"   Error en Stock Trader: {e}")
 
-    # ===== ESTRATEGIA 6: Flash Crash Detector — DESACTIVADA =====
-    # Razón: 0W/1L, perdió $3.93 comprando a 7¢. No distingue crashes reales.
-    # Se puede reactivar cuando tengamos más capital y mejor filtro.
-    logger.info("\n" + "=" * 50)
-    logger.info("⚡ ESTRATEGIA 6: Flash Crash Detector — DESACTIVADA")
-    logger.info("=" * 50)
 
     # ===== ACTUALIZAR P&L desde tracker =====
     if not SAFETY.dry_run:
@@ -830,9 +822,8 @@ async def main():
     logger.info(f"     1. 🧠 IA Value Bets (Claude) - cada 15 min")
     logger.info(f"     2. ₿ Crypto 15-Min (BTC/ETH/SOL momentum) - cada 15 min")
     logger.info(f"     3. 🌾 NO Harvester (>90% probabilidad) - cada 15 min")
-    logger.info(f"     4. ⛅ Weather Trader (Open-Meteo 6 modelos) - cada 5 min")
+    logger.info(f"     4. ⛅ Weather Trader (Open-Meteo 6 modelos) - cada 15 min")
     logger.info(f"     5. 📈 Stock Trader (S&P/NASDAQ/Dow) - cada 3 min")
-    logger.info(f"     6. ⚡ Flash Crash Detector (crypto liquidez) - cada ciclo")
 
     # Inicializar componentes auxiliares
     redeemer = AutoRedeemer()
@@ -840,7 +831,7 @@ async def main():
     tracker = WinRateTracker()
     weather_trader = WeatherTrader()
     stock_trader = StockTrader()
-    flash_crash = FlashCrashDetector()
+
     telegram = TelegramMonitor()
 
     # Enviar notificación de inicio
@@ -853,7 +844,7 @@ async def main():
             # Un solo ciclo
             await run_cycle(scanner, analyzer, risk, executor,
                           btc_strategy, redeemer, harvester, tracker,
-                          weather_trader, stock_trader, flash_crash, telegram, args.scan_only)
+                          weather_trader, stock_trader, telegram, args.scan_only)
         else:
             # Loop continuo
             last_ia_scan = 0
@@ -895,7 +886,7 @@ async def main():
                     logger.info("=" * 50)
                     await run_cycle(scanner, analyzer, risk, executor,
                                   btc_strategy, redeemer, harvester, tracker,
-                                  weather_trader, stock_trader, flash_crash, telegram)
+                                  weather_trader, stock_trader, telegram)
                     last_ia_scan = now
                     logger.info(f"\n⏰ Próximo ciclo en {SAFETY.scan_interval_minutes} min")
 
@@ -919,7 +910,6 @@ async def main():
         await redeemer.close()
         await weather_trader.close()
         await stock_trader.close()
-        await flash_crash.close()
         await telegram.close()
 
         # Guardar log final
