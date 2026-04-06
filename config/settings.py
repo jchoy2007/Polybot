@@ -51,9 +51,9 @@ class SafetyRules:
     min_edge_required: float = 0.05   # Edge mínimo 5% para apostar - EV < 5% = SKIP
     min_win_probability: float = 0.40  # Solo apostar si prob de ganar es >= 40%
 
-    # --- Límites por ciclo (SIN límite diario) ---
-    max_bets_per_cycle: int = 5       # Máximo 5 apuestas por ciclo de 15 min
-    max_daily_spend: float = 9999.0   # Sin límite diario
+    # --- Límites por ciclo y diarios ---
+    max_bets_per_cycle: int = 3       # Máximo 3 apuestas por ciclo de 15 min
+    max_daily_spend: float = 60.0     # Máximo $60/día en apuestas nuevas (protege capital)
     max_resolution_days: int = 2      # Solo mercados que resuelven en 2 días máx
 
     # --- Stop-loss automáticos (mantener protección) ---

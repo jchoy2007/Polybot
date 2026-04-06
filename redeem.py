@@ -165,9 +165,12 @@ async def redeem_all():
         wcol_pre = wcol.functions.balanceOf(eoa).call()
         success = False
 
+        # Esperar a que el nonce se actualice (evita "replacement transaction underpriced")
+        time.sleep(3)
+
         # METODO 1: CTF redeem con WrappedCollateral como collateral
         try:
-            nonce = w3.eth.get_transaction_count(eoa)
+            nonce = w3.eth.get_transaction_count(eoa, 'pending')
             txn = ctf.functions.redeemPositions(
                 w3.to_checksum_address(WCOL_ADDRESS),  # WrappedCollateral, NO USDC.e
                 bytes.fromhex("00" * 32),
@@ -175,7 +178,7 @@ async def redeem_all():
                 [1, 2]
             ).build_transaction({
                 'from': eoa, 'nonce': nonce, 'gas': 500000,
-                'gasPrice': w3.eth.gas_price, 'chainId': 137
+                'gasPrice': int(w3.eth.gas_price * 1.2), 'chainId': 137
             })
             signed = w3.eth.account.sign_transaction(txn, pk)
             tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
@@ -188,10 +191,11 @@ async def redeem_all():
             if receipt.status == 1 and wcol_gained > 0:
                 # Unwrap WrappedCollateral → USDC.e
                 try:
-                    nonce2 = w3.eth.get_transaction_count(eoa)
+                    time.sleep(3)
+                    nonce2 = w3.eth.get_transaction_count(eoa, 'pending')
                     txn2 = wcol.functions.unwrap(eoa, wcol_gained).build_transaction({
                         'from': eoa, 'nonce': nonce2, 'gas': 200000,
-                        'gasPrice': w3.eth.gas_price, 'chainId': 137
+                        'gasPrice': int(w3.eth.gas_price * 1.2), 'chainId': 137
                     })
                     signed2 = w3.eth.account.sign_transaction(txn2, pk)
                     tx_hash2 = w3.eth.send_raw_transaction(signed2.raw_transaction)
@@ -224,7 +228,8 @@ async def redeem_all():
         # METODO 2: CTF directo con USDC.e (para mercados no-neg_risk)
         if not success:
             try:
-                nonce = w3.eth.get_transaction_count(eoa)
+                time.sleep(3)
+                nonce = w3.eth.get_transaction_count(eoa, 'pending')
                 txn = ctf.functions.redeemPositions(
                     w3.to_checksum_address(USDC_E_ADDRESS),
                     bytes.fromhex("00" * 32),
@@ -232,7 +237,7 @@ async def redeem_all():
                     [1, 2]
                 ).build_transaction({
                     'from': eoa, 'nonce': nonce, 'gas': 500000,
-                    'gasPrice': w3.eth.gas_price, 'chainId': 137
+                    'gasPrice': int(w3.eth.gas_price * 1.2), 'chainId': 137
                 })
                 signed = w3.eth.account.sign_transaction(txn, pk)
                 tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
@@ -256,15 +261,15 @@ async def redeem_all():
             print(f"  ?? FALLO                      | {title}")
 
     # Unwrap cualquier WCOL restante
-    time.sleep(2)
+    time.sleep(5)
     wcol_remaining = wcol.functions.balanceOf(eoa).call()
     if wcol_remaining > 0:
         print(f"\n  Unwrapping {wcol_remaining/1e6:.2f} WCOL restante...")
         try:
-            nonce = w3.eth.get_transaction_count(eoa)
+            nonce = w3.eth.get_transaction_count(eoa, 'pending')
             txn = wcol.functions.unwrap(eoa, wcol_remaining).build_transaction({
                 'from': eoa, 'nonce': nonce, 'gas': 200000,
-                'gasPrice': w3.eth.gas_price, 'chainId': 137
+                'gasPrice': int(w3.eth.gas_price * 1.2), 'chainId': 137
             })
             signed = w3.eth.account.sign_transaction(txn, pk)
             tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)

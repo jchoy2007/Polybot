@@ -75,8 +75,8 @@ WEATHER_MODELS = [
     "meteofrance_seamless" # Météo-France
 ]
 
-MIN_MODELS_AGREE = 3
-MIN_EDGE = 0.15  # 15%
+MIN_MODELS_AGREE = 4   # Necesita 4 de 6 modelos de acuerdo (más seguro)
+MIN_EDGE = 0.20  # 20% mínimo (subido de 15% — demasiadas pérdidas con 15%)
 
 
 class WeatherTrader:
@@ -159,12 +159,12 @@ class WeatherTrader:
 
         logger.info(f"   ⛅ Encontrados {len(weather_markets)} mercados de clima")
 
-        # 2. Analizar cada mercado
-        for market in weather_markets:
+        # 2. Analizar cada mercado (máx 10 para no gastar tiempo)
+        for market in weather_markets[:10]:
             try:
                 trade = await self._analyze_and_trade(market)
                 if trade:
-                    return trade  # Un trade por ciclo
+                    return trade  # Un trade por ciclo máximo
             except Exception as e:
                 logger.error(f"   ⛅ Error analizando: {e}")
 

@@ -616,40 +616,12 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
     except Exception as e:
         logger.error(f"   Error en Stock Trader: {e}")
 
-    # ===== ESTRATEGIA 6: Flash Crash Detector =====
+    # ===== ESTRATEGIA 6: Flash Crash Detector — DESACTIVADA =====
+    # Razón: 0W/1L, perdió $3.93 comprando a 7¢. No distingue crashes reales.
+    # Se puede reactivar cuando tengamos más capital y mejor filtro.
     logger.info("\n" + "=" * 50)
-    logger.info("⚡ ESTRATEGIA 6: Flash Crash Detector (crypto)")
+    logger.info("⚡ ESTRATEGIA 6: Flash Crash Detector — DESACTIVADA")
     logger.info("=" * 50)
-    try:
-        flash_trade = await flash_crash.run_cycle()
-        if flash_trade:
-            status = flash_trade.get("status", "UNKNOWN")
-            if status == "EXECUTED":
-                logger.info(f"   ✅ Flash crash trade: ${flash_trade['amount']:.2f} "
-                           f"{flash_trade.get('side', '')} | Crash: {flash_trade.get('crash_pct', 0):+.1%}")
-                tracker.add_trade(
-                    market_id=flash_trade.get("market_id", ""),
-                    question=flash_trade.get("question", ""),
-                    side=flash_trade.get("side", ""),
-                    amount=flash_trade["amount"],
-                    price=flash_trade.get("price", 0.50),
-                    strategy="FLASH_CRASH"
-                )
-                if telegram:
-                    await telegram.send_trade_alert(
-                        "FLASH_CRASH", flash_trade.get("question", ""),
-                        flash_trade.get("side", ""), flash_trade["amount"],
-                        flash_trade.get("price", 0.50), flash_trade.get("edge", 0), "< 1 hora")
-                    telegram.log_trade("FLASH_CRASH", flash_trade.get("question", ""), flash_trade.get("side", ""), flash_trade["amount"])
-                    logger.info(f"   ⏳ Resuelve en: < 1 hora")
-            elif status == "SIMULATED":
-                logger.info(f"   🏃 Flash simulado: ${flash_trade['amount']:.2f} | Crash: {flash_trade.get('crash_pct', 0):+.1%}")
-            elif status == "FAILED":
-                logger.info(f"   ❌ Flash trade falló")
-            else:
-                logger.info(f"   ℹ️ Flash: {status}")
-    except Exception as e:
-        logger.error(f"   Error en Flash Crash: {e}")
 
     # ===== ACTUALIZAR P&L desde tracker =====
     if not SAFETY.dry_run:
