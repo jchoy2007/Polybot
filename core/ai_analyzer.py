@@ -18,6 +18,8 @@ logger = logging.getLogger("polybot.analyzer")
 
 CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 CLAUDE_MODEL = "claude-haiku-4-5-20251001"
+# Rate limit: wait between calls (Haiku is fast but has limits)
+RATE_LIMIT_SECONDS = 5
 
 
 @dataclass
@@ -107,15 +109,17 @@ class AIAnalyzer:
         Prompt calibrado basado en análisis de 14,000 wallets ganadoras.
         Usa el framework de @LunarResearcher: EV > 5% o SKIP.
         """
-        return f"""You are a calibrated prediction market analyst.
-Your job is to estimate the TRUE probability of outcomes.
+        return f"""You are a calibrated prediction market analyst. Your bankroll depends on accuracy.
 
-CALIBRATION RULES (critical):
-- Penalize extreme confidence. If you say 70%, ~7 out of 10 such calls should resolve YES.
-- Consider base rates. Most events DON'T happen. Most underdogs DON'T win.
-- "Looks likely" ≠ "is likely". A 99% accurate test on a 0.1% event = 9% true positive.
-- If unsure, stay close to market price. The market has wisdom too.
-- Never estimate above 0.92 or below 0.08 unless resolution is imminent and certain.
+STRICT RULES (violating any = SKIP):
+1. NEVER bet on underdogs (prob < 40%). They almost always lose. SKIP.
+2. If unsure, SKIP. The market is usually right. Only bet when you have STRONG evidence.
+3. Penalize extreme confidence. If you say 70%, ~7/10 such calls must resolve YES.
+4. Consider base rates. Most events DON'T happen. Most underdogs DON'T win.
+5. Sports: home teams have ~55% base rate. Don't overestimate visitors or underdogs.
+6. Never estimate above 0.90 or below 0.10 unless resolution is imminent and certain.
+7. If the market already prices it correctly (within 5%), SKIP.
+8. Prefer the FAVORITE side (higher probability) - it wins more often.
 
 MARKET:
 - Question: {market.question}
@@ -125,16 +129,16 @@ MARKET:
 - Resolves in: {market.days_until_resolution} day(s)
 - Category: {market.category}
 
-THE ONLY FORMULA THAT MATTERS (Expected Value):
-EV = P_true × (1 - P_market) - (1 - P_true) × P_market
-If EV < 0.05 → SKIP. No exceptions. This single filter eliminates 90% of losing trades.
+THE ONLY FORMULA THAT MATTERS:
+EV = P_true * (1 - P_market) - (1 - P_true) * P_market
+If EV < 0.05 → SKIP. No exceptions.
 
-ANALYSIS STEPS:
-1. What is the TRUE probability based on available evidence?
-2. Calculate EV using the formula above
-3. If EV >= 0.05 (5%), recommend BET on the side with edge
-4. If EV < 0.05, recommend SKIP regardless of how tempting it looks
-5. Which side? If P_true > P_market → BET YES. If P_true < P_market → BET NO.
+DECISION PROCESS:
+1. Estimate TRUE probability based on evidence you're confident about
+2. Calculate EV. If < 5% → SKIP immediately
+3. Which side has edge? Only bet on the side where YOUR estimate > market price
+4. If your estimate is within 5% of market → SKIP (market is efficient)
+5. Default to SKIP when uncertain. 8 out of 10 markets should be SKIP.
 
 Return JSON only (no markdown, no backticks):
 {{
@@ -278,8 +282,8 @@ Return JSON only (no markdown, no backticks):
 
             analyzed += 1
             if analyzed < min(len(unique_markets), max_to_analyze):
-                logger.info("   ⏳ Esperando 25s (rate limit)...")
-                await asyncio.sleep(25)
+                logger.info("   ⏳ Esperando 5s (rate limit)...")
+                await asyncio.sleep(RATE_LIMIT_SECONDS)
 
         # Ordenar por edge (mejores oportunidades primero)
         results.sort(key=lambda x: x.edge, reverse=True)

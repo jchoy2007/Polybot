@@ -36,6 +36,7 @@ from modules.no_harvester import NOHarvester
 from modules.weather_trader import WeatherTrader
 from modules.stock_trader import StockTrader
 from modules.flash_crash import FlashCrashDetector
+from modules.telegram_monitor import TelegramMonitor
 
 # ============================================================
 # SYNC DE POSICIONES ACTIVAS
@@ -239,23 +240,33 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     weather_trader: WeatherTrader,
                     stock_trader: StockTrader,
                     flash_crash: FlashCrashDetector,
+                    telegram: TelegramMonitor = None,
                     scan_only: bool = False):
     """Ejecuta un ciclo completo con TODAS las estrategias."""
 
     cycle_start = datetime.now()
     
     # === AUTO-SCALING: Ajustar apuestas según capital ===
+    # Respeta el límite configurado en settings.py como techo
     bankroll = STATE.current_bankroll
+    settings_max = SAFETY.max_bet_absolute  # $6 configurado por usuario
     if bankroll < 50:
-        SAFETY.max_bet_absolute = 4.0
+        auto_max = 3.0
     elif bankroll < 100:
-        SAFETY.max_bet_absolute = 8.0
+        auto_max = 5.0
     elif bankroll < 200:
-        SAFETY.max_bet_absolute = 12.0
+        auto_max = 8.0
     elif bankroll < 500:
-        SAFETY.max_bet_absolute = 20.0
+        auto_max = 15.0
+    elif bankroll < 1000:
+        auto_max = 30.0
+    elif bankroll < 5000:
+        auto_max = 80.0
+    elif bankroll < 20000:
+        auto_max = 200.0
     else:
-        SAFETY.max_bet_absolute = 40.0
+        auto_max = 500.0
+    SAFETY.max_bet_absolute = min(auto_max, max(settings_max, bankroll * 0.05))
 
     logger.info("=" * 60)
     logger.info(f"🔄 NUEVO CICLO - {cycle_start.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -266,6 +277,31 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
     logger.info(f"   Max apuesta: ${SAFETY.max_bet_absolute:.0f} (auto-scale)")
     logger.info(f"   {tracker.get_summary()}")
     logger.info("=" * 60)
+
+    # --- Paso 0: Sincronizar open_positions desde posiciones reales ---
+    if not SAFETY.dry_run:
+        try:
+            import aiohttp as _aio
+            _funder = os.getenv("POLYMARKET_FUNDER_ADDRESS", "")
+            _pk = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
+            if _pk:
+                from web3 import Web3 as _W3
+                _addr = _W3().eth.account.from_key(_pk).address
+                _addrs = [a for a in [_funder, _addr] if a]
+                for _a in _addrs:
+                    try:
+                        async with _aio.ClientSession(timeout=_aio.ClientTimeout(total=10)) as _s:
+                            async with _s.get(f"https://data-api.polymarket.com/positions?user={_a.lower()}") as _r:
+                                if _r.status == 200:
+                                    _pos = await _r.json()
+                                    if _pos and isinstance(_pos, list):
+                                        _active = sum(1 for p in _pos if float(p.get("currentValue") or 0) > 0.01)
+                                        STATE.open_positions = _active
+                                        break
+                    except:
+                        continue
+        except:
+            pass
 
     # --- Paso 1: Verificar si el bot está pausado ---
     if STATE.is_paused:
@@ -325,7 +361,10 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
         for analysis in analyses:
             # === FILTRO: Si la IA dijo SKIP, respetar su decisión ===
             if hasattr(analysis, 'side') and analysis.side.upper() == "SKIP":
-                logger.info(f"   ⏭️ {analysis.question[:40]}: IA dijo SKIP (respetando)")
+                logger.info(f"   ⏭️ {analysis.question[:40]}: IA dijo SKIP (lado)")
+                continue
+            if hasattr(analysis, 'recommended_action') and analysis.recommended_action.upper() == "SKIP":
+                logger.info(f"   ⏭️ {analysis.question[:40]}: IA recomienda SKIP")
                 continue
 
             mkt = market_lookup.get(analysis.market_id)
@@ -407,6 +446,11 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                         price=analysis.market_price,
                         strategy="IA"
                     )
+                    if telegram and status == "EXECUTED":
+                        await telegram.send_trade_alert(
+                            "IA", analysis.question, analysis.side,
+                            amount, analysis.market_price, analysis.edge)
+                        telegram.log_trade("IA", analysis.question, analysis.side, amount)
         else:
             logger.info("   Sin apuestas de valor en este ciclo")
 
@@ -428,6 +472,12 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     price=btc_trade.get("price", 0.50),
                     strategy="CRYPTO"
                 )
+                if telegram:
+                    await telegram.send_trade_alert(
+                        "CRYPTO", btc_trade.get("question", btc_trade.get("crypto", "")),
+                        btc_trade.get("side", ""), btc_trade["amount"],
+                        btc_trade.get("price", 0.50), btc_trade.get("edge", 0))
+                    telegram.log_trade("CRYPTO", btc_trade.get("question", ""), btc_trade.get("side", ""), btc_trade["amount"])
             elif status == "FAILED":
                 logger.info(f"   ❌ Trade crypto falló: ${btc_trade['amount']:.2f}")
             else:
@@ -457,6 +507,8 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                         price=h.get("price", 0.95),
                         strategy="HARVEST"
                     )
+                    if telegram:
+                        telegram.log_trade("HARVEST", h.get("question", ""), h.get("side", ""), h.get("bet_amount", 0))
         else:
             logger.info("   Sin oportunidades de harvest en este ciclo")
     except Exception as e:
@@ -481,6 +533,12 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     price=weather_trade.get("price", 0.50),
                     strategy="WEATHER"
                 )
+                if telegram:
+                    await telegram.send_trade_alert(
+                        "WEATHER", weather_trade.get("question", ""),
+                        weather_trade.get("side", ""), weather_trade["amount"],
+                        weather_trade.get("price", 0.50), weather_trade.get("edge", 0))
+                    telegram.log_trade("WEATHER", weather_trade.get("question", ""), weather_trade.get("side", ""), weather_trade["amount"])
             elif status == "SIMULATED":
                 logger.info(f"   🏃 Weather simulado: ${weather_trade['amount']:.2f} {weather_trade.get('side', '')}")
             elif status == "FAILED":
@@ -509,6 +567,12 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     price=stock_trade.get("price", 0.50),
                     strategy="STOCKS"
                 )
+                if telegram:
+                    await telegram.send_trade_alert(
+                        "STOCKS", stock_trade.get("question", ""),
+                        stock_trade.get("side", ""), stock_trade["amount"],
+                        stock_trade.get("price", 0.50), stock_trade.get("edge", 0))
+                    telegram.log_trade("STOCKS", stock_trade.get("question", ""), stock_trade.get("side", ""), stock_trade["amount"])
             elif status == "SIMULATED":
                 logger.info(f"   🏃 Stock simulado: ${stock_trade['amount']:.2f} {stock_trade.get('side', '')}")
             elif status == "FAILED":
@@ -537,6 +601,12 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     price=flash_trade.get("price", 0.50),
                     strategy="FLASH_CRASH"
                 )
+                if telegram:
+                    await telegram.send_trade_alert(
+                        "FLASH_CRASH", flash_trade.get("question", ""),
+                        flash_trade.get("side", ""), flash_trade["amount"],
+                        flash_trade.get("price", 0.50), flash_trade.get("edge", 0))
+                    telegram.log_trade("FLASH_CRASH", flash_trade.get("question", ""), flash_trade.get("side", ""), flash_trade["amount"])
             elif status == "SIMULATED":
                 logger.info(f"   🏃 Flash simulado: ${flash_trade['amount']:.2f} | Crash: {flash_trade.get('crash_pct', 0):+.1%}")
             elif status == "FAILED":
@@ -546,9 +616,69 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
     except Exception as e:
         logger.error(f"   Error en Flash Crash: {e}")
 
-    # ===== AUTO-COBRO DESACTIVADO (usar python redeem.py manual) =====
-    # El escaneo on-chain tarda ~60s y ralentiza el ciclo.
-    # Cobrar manualmente cuando tengas posiciones ganadoras.
+    # ===== ACTUALIZAR P&L desde tracker =====
+    if not SAFETY.dry_run:
+        try:
+            from web3 import Web3 as _W3p
+            _pk_pnl = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
+            if _pk_pnl:
+                _addr_pnl = _W3p().eth.account.from_key(_pk_pnl).address
+                await tracker.check_results(_addr_pnl)
+                # Update P&L from tracker
+                _won = [t for t in tracker.trades if t["result"] == "WON"]
+                _lost = [t for t in tracker.trades if t["result"] == "LOST"]
+                _total_profit = sum(t["profit"] for t in _won)
+                _total_loss = sum(t["profit"] for t in _lost)
+                STATE.total_pnl = _total_profit + _total_loss
+                # Daily P&L - filter today's resolved trades
+                _today = datetime.now().strftime("%Y-%m-%d")
+                _today_trades = [t for t in _won + _lost
+                                 if t.get("timestamp", "").startswith(_today)]
+                STATE.daily_pnl = sum(t["profit"] for t in _today_trades)
+        except Exception as _e:
+            logger.debug(f"Error actualizando P&L: {_e}")
+
+    # ===== AUTO-COBRO (cada 4 ciclos ≈ 1 hora) =====
+    if not SAFETY.dry_run and not hasattr(run_cycle, '_redeem_counter'):
+        run_cycle._redeem_counter = 0
+    if not SAFETY.dry_run:
+        run_cycle._redeem_counter = getattr(run_cycle, '_redeem_counter', 0) + 1
+        if run_cycle._redeem_counter >= 4:
+            run_cycle._redeem_counter = 0
+            logger.info("\n" + "=" * 50)
+            logger.info("💰 AUTO-COBRO (cada ~1 hora)")
+            logger.info("=" * 50)
+            try:
+                redeem_result = await redeemer.run_cycle()
+                if redeem_result.get("redeemed", 0) > 0:
+                    logger.info(f"   💰 Cobradas: {redeem_result['redeemed']} | "
+                                f"+${redeem_result['amount']:.2f}")
+                    if telegram:
+                        await telegram.send_redeem_alert(
+                            redeem_result['amount'], redeem_result['redeemed'],
+                            STATE.current_bankroll)
+                    # Also unwrap any remaining WCOL
+                    try:
+                        from web3 import Web3 as _W3r
+                        _pk_r = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
+                        _w3r = _W3r(_W3r.HTTPProvider("https://polygon-bor-rpc.publicnode.com"))
+                        _eoa_r = _w3r.eth.account.from_key(_pk_r).address
+                        _wcol_abi = [{"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"},
+                                     {"inputs":[{"name":"_to","type":"address"},{"name":"_amount","type":"uint256"}],"name":"unwrap","outputs":[],"type":"function"}]
+                        _wcol_c = _w3r.eth.contract(address=_w3r.to_checksum_address("0x3A3BD7bb9528E159577F7C2e685CC81A765002E2"), abi=_wcol_abi)
+                        _wcol_bal = _wcol_c.functions.balanceOf(_eoa_r).call()
+                        if _wcol_bal > 0:
+                            _n = _w3r.eth.get_transaction_count(_eoa_r)
+                            _tx = _wcol_c.functions.unwrap(_eoa_r, _wcol_bal).build_transaction({
+                                'from': _eoa_r, 'nonce': _n, 'gas': 200000,
+                                'gasPrice': _w3r.eth.gas_price, 'chainId': 137})
+                            _s = _w3r.eth.account.sign_transaction(_tx, _pk_r)
+                            _w3r.eth.send_raw_transaction(_s.raw_transaction)
+                            logger.info(f"   Unwrapped {_wcol_bal/1e6:.2f} WCOL restante")
+                    except Exception:
+                        pass
+            except Exception as e:
+                logger.error(f"   Error auto-cobro: {e}")
 
     # ===== RESUMEN COMPLETO =====
     logger.info("\n" + "=" * 60)
@@ -560,16 +690,42 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 f"Total trades: {STATE.total_trades}")
     logger.info("=" * 60)
 
-    # Notificar por Telegram
-    daily_summary = risk.get_daily_summary()
-    tg_msg = (
-        f"🤖 *PolyBot Reporte*\n"
-        f"Bankroll: ${daily_summary['bankroll_actual']:.2f}\n"
-        f"P&L hoy: ${daily_summary['pnl_diario']:+.2f}\n"
-        f"ROI total: {daily_summary['roi']}\n"
-        f"Total trades: {STATE.total_trades}"
-    )
-    await send_telegram_notification(tg_msg)
+    # Notificar por Telegram (reporte periódico)
+    if telegram:
+        try:
+            # Obtener posiciones actuales para el reporte
+            _positions_tg = []
+            if not SAFETY.dry_run:
+                try:
+                    import aiohttp as _aio_tg
+                    _pk_tg = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
+                    if _pk_tg:
+                        from web3 import Web3 as _W3tg
+                        _addr_tg = _W3tg().eth.account.from_key(_pk_tg).address
+                        _funder_tg = os.getenv("POLYMARKET_FUNDER_ADDRESS", "")
+                        for _a_tg in [_funder_tg, _addr_tg]:
+                            if not _a_tg:
+                                continue
+                            try:
+                                async with _aio_tg.ClientSession(timeout=_aio_tg.ClientTimeout(total=10)) as _s_tg:
+                                    async with _s_tg.get(f"https://data-api.polymarket.com/positions?user={_a_tg.lower()}") as _r_tg:
+                                        if _r_tg.status == 200:
+                                            _positions_tg = await _r_tg.json()
+                                            if _positions_tg:
+                                                break
+                            except:
+                                continue
+                except:
+                    pass
+
+            await telegram.send_periodic_report(
+                bankroll=STATE.current_bankroll,
+                pnl_total=STATE.total_pnl,
+                positions=_positions_tg or [],
+                tracker_summary=tracker.get_summary()
+            )
+        except Exception as _e_tg:
+            logger.debug(f"Error reporte Telegram: {_e_tg}")
 
 
 # ============================================================
@@ -678,13 +834,19 @@ async def main():
     weather_trader = WeatherTrader()
     stock_trader = StockTrader()
     flash_crash = FlashCrashDetector()
+    telegram = TelegramMonitor()
+
+    # Enviar notificación de inicio
+    if telegram.enabled:
+        mode = "LIVE 💰" if not SAFETY.dry_run else "DRY RUN 🏃"
+        await telegram.send_startup(STATE.current_bankroll, mode)
 
     try:
         if args.once or args.scan_only:
             # Un solo ciclo
             await run_cycle(scanner, analyzer, risk, executor,
                           btc_strategy, redeemer, harvester, tracker,
-                          weather_trader, stock_trader, flash_crash, args.scan_only)
+                          weather_trader, stock_trader, flash_crash, telegram, args.scan_only)
         else:
             # Loop continuo
             last_ia_scan = 0
@@ -703,6 +865,10 @@ async def main():
                     logger.info(f"\n🛑 Auto-stop: Son las {datetime.now().strftime('%H:%M')}. Bot descansando.")
                     logger.info(f"   Balance final: ${STATE.current_bankroll:.2f}")
                     logger.info(f"   {tracker.get_summary()}")
+                    if telegram.enabled:
+                        await telegram.send_shutdown(
+                            STATE.current_bankroll, STATE.total_trades,
+                            tracker.get_summary())
                     break
 
                 if now - last_ia_scan >= ia_interval:
@@ -711,7 +877,7 @@ async def main():
                     logger.info("=" * 50)
                     await run_cycle(scanner, analyzer, risk, executor,
                                   btc_strategy, redeemer, harvester, tracker,
-                                  weather_trader, stock_trader, flash_crash)
+                                  weather_trader, stock_trader, flash_crash, telegram)
                     last_ia_scan = now
                     logger.info(f"\n⏰ Próximo ciclo en {SAFETY.scan_interval_minutes} min")
 
@@ -720,6 +886,15 @@ async def main():
     except KeyboardInterrupt:
         logger.info("\n👋 Bot detenido por el usuario")
     finally:
+        # Enviar reporte final por Telegram
+        if telegram.enabled:
+            try:
+                await telegram.send_shutdown(
+                    STATE.current_bankroll, STATE.total_trades,
+                    tracker.get_summary())
+            except:
+                pass
+
         await scanner.close()
         await analyzer.close()
         await btc_strategy.close()
@@ -727,6 +902,7 @@ async def main():
         await weather_trader.close()
         await stock_trader.close()
         await flash_crash.close()
+        await telegram.close()
 
         # Guardar log final
         final_summary = risk.get_daily_summary()

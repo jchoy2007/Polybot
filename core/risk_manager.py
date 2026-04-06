@@ -141,32 +141,16 @@ class RiskManager:
         if estimated_prob < SAFETY.min_win_probability:
             return False, f"Prob de ganar muy baja ({estimated_prob:.0%} < {SAFETY.min_win_probability:.0%})", 0.0
 
-        # --- Calcular tamaño de apuesta con ESCALA DINÁMICA ---
+        # --- Calcular tamaño de apuesta con Kelly + límites de settings ---
         kelly_pct = self.kelly_criterion(estimated_prob, market_price)
         bet_amount = STATE.current_bankroll * kelly_pct
 
-        # Escala dinámica AGRESIVA: más capital = apuestas más grandes
         bankroll = STATE.current_bankroll
-        if bankroll < 200:
-            max_bet = 10.0
-            max_pct = 0.10
-        elif bankroll < 500:
-            max_bet = 35.0
-            max_pct = 0.10
-        elif bankroll < 1000:
-            max_bet = 80.0
-            max_pct = 0.12
-        elif bankroll < 5000:
-            max_bet = 400.0
-            max_pct = 0.12
-        else:
-            max_bet = 750.0
-            max_pct = 0.15
 
-        # Aplicar límites dinámicos
+        # Aplicar límites de settings (respeta max_bet_absolute ya auto-escalado)
         bet_amount = max(bet_amount, SAFETY.min_bet_size)
-        bet_amount = min(bet_amount, max_bet)
-        bet_amount = min(bet_amount, bankroll * max_pct)
+        bet_amount = min(bet_amount, SAFETY.max_bet_absolute)
+        bet_amount = min(bet_amount, bankroll * SAFETY.max_bet_pct)
 
         # No apostar más de lo que tenemos
         bet_amount = min(bet_amount, STATE.current_bankroll * 0.95)

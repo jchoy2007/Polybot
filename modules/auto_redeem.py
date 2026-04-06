@@ -30,6 +30,7 @@ logger = logging.getLogger("polybot.redeem")
 CTF_ADDRESS = "0x4D97DCd97eC945f40cF65F87097ACe5EA0476045"
 NEG_RISK_ADAPTER = "0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296"
 USDC_E_ADDRESS = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+WCOL_ADDRESS = "0x3A3BD7bb9528E159577F7C2e685CC81A765002E2"  # WrappedCollateral
 GAMMA_API_URL = "https://gamma-api.polymarket.com"
 
 # ABI mínimas
@@ -79,6 +80,21 @@ ERC20_ABI = [
         "inputs": [{"name": "account", "type": "address"}],
         "name": "balanceOf",
         "outputs": [{"name": "", "type": "uint256"}],
+        "type": "function"
+    }
+]
+
+WCOL_ABI = [
+    {
+        "inputs": [{"name": "account", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"name": "", "type": "uint256"}],
+        "type": "function"
+    },
+    {
+        "inputs": [{"name": "_to", "type": "address"}, {"name": "_amount", "type": "uint256"}],
+        "name": "unwrap",
+        "outputs": [],
         "type": "function"
     }
 ]
@@ -256,6 +272,7 @@ class AutoRedeemer:
     def redeem_market(self, market_info: Dict) -> Tuple[bool, float]:
         """
         Intenta cobrar tokens de un mercado resuelto.
+        v10: Para neg_risk usa WCOL como collateral + unwrap a USDC.e.
         Retorna (éxito, monto_cobrado).
         """
         if not self.w3 or not self.account:
@@ -269,7 +286,6 @@ class AutoRedeemer:
         neg_risk = market_info["neg_risk"]
 
         try:
-            # Verificar que el oráculo haya reportado
             cid_bytes = bytes.fromhex(cid[2:]) if cid.startswith("0x") else bytes.fromhex(cid)
             payout = self.ctf_contract.functions.payoutDenominator(cid_bytes).call()
 
@@ -277,60 +293,93 @@ class AutoRedeemer:
                 logger.debug(f"   Mercado aún no resuelto por oráculo")
                 return False, 0.0
 
-            # Balance USDC antes
             balance_before = self.usdc_contract.functions.balanceOf(self.address).call()
 
+            wcol_contract = self.w3.eth.contract(
+                address=self.w3.to_checksum_address(WCOL_ADDRESS),
+                abi=WCOL_ABI
+            )
+
             if neg_risk:
-                # Mercado NegRisk
-                neg_adapter = self.w3.eth.contract(
-                    address=self.w3.to_checksum_address(NEG_RISK_ADAPTER),
-                    abi=NEG_RISK_ABI
-                )
-                txn = neg_adapter.functions.redeemPositions(
-                    cid_bytes, []
+                # v10 FIX: Para neg_risk, usar WrappedCollateral como collateral
+                wcol_before = wcol_contract.functions.balanceOf(self.address).call()
+
+                nonce = self.w3.eth.get_transaction_count(self.address)
+                txn = self.ctf_contract.functions.redeemPositions(
+                    self.w3.to_checksum_address(WCOL_ADDRESS),  # WCOL, no USDC.e
+                    bytes.fromhex("00" * 32),
+                    cid_bytes,
+                    [1, 2]
                 ).build_transaction({
-                    'from': self.address,
-                    'nonce': self.w3.eth.get_transaction_count(self.address),
-                    'gas': 300000,
-                    'gasPrice': self.w3.eth.gas_price,
-                    'chainId': 137
+                    'from': self.address, 'nonce': nonce, 'gas': 500000,
+                    'gasPrice': self.w3.eth.gas_price, 'chainId': 137
                 })
+
+                signed = self.w3.eth.account.sign_transaction(txn, pk)
+                tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction)
+                receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
+                time.sleep(2)
+
+                if receipt.status != 1:
+                    logger.warning(f"   ❌ WCOL redeem TX falló")
+                    return False, 0.0
+
+                wcol_after = wcol_contract.functions.balanceOf(self.address).call()
+                wcol_gained = wcol_after - wcol_before
+
+                if wcol_gained > 0:
+                    # Unwrap WCOL → USDC.e
+                    try:
+                        nonce2 = self.w3.eth.get_transaction_count(self.address)
+                        txn2 = wcol_contract.functions.unwrap(
+                            self.address, wcol_gained
+                        ).build_transaction({
+                            'from': self.address, 'nonce': nonce2, 'gas': 200000,
+                            'gasPrice': self.w3.eth.gas_price, 'chainId': 137
+                        })
+                        signed2 = self.w3.eth.account.sign_transaction(txn2, pk)
+                        tx_hash2 = self.w3.eth.send_raw_transaction(signed2.raw_transaction)
+                        self.w3.eth.wait_for_transaction_receipt(tx_hash2, timeout=60)
+                        time.sleep(2)
+                    except Exception as e:
+                        logger.warning(f"   Unwrap falló: {str(e)[:40]}")
+
+                balance_after = self.usdc_contract.functions.balanceOf(self.address).call()
+                gained = (balance_after - balance_before) / 1e6
+                logger.info(f"   ✅ COBRADO ${gained:.2f} (neg_risk/WCOL)")
+                return True, gained
+
             else:
-                # Mercado estándar CTF
+                # Mercado estándar CTF → USDC.e directo
+                nonce = self.w3.eth.get_transaction_count(self.address)
                 txn = self.ctf_contract.functions.redeemPositions(
                     self.w3.to_checksum_address(USDC_E_ADDRESS),
                     bytes.fromhex("00" * 32),
                     cid_bytes,
                     [1, 2]
                 ).build_transaction({
-                    'from': self.address,
-                    'nonce': self.w3.eth.get_transaction_count(self.address),
-                    'gas': 300000,
-                    'gasPrice': self.w3.eth.gas_price,
-                    'chainId': 137
+                    'from': self.address, 'nonce': nonce, 'gas': 500000,
+                    'gasPrice': self.w3.eth.gas_price, 'chainId': 137
                 })
 
-            signed = self.w3.eth.account.sign_transaction(txn, pk)
-            tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction)
-            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
+                signed = self.w3.eth.account.sign_transaction(txn, pk)
+                tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction)
+                receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
 
-            if receipt.status == 1:
-                # Esperar un poco para que el balance se actualice
-                time.sleep(2)
-                balance_after = self.usdc_contract.functions.balanceOf(self.address).call()
-                gained = (balance_after - balance_before) / 1e6
-
-                logger.info(f"   ✅ COBRADO ${gained:.2f} | TX: {tx_hash.hex()[:20]}...")
-                return True, gained
-            else:
-                logger.warning(f"   ❌ TX falló en blockchain")
-                return False, 0.0
+                if receipt.status == 1:
+                    time.sleep(2)
+                    balance_after = self.usdc_contract.functions.balanceOf(self.address).call()
+                    gained = (balance_after - balance_before) / 1e6
+                    logger.info(f"   ✅ COBRADO ${gained:.2f} (CTF directo)")
+                    return True, gained
+                else:
+                    logger.warning(f"   ❌ TX falló")
+                    return False, 0.0
 
         except Exception as e:
             error_msg = str(e)[:80]
-            # Ignorar errores comunes (ya cobrado, sin tokens ganadores, etc.)
             if "execution reverted" in error_msg.lower():
-                logger.debug(f"   Reverted (posiblemente ya cobrado): {error_msg[:40]}")
+                logger.debug(f"   Reverted (ya cobrado o sin ganancia): {error_msg[:40]}")
             else:
                 logger.warning(f"   Error redeem: {error_msg}")
             return False, 0.0
