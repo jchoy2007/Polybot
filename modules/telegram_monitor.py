@@ -125,11 +125,13 @@ class TelegramMonitor:
     async def send_periodic_report(self, bankroll: float, pnl_total: float,
                                      positions: List[Dict],
                                      tracker_summary: str):
-        """Reporte periódico (~cada hora)."""
+        """Reporte periódico (~cada hora) con posiciones detalladas."""
         self.cycle_count += 1
-        if self.cycle_count < self.report_interval:
+        # Primer reporte inmediato, después cada 4 ciclos
+        if self.cycle_count > 1 and self.cycle_count < self.report_interval:
             return
-        self.cycle_count = 0
+        if self.cycle_count >= self.report_interval:
+            self.cycle_count = 0
 
         pnl_emoji = "📈" if pnl_total >= 0 else "📉"
         roi = ((bankroll - 200) / 200) * 100
@@ -138,43 +140,80 @@ class TelegramMonitor:
             f"📊 REPORTE POLYBOT",
             f"━━━━━━━━━━━━━━━━━━",
             f"💰 Balance libre: ${bankroll:.2f}",
-            f"{pnl_emoji} P/L Total: ${pnl_total:+.2f}",
-            f"📈 ROI: {roi:+.1f}%",
-            f"🕐 {datetime.now().strftime('%H:%M %d/%m')}",
         ]
 
-        # Posiciones con horas hasta resolución
+        # Posiciones detalladas con tiempo de resolución
         if positions:
             active = [p for p in positions if float(p.get("currentValue") or 0) > 0.01]
             total_val = sum(float(p.get("currentValue") or 0) for p in active)
-            winning = sum(1 for p in active if float(p.get("curPrice") or 0) >= 0.70)
-            losing = sum(1 for p in active if float(p.get("curPrice") or 0) < 0.30)
+            total_pnl_pos = sum(float(p.get("cashPnl") or 0) for p in active)
 
-            lines.append(f"\n📋 Posiciones: {len(active)}")
-            lines.append(f"💰 Valor total: ${total_val:.2f}")
-            lines.append(f"✅ Ganando: {winning} | ❌ Perdiendo: {losing}")
-
-            # Top 5 posiciones por valor
-            sorted_pos = sorted(active,
-                                key=lambda p: float(p.get("currentValue") or 0),
-                                reverse=True)
-            for p in sorted_pos[:6]:
-                title = (p.get("title") or p.get("question") or "?")[:30]
-                value = float(p.get("currentValue") or 0)
+            # Clasificar
+            winning = []
+            losing = []
+            pending = []
+            for p in active:
                 cur_price = float(p.get("curPrice") or 0)
-                side = p.get("outcome") or "?"
-                # Tiempo de resolución
-                end_date = p.get("endDate") or ""
-                resolve = self._calc_resolve_time(end_date)
-                emoji = "✅" if cur_price >= 0.70 else ("❌" if cur_price < 0.30 else "⏳")
-                lines.append(f"{emoji} {title} | {side} ${value:.2f} ({cur_price:.0%}) {resolve}")
+                pnl = float(p.get("cashPnl") or 0)
+                if cur_price >= 0.85:
+                    winning.append(p)
+                elif cur_price < 0.30:
+                    losing.append(p)
+                else:
+                    pending.append(p)
 
-            if len(sorted_pos) > 6:
-                lines.append(f"   ... y {len(sorted_pos)-6} mas")
+            lines.append(f"💰 En posiciones: ${total_val:.2f}")
+            lines.append(f"💰 Total estimado: ${bankroll + total_val:.2f}")
+            lines.append(f"{pnl_emoji} P/L posiciones: ${total_pnl_pos:+.2f}")
+            lines.append(f"📈 ROI: {roi:+.1f}%")
+            lines.append(f"🕐 {datetime.now().strftime('%H:%M %d/%m')}")
 
-        # Win rate (limpiar caracteres problemáticos)
-        clean_summary = tracker_summary.replace("$+", "$").replace("+$", "+$")
-        lines.append(f"\n{clean_summary[:250]}")
+            # GANADORAS
+            if winning:
+                lines.append(f"\n✅ GANANDO ({len(winning)}):")
+                for p in sorted(winning, key=lambda x: float(x.get("currentValue") or 0), reverse=True)[:8]:
+                    title = (p.get("title") or p.get("question") or "?")[:28]
+                    value = float(p.get("currentValue") or 0)
+                    cur_price = float(p.get("curPrice") or 0)
+                    side = p.get("outcome") or "?"
+                    resolve = self._calc_resolve_time(p.get("endDate") or "")
+                    lines.append(f"  {title} | {side} ${value:.2f} ({cur_price:.0%}) {resolve}")
+                if len(winning) > 8:
+                    lines.append(f"  ... y {len(winning)-8} mas")
+
+            # EN JUEGO
+            if pending:
+                lines.append(f"\n⏳ EN JUEGO ({len(pending)}):")
+                for p in sorted(pending, key=lambda x: float(x.get("currentValue") or 0), reverse=True)[:6]:
+                    title = (p.get("title") or p.get("question") or "?")[:28]
+                    value = float(p.get("currentValue") or 0)
+                    cur_price = float(p.get("curPrice") or 0)
+                    side = p.get("outcome") or "?"
+                    pnl = float(p.get("cashPnl") or 0)
+                    resolve = self._calc_resolve_time(p.get("endDate") or "")
+                    pnl_str = f"+${pnl:.2f}" if pnl >= 0 else f"-${abs(pnl):.2f}"
+                    lines.append(f"  {title} | {side} ${value:.2f} ({cur_price:.0%}) {pnl_str} {resolve}")
+                if len(pending) > 6:
+                    lines.append(f"  ... y {len(pending)-6} mas")
+
+            # PERDIENDO
+            if losing:
+                lines.append(f"\n❌ PERDIENDO ({len(losing)}):")
+                for p in losing[:4]:
+                    title = (p.get("title") or p.get("question") or "?")[:28]
+                    value = float(p.get("currentValue") or 0)
+                    pnl = float(p.get("cashPnl") or 0)
+                    lines.append(f"  {title} | ${value:.2f} (P/L: -${abs(pnl):.2f})")
+        else:
+            lines.append(f"💰 Total: ${bankroll:.2f}")
+            lines.append(f"📈 ROI: {roi:+.1f}%")
+
+        # Win rate resumen
+        lines.append(f"\n📊 HISTORIAL:")
+        # Extraer solo las líneas principales del tracker summary
+        summary_lines = tracker_summary.split("\n")
+        if summary_lines:
+            lines.append(f"  {summary_lines[0][:100]}")
 
         # Trades recientes
         if self.last_trades:
