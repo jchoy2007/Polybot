@@ -247,11 +247,11 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
     cycle_start = datetime.now()
     
     # === AUTO-SCALING: Ajustar apuestas según capital ===
-    # Respeta el límite configurado en settings.py como techo
+    # Sube con el capital, pero NUNCA baja de $4 (piso para recuperarse)
     bankroll = STATE.current_bankroll
     settings_max = SAFETY.max_bet_absolute  # $6 configurado por usuario
     if bankroll < 50:
-        auto_max = 3.0
+        auto_max = 4.0  # Piso mínimo — permite recuperarse
     elif bankroll < 100:
         auto_max = 5.0
     elif bankroll < 200:

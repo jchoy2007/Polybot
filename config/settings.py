@@ -44,7 +44,7 @@ class SafetyRules:
     initial_bankroll: float = 200.0  # Dólares USDC (depositado real)
 
     # --- Límites por apuesta (QUARTER KELLY + AUTO-SCALING) ---
-    min_bet_size: float = 2.00        # Mínimo por apuesta en USD
+    min_bet_size: float = 1.50        # Mínimo por apuesta en USD (permite operar con capital bajo)
     max_bet_pct: float = 0.08         # Máximo 8% del bankroll por apuesta
     max_bet_absolute: float = 6.0     # Máximo por apuesta (auto-escala con capital)
     kelly_fraction: float = 0.25      # Quarter Kelly (los pros NUNCA usan más)
