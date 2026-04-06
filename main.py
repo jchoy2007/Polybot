@@ -39,6 +39,34 @@ from modules.flash_crash import FlashCrashDetector
 from modules.telegram_monitor import TelegramMonitor
 
 # ============================================================
+# HELPER: Tiempo hasta resolución
+# ============================================================
+
+def _get_resolve_time(end_date_str: str) -> str:
+    """Calcula cuánto falta para que un mercado resuelva. Retorna string legible."""
+    if not end_date_str:
+        return ""
+    try:
+        from datetime import timezone
+        if end_date_str.endswith("Z"):
+            end_dt = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
+        elif "+" in end_date_str[-6:]:
+            end_dt = datetime.fromisoformat(end_date_str)
+        else:
+            end_dt = datetime.fromisoformat(end_date_str).replace(tzinfo=timezone.utc)
+        diff = (end_dt - datetime.now(timezone.utc)).total_seconds()
+        if diff <= 0:
+            return "ya resuelto"
+        if diff < 3600:
+            return f"{diff/60:.0f} min"
+        if diff < 86400:
+            return f"{diff/3600:.1f} hrs"
+        return f"{diff/86400:.0f} días"
+    except:
+        return ""
+
+
+# ============================================================
 # SYNC DE POSICIONES ACTIVAS
 # ============================================================
 
@@ -447,10 +475,13 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                         strategy="IA"
                     )
                     if telegram and status == "EXECUTED":
+                        _mkt_ia = market_lookup.get(analysis.market_id)
+                        _rt_ia = _get_resolve_time(_mkt_ia.end_date if _mkt_ia else "")
                         await telegram.send_trade_alert(
                             "IA", analysis.question, analysis.side,
-                            amount, analysis.market_price, analysis.edge)
+                            amount, analysis.market_price, analysis.edge, _rt_ia)
                         telegram.log_trade("IA", analysis.question, analysis.side, amount)
+                        logger.info(f"   ⏳ Resuelve en: {_rt_ia or 'desconocido'}")
         else:
             logger.info("   Sin apuestas de valor en este ciclo")
 
@@ -476,8 +507,9 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     await telegram.send_trade_alert(
                         "CRYPTO", btc_trade.get("question", btc_trade.get("crypto", "")),
                         btc_trade.get("side", ""), btc_trade["amount"],
-                        btc_trade.get("price", 0.50), btc_trade.get("edge", 0))
+                        btc_trade.get("price", 0.50), btc_trade.get("edge", 0), "~15 min")
                     telegram.log_trade("CRYPTO", btc_trade.get("question", ""), btc_trade.get("side", ""), btc_trade["amount"])
+                    logger.info(f"   ⏳ Resuelve en: ~15 min")
             elif status == "FAILED":
                 logger.info(f"   ❌ Trade crypto falló: ${btc_trade['amount']:.2f}")
             else:
@@ -537,8 +569,9 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     await telegram.send_trade_alert(
                         "WEATHER", weather_trade.get("question", ""),
                         weather_trade.get("side", ""), weather_trade["amount"],
-                        weather_trade.get("price", 0.50), weather_trade.get("edge", 0))
+                        weather_trade.get("price", 0.50), weather_trade.get("edge", 0), "hoy/mañana")
                     telegram.log_trade("WEATHER", weather_trade.get("question", ""), weather_trade.get("side", ""), weather_trade["amount"])
+                    logger.info(f"   ⏳ Resuelve en: hoy/mañana")
             elif status == "SIMULATED":
                 logger.info(f"   🏃 Weather simulado: ${weather_trade['amount']:.2f} {weather_trade.get('side', '')}")
             elif status == "FAILED":
@@ -571,8 +604,9 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     await telegram.send_trade_alert(
                         "STOCKS", stock_trade.get("question", ""),
                         stock_trade.get("side", ""), stock_trade["amount"],
-                        stock_trade.get("price", 0.50), stock_trade.get("edge", 0))
+                        stock_trade.get("price", 0.50), stock_trade.get("edge", 0), "cierre de hoy")
                     telegram.log_trade("STOCKS", stock_trade.get("question", ""), stock_trade.get("side", ""), stock_trade["amount"])
+                    logger.info(f"   ⏳ Resuelve en: cierre de hoy")
             elif status == "SIMULATED":
                 logger.info(f"   🏃 Stock simulado: ${stock_trade['amount']:.2f} {stock_trade.get('side', '')}")
             elif status == "FAILED":
@@ -605,8 +639,9 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     await telegram.send_trade_alert(
                         "FLASH_CRASH", flash_trade.get("question", ""),
                         flash_trade.get("side", ""), flash_trade["amount"],
-                        flash_trade.get("price", 0.50), flash_trade.get("edge", 0))
+                        flash_trade.get("price", 0.50), flash_trade.get("edge", 0), "< 1 hora")
                     telegram.log_trade("FLASH_CRASH", flash_trade.get("question", ""), flash_trade.get("side", ""), flash_trade["amount"])
+                    logger.info(f"   ⏳ Resuelve en: < 1 hora")
             elif status == "SIMULATED":
                 logger.info(f"   🏃 Flash simulado: ${flash_trade['amount']:.2f} | Crash: {flash_trade.get('crash_pct', 0):+.1%}")
             elif status == "FAILED":
@@ -869,6 +904,17 @@ async def main():
                         await telegram.send_shutdown(
                             STATE.current_bankroll, STATE.total_trades,
                             tracker.get_summary())
+                    # Generar reporte diario automático
+                    try:
+                        from daily_report import generate_report
+                        report = await generate_report()
+                        if telegram.enabled:
+                            # Enviar resumen corto por Telegram
+                            _lines = report.split("\n")
+                            _summary = "\n".join(_lines[:35])  # Primeras 35 líneas
+                            await telegram.send(f"📊 *REPORTE DIARIO*\n```\n{_summary}\n```")
+                    except Exception as _e:
+                        logger.error(f"Error generando reporte: {_e}")
                     break
 
                 if now - last_ia_scan >= ia_interval:

@@ -35,6 +35,7 @@ class MarketOpportunity:
     slug: str
     active: bool
     days_until_resolution: int = 999
+    hours_until_resolution: float = 9999.0
 
 
 class MarketScanner:
@@ -170,16 +171,18 @@ class MarketScanner:
                 # Filtro 4: Solo mercados que se resuelven PRONTO (máx N días)
                 end_date_str = m.get("endDate", "")
                 days_until = 999
+                hours_until = 9999.0
                 if end_date_str:
                     try:
                         end_date = datetime.fromisoformat(
                             end_date_str.replace("Z", "+00:00")
                         )
                         now = datetime.now(end_date.tzinfo)
-                        days_until = (end_date - now).days
+                        hours_until = (end_date - now).total_seconds() / 3600
+                        days_until = int(hours_until / 24)
                         if days_until > SAFETY.max_resolution_days:
                             continue  # Solo mercados dentro del límite
-                        if days_until < 0:
+                        if hours_until < 0:
                             continue  # Ya expirado
                     except (ValueError, TypeError):
                         continue  # Sin fecha válida = no apostar
@@ -241,7 +244,8 @@ class MarketScanner:
                     token_id_no=tokens[1] if len(tokens) > 1 else "",
                     slug=m.get("slug", ""),
                     active=True,
-                    days_until_resolution=days_until
+                    days_until_resolution=days_until,
+                    hours_until_resolution=hours_until
                 )
                 opportunities.append(opp)
 
@@ -317,9 +321,9 @@ class MarketScanner:
         # Filtrar
         opportunities = self.filter_markets(all_markets)
 
-        # Ordenar: primero los que se resuelven más pronto, luego por volumen
+        # Ordenar: primero los que se resuelven más pronto (en horas), luego por volumen
         opportunities.sort(
-            key=lambda x: (x.days_until_resolution, -x.volume)
+            key=lambda x: (x.hours_until_resolution, -x.volume)
         )
 
         return opportunities

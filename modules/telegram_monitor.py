@@ -89,17 +89,19 @@ class TelegramMonitor:
 
     async def send_trade_alert(self, strategy: str, question: str,
                                 side: str, amount: float, price: float,
-                                edge: float):
-        """Alerta inmediata de trade ejecutado."""
+                                edge: float, resolve_time: str = ""):
+        """Alerta inmediata de trade ejecutado con hora de resolución."""
         emoji = {"IA": "🧠", "CRYPTO": "₿", "HARVEST": "🌾",
                  "WEATHER": "⛅", "STOCKS": "📈", "FLASH_CRASH": "⚡"
                  }.get(strategy, "🎯")
+
+        resolve_str = f"\n⏳ Resuelve: {resolve_time}" if resolve_time else ""
 
         msg = (
             f"{emoji} *TRADE EJECUTADO*\n"
             f"📋 {question[:50]}\n"
             f"📍 {side} ${amount:.2f} @ {price:.2f}\n"
-            f"📊 Edge: {edge:.1%}\n"
+            f"📊 Edge: {edge:.1%}{resolve_str}\n"
             f"⏰ {datetime.now().strftime('%H:%M')}"
         )
         await self.send(msg)
