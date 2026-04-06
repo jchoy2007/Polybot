@@ -13,6 +13,7 @@ SETUP:
 """
 
 import os
+import ssl
 import logging
 import aiohttp
 from datetime import datetime, timezone
@@ -42,8 +43,14 @@ class TelegramMonitor:
 
     async def _get_session(self) -> aiohttp.ClientSession:
         if self.session is None or self.session.closed:
+            # Desactivar verificación SSL (fix para Windows con certs desactualizados)
+            ssl_ctx = ssl.create_default_context()
+            ssl_ctx.check_hostname = False
+            ssl_ctx.verify_mode = ssl.CERT_NONE
+            connector = aiohttp.TCPConnector(ssl=ssl_ctx)
             self.session = aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=15)
+                timeout=aiohttp.ClientTimeout(total=15),
+                connector=connector
             )
         return self.session
 
