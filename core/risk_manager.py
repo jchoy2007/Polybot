@@ -175,12 +175,19 @@ class RiskManager:
         """Activa el stop-loss y pausa el bot."""
         STATE.is_paused = True
         STATE.pause_reason = reason
+        self._stoploss_activated_at = datetime.now()
         logger.warning(f"⚠️ STOP-LOSS ACTIVADO: {reason}")
         logger.warning(f"   Bot pausado por {SAFETY.cooldown_hours_after_stoploss} horas")
 
     def check_cooldown_expired(self) -> bool:
         """Verifica si el período de cooldown terminó."""
-        # En producción, esto verificaría el timestamp real
+        if not hasattr(self, '_stoploss_activated_at'):
+            return True  # No hay registro de cuándo se activó, permitir continuar
+        elapsed = (datetime.now() - self._stoploss_activated_at).total_seconds() / 3600
+        if elapsed >= SAFETY.cooldown_hours_after_stoploss:
+            logger.info(f"   ✅ Cooldown expirado ({elapsed:.1f}h >= {SAFETY.cooldown_hours_after_stoploss}h)")
+            return True
+        logger.info(f"   ⏳ Cooldown: {elapsed:.1f}h / {SAFETY.cooldown_hours_after_stoploss}h")
         return False
 
     # =================================================================
