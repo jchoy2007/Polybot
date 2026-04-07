@@ -151,6 +151,15 @@ class AutoSeller:
         if cur_price <= 0.05:
             return None
 
+        # NO vender posiciones Harvest (>90¢ al comprar) — esas esperan resolución
+        # El percentPnl de la Data API es unreliable, usar precio actual vs 0.90
+        if cur_price >= 0.85:
+            return None  # Probablemente un harvest, dejarlo resolver
+
+        # Ignorar posiciones con P&L porcentajes locos (bug de Data API)
+        if abs(pnl_pct) > 5.0:  # Más de 500% es imposible, dato corrupto
+            return None
+
         action = {
             "market_id": market_id,
             "asset": asset,
