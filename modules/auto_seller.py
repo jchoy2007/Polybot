@@ -56,40 +56,12 @@ class AutoSeller:
 
     async def run_cycle(self) -> List[Dict]:
         """
-        Revisa posiciones y vende las que cumplen criterios.
-        Retorna lista de ventas ejecutadas.
+        DESACTIVADO TEMPORALMENTE — el percentPnl de la Data API
+        de Polymarket reporta valores corruptos que triggereaban ventas
+        incorrectas. Se perdieron ~$10+ vendiendo Harvests buenos.
+        Se reactivará cuando tengamos un método confiable de calcular P&L.
         """
-        if STATE.is_paused:
-            return []
-
-        now = time.time()
-        if now - self.last_run < self.min_interval:
-            return []
-        self.last_run = now
-
-        if SAFETY.dry_run:
-            return []  # No vender en simulación
-
-        # Obtener posiciones actuales
-        positions = await self._get_positions()
-        if not positions:
-            return []
-
-        sales = []
-        for pos in positions:
-            action = self._should_sell(pos)
-            if action:
-                logger.info(
-                    f"   💰 {action['reason']}: {action['title'][:40]} | "
-                    f"P&L: {action['pnl_pct']:+.0%} | Valor: ${action['value']:.2f}"
-                )
-
-                if not SAFETY.dry_run:
-                    sold = await self._execute_sell(pos, action)
-                    if sold:
-                        sales.append(sold)
-
-        return sales
+        return []
 
     async def _get_positions(self) -> List[Dict]:
         """Obtiene posiciones actuales de la Data API."""
