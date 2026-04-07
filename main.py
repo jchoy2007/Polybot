@@ -32,6 +32,7 @@ from core.executor import TradeExecutor
 from core.tracker import WinRateTracker
 from modules.btc_15min import BTC15MinStrategy
 from modules.crypto_grinder import CryptoGrinder
+from modules.auto_seller import AutoSeller
 from modules.auto_redeem import AutoRedeemer
 from modules.no_harvester import NOHarvester
 from modules.weather_trader import WeatherTrader
@@ -268,6 +269,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     weather_trader: WeatherTrader,
                     stock_trader: StockTrader,
                     grinder: CryptoGrinder = None,
+                    seller: AutoSeller = None,
                     telegram: TelegramMonitor = None,
                     scan_only: bool = False):
     """Ejecuta un ciclo completo con TODAS las estrategias."""
@@ -345,17 +347,16 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             logger.info(f"   Espera {SAFETY.cooldown_hours_after_stoploss}h antes de reanudar")
             return
 
-    # --- Paso 2: Escanear mercados ---
-    logger.info("📊 Paso 1/4: Escaneando mercados...")
+    # --- Escanear mercados (necesario para otras estrategias) ---
+    logger.info("📊 Escaneando mercados...")
     markets = await scanner.scan_all_markets()
 
     if not markets:
         logger.warning("No se encontraron mercados que cumplan los filtros")
-        return
+    else:
+        logger.info(f"   Encontrados {len(markets)} mercados elegibles")
 
-    logger.info(f"   Encontrados {len(markets)} mercados elegibles")
-
-    if scan_only:
+    if scan_only and markets:
         logger.info("\n📋 TOP 10 MERCADOS MÁS PRÓXIMOS A RESOLVERSE:")
         for i, m in enumerate(markets[:10], 1):
             logger.info(
@@ -366,127 +367,18 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             )
         return
 
-    # --- Paso 3: Analizar con IA ---
-    logger.info("🧠 Paso 2/4: Analizando mercados con IA...")
-    analyses = await analyzer.analyze_markets_batch(
-        markets, max_to_analyze=10
-    )
+    # Reset daily spend tracker si es nuevo día
+    today = datetime.now().strftime("%Y-%m-%d")
+    if STATE.daily_spend_date != today:
+        STATE.daily_spend = 0.0
+        STATE.daily_spend_date = today
+    STATE.cycle_bets = 0
 
-    if not analyses:
-        logger.info("   Sin análisis nuevos de IA en este ciclo")
-    else:
-        # --- Paso 4: Filtrar por edge y decidir ---
-        logger.info("📐 Paso 3/4: Evaluando oportunidades...")
-        bets_to_place = []
-
-        # Reset daily spend tracker si es nuevo día
-        today = datetime.now().strftime("%Y-%m-%d")
-        if STATE.daily_spend_date != today:
-            STATE.daily_spend = 0.0
-            STATE.daily_spend_date = today
-        STATE.cycle_bets = 0
-
-        # Crear lookup de datos de mercado para pasar liquidez/volumen reales
-        market_lookup = {m.market_id: m for m in markets}
-
-        for analysis in analyses:
-            # === FILTRO: Si la IA dijo SKIP, respetar su decisión ===
-            if hasattr(analysis, 'side') and analysis.side.upper() == "SKIP":
-                logger.info(f"   ⏭️ {analysis.question[:40]}: IA dijo SKIP (lado)")
-                continue
-            if hasattr(analysis, 'recommended_action') and analysis.recommended_action.upper() == "SKIP":
-                logger.info(f"   ⏭️ {analysis.question[:40]}: IA recomienda SKIP")
-                continue
-
-            mkt = market_lookup.get(analysis.market_id)
-            mkt_liquidity = mkt.liquidity if mkt else 50000
-            mkt_volume = mkt.volume if mkt else 50000
-            mkt_category = mkt.category if mkt else "general"
-
-            # === FILTRO: Resolución máxima 48 horas ===
-            if mkt and hasattr(mkt, 'end_date') and mkt.end_date:
-                try:
-                    from datetime import timezone
-                    end_str = mkt.end_date
-                    if end_str.endswith("Z"):
-                        end_dt = datetime.fromisoformat(end_str.replace("Z", "+00:00"))
-                    elif "+" in end_str[-6:]:
-                        end_dt = datetime.fromisoformat(end_str)
-                    else:
-                        end_dt = datetime.fromisoformat(end_str).replace(tzinfo=timezone.utc)
-                    hours_to_resolve = (end_dt - datetime.now(timezone.utc)).total_seconds() / 3600
-                    if hours_to_resolve > 48:
-                        logger.info(f"   ❌ {analysis.question[:40]}: Resuelve en {hours_to_resolve/24:.0f} días (máx 2)")
-                        continue
-                    if hours_to_resolve < 0:
-                        continue
-                except:
-                    pass
-            else:
-                # Sin fecha de resolución = skip para IA (no apostar sin saber cuándo)
-                q_lower = analysis.question.lower() if hasattr(analysis, 'question') else ""
-                slow_kw = ["billboard", "weekly", "monthly", "season", "by april 30", "by may", "annual"]
-                if any(kw in q_lower for kw in slow_kw):
-                    logger.info(f"   ❌ {analysis.question[:40]}: Keyword lento detectado")
-                    continue
-
-            # === FILTRO: Máximo apuestas por ciclo ===
-            if STATE.cycle_bets >= SAFETY.max_bets_per_cycle:
-                logger.info(f"   ⏸️ Límite de {SAFETY.max_bets_per_cycle} apuestas/ciclo alcanzado")
-                break
-
-            # === FILTRO: Máximo gasto diario ===
-            if STATE.daily_spend >= SAFETY.max_daily_spend:
-                logger.info(f"   ⏸️ Límite diario de ${SAFETY.max_daily_spend:.0f} alcanzado (gastado: ${STATE.daily_spend:.2f})")
-                break
-
-            should_bet, reason, amount = risk.should_bet(
-                estimated_prob=analysis.estimated_probability,
-                market_price=analysis.market_price,
-                market_liquidity=mkt_liquidity,
-                market_volume=mkt_volume,
-                category=mkt_category
-            )
-
-            if should_bet:
-                if STATE.daily_spend + amount > SAFETY.max_daily_spend:
-                    amount = round(SAFETY.max_daily_spend - STATE.daily_spend, 2)
-                    if amount < SAFETY.min_bet_size:
-                        logger.info(f"   ⏸️ Presupuesto diario agotado")
-                        break
-
-                bets_to_place.append((analysis, amount))
-                STATE.cycle_bets += 1
-                STATE.daily_spend += amount
-                logger.info(f"   ✅ {reason}")
-            else:
-                logger.info(f"   ❌ {analysis.question[:40]}: {reason}")
-
-        if bets_to_place:
-            logger.info(f"🎯 Ejecutando {len(bets_to_place)} apuestas de valor...")
-            for analysis, amount in bets_to_place:
-                result = await executor.execute_bet(analysis, amount)
-                status = result.get('status', 'UNKNOWN')
-                logger.info(f"   Orden: {status}")
-                if status in ("EXECUTED", "SIMULATED"):
-                    tracker.add_trade(
-                        market_id=str(analysis.market_id),
-                        question=analysis.question,
-                        side=analysis.side,
-                        amount=amount,
-                        price=analysis.market_price,
-                        strategy="IA"
-                    )
-                    if telegram and status == "EXECUTED":
-                        _mkt_ia = market_lookup.get(analysis.market_id)
-                        _rt_ia = _get_resolve_time(_mkt_ia.end_date if _mkt_ia else "")
-                        await telegram.send_trade_alert(
-                            "IA", analysis.question, analysis.side,
-                            amount, analysis.market_price, analysis.edge, _rt_ia)
-                        telegram.log_trade("IA", analysis.question, analysis.side, amount)
-                        logger.info(f"   ⏳ Resuelve en: {_rt_ia or 'desconocido'}")
-        else:
-            logger.info("   Sin apuestas de valor en este ciclo")
+    # ===== ESTRATEGIA 1: IA Value Bets — DESACTIVADA =====
+    # Razón: 62% win rate, pérdidas de $5-$9 en underdogs.
+    # Las otras estrategias (Grinder 99%, Harvest 100%, Weather 80%) son más rentables.
+    # Se puede reactivar cuando tengamos más capital ($500+) para absorber las pérdidas.
+    logger.info("\n🧠 IA Value Bets — DESACTIVADA (62% WR, pérdidas grandes)")
 
     # ===== ESTRATEGIA 2: Crypto Grinder 95-99¢ (Sharky6999) =====
     logger.info("\n" + "=" * 50)
@@ -624,6 +516,23 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
     except Exception as e:
         logger.error(f"   Error en Stock Trader: {e}")
 
+
+    # ===== AUTO-SELL: Vender posiciones con take profit/stop loss =====
+    if seller and not SAFETY.dry_run:
+        try:
+            sales = await seller.run_cycle()
+            if sales:
+                for sale in sales:
+                    logger.info(f"   💰 VENTA: {sale['question'][:35]} | {sale['reason']} | +${sale['proceeds']:.2f}")
+                    if telegram:
+                        await telegram.send(
+                            f"💰 VENTA AUTOMATICA\n"
+                            f"{sale['question'][:40]}\n"
+                            f"{sale['reason']}\n"
+                            f"Recibido: ${sale['proceeds']:.2f}"
+                        )
+        except Exception as e:
+            logger.debug(f"   Error auto-sell: {e}")
 
     # ===== ACTUALIZAR P&L desde tracker =====
     if not SAFETY.dry_run:
@@ -842,6 +751,7 @@ async def main():
     weather_trader = WeatherTrader()
     stock_trader = StockTrader()
     grinder = CryptoGrinder()
+    seller = AutoSeller()
 
     telegram = TelegramMonitor()
 
@@ -855,7 +765,7 @@ async def main():
             # Un solo ciclo
             await run_cycle(scanner, analyzer, risk, executor,
                           btc_strategy, redeemer, harvester, tracker,
-                          weather_trader, stock_trader, grinder, telegram, args.scan_only)
+                          weather_trader, stock_trader, grinder, seller, telegram, args.scan_only)
         else:
             # Loop continuo
             last_ia_scan = 0
@@ -897,7 +807,7 @@ async def main():
                     logger.info("=" * 50)
                     await run_cycle(scanner, analyzer, risk, executor,
                                   btc_strategy, redeemer, harvester, tracker,
-                                  weather_trader, stock_trader, grinder, telegram)
+                                  weather_trader, stock_trader, grinder, seller, telegram)
                     last_ia_scan = now
                     logger.info(f"\n⏰ Próximo ciclo en {SAFETY.scan_interval_minutes} min")
 
@@ -922,6 +832,7 @@ async def main():
         await weather_trader.close()
         await stock_trader.close()
         await grinder.close()
+        await seller.close()
         await telegram.close()
 
         # Guardar log final
