@@ -30,7 +30,6 @@ from core.ai_analyzer import AIAnalyzer
 from core.risk_manager import RiskManager
 from core.executor import TradeExecutor
 from core.tracker import WinRateTracker
-from modules.btc_15min import BTC15MinStrategy
 from modules.crypto_grinder import CryptoGrinder
 from modules.auto_seller import AutoSeller
 from modules.auto_redeem import AutoRedeemer
@@ -262,7 +261,6 @@ async def send_telegram_notification(message: str):
 
 async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     risk: RiskManager, executor: TradeExecutor,
-                    btc_strategy: BTC15MinStrategy,
                     redeemer: AutoRedeemer,
                     harvester: NOHarvester,
                     tracker: WinRateTracker,
@@ -757,7 +755,6 @@ async def main():
     analyzer = AIAnalyzer()
     risk = RiskManager()
     executor = TradeExecutor(risk)
-    btc_strategy = BTC15MinStrategy()
 
     logger.info("🤖 PolyBot MULTI-ESTRATEGIA iniciado")
 
@@ -828,7 +825,7 @@ async def main():
         if args.once or args.scan_only:
             # Un solo ciclo
             await run_cycle(scanner, analyzer, risk, executor,
-                          btc_strategy, redeemer, harvester, tracker,
+                          redeemer, harvester, tracker,
                           weather_trader, stock_trader, grinder, seller, telegram, args.scan_only)
         else:
             # Loop continuo
@@ -870,7 +867,7 @@ async def main():
                     logger.info("🧠 Ciclo completo (cada 15 min) — 6 estrategias")
                     logger.info("=" * 50)
                     await run_cycle(scanner, analyzer, risk, executor,
-                                  btc_strategy, redeemer, harvester, tracker,
+                                  redeemer, harvester, tracker,
                                   weather_trader, stock_trader, grinder, seller, telegram)
                     last_ia_scan = now
                     logger.info(f"\n⏰ Próximo ciclo en {SAFETY.scan_interval_minutes} min")
@@ -891,7 +888,6 @@ async def main():
 
         await scanner.close()
         await analyzer.close()
-        await btc_strategy.close()
         await redeemer.close()
         await weather_trader.close()
         await stock_trader.close()

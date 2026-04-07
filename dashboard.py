@@ -314,7 +314,7 @@ def build_data():
                     if "WIN RATE:" in line:
                         # Parse strategy lines that follow
                         break
-                    strat_m = _re.match(r'\s+(IA|HARVEST|WEATHER|STOCKS|CRYPTO|FLASH_CRASH): (\d+)/(\d+).*P&L: \$([+-]?[0-9.]+).*Pendientes: (\d+)', line.strip())
+                    strat_m = _re.match(r'\s+(IA|ESPORTS|HARVEST|WEATHER|STOCKS|CRYPTO|GRINDER|FLASH_CRASH): (\d+)/(\d+).*P&L: \$([+-]?[0-9.]+).*Pendientes: (\d+)', line.strip())
                     if strat_m:
                         sn = strat_m.group(1)
                         sw = int(strat_m.group(2))
@@ -323,7 +323,7 @@ def build_data():
                         spe = int(strat_m.group(5))
                         strategies[sn] = {"won": sw, "lost": st - sw, "pending": spe, "profit": sp}
     except: pass
-    for s in ["IA", "CRYPTO", "HARVEST", "WEATHER", "STOCKS", "FLASH_CRASH"]:
+    for s in ["ESPORTS", "GRINDER", "HARVEST", "WEATHER", "STOCKS", "IA", "CRYPTO", "FLASH_CRASH"]:
         if s not in strategies: strategies[s] = {"won": 0, "lost": 0, "pending": 0, "profit": 0}
 
     positions = fetch_positions()
@@ -445,11 +445,11 @@ h2{font-size:10px;color:#a371f7;margin:14px 0 6px;font-weight:600;text-transform
 </div>
 <div class="md" id="md"><div class="mb"><h3 id="mt">...</h3><pre id="mo">...</pre><button class="mc" onclick="cm()">Cerrar</button></div></div>
 <script>
-const E={IA:'\u{1F9E0}',CRYPTO:'\u{20BF}',HARVEST:'\u{1F33E}',WEATHER:'\u{26C5}',STOCKS:'\u{1F4C8}',FLASH_CRASH:'\u{26A1}'};
-const C={IA:'#58a6ff',CRYPTO:'#3fb950',HARVEST:'#d29922',WEATHER:'#a371f7',STOCKS:'#f0883e',FLASH_CRASH:'#f85149'};
-const S=['s0','s1','s2','s3','s4','s5'];
-const N={IA:'IA Value Bets',CRYPTO:'Crypto 15-Min',HARVEST:'NO Harvester',WEATHER:'Weather Trader',STOCKS:'Stock Market',FLASH_CRASH:'Flash Crash'};
-const K=['IA','CRYPTO','HARVEST','WEATHER','STOCKS','FLASH_CRASH'];
+const E={ESPORTS:'\u{1F3AE}',GRINDER:'\u{1F48E}',HARVEST:'\u{1F33E}',WEATHER:'\u{26C5}',STOCKS:'\u{1F4C8}',IA:'\u{1F9E0}',CRYPTO:'\u{20BF}',FLASH_CRASH:'\u{26A1}'};
+const C={ESPORTS:'#58a6ff',GRINDER:'#3fb950',HARVEST:'#d29922',WEATHER:'#a371f7',STOCKS:'#f0883e',IA:'#888',CRYPTO:'#888',FLASH_CRASH:'#888'};
+const S=['s0','s1','s2','s3','s4','s5','s6','s7'];
+const N={ESPORTS:'IA Esports',GRINDER:'Crypto Grinder',HARVEST:'NO Harvester',WEATHER:'Weather Trader',STOCKS:'Stock Market',IA:'IA (legacy)',CRYPTO:'Crypto (legacy)',FLASH_CRASH:'Flash Crash (off)'};
+const K=['ESPORTS','GRINDER','HARVEST','WEATHER','STOCKS','IA','CRYPTO','FLASH_CRASH'];
 async function rf(){
  try{
   const r=await fetch('/api/data'),d=await r.json();
