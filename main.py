@@ -31,6 +31,7 @@ from core.risk_manager import RiskManager
 from core.executor import TradeExecutor
 from core.tracker import WinRateTracker
 from modules.btc_15min import BTC15MinStrategy
+from modules.crypto_grinder import CryptoGrinder
 from modules.auto_redeem import AutoRedeemer
 from modules.no_harvester import NOHarvester
 from modules.weather_trader import WeatherTrader
@@ -266,6 +267,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     tracker: WinRateTracker,
                     weather_trader: WeatherTrader,
                     stock_trader: StockTrader,
+                    grinder: CryptoGrinder = None,
                     telegram: TelegramMonitor = None,
                     scan_only: bool = False):
     """Ejecuta un ciclo completo con TODAS las estrategias."""
@@ -486,37 +488,42 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
         else:
             logger.info("   Sin apuestas de valor en este ciclo")
 
-    # ===== ESTRATEGIA 2: BTC 15-Min Up/Down =====
+    # ===== ESTRATEGIA 2: Crypto Grinder 95-99¢ (Sharky6999) =====
     logger.info("\n" + "=" * 50)
-    logger.info("₿ ESTRATEGIA 2: Crypto 15-Min (BTC/ETH/SOL)")
+    logger.info("💎 ESTRATEGIA 2: Crypto Grinder 95-99¢")
     logger.info("=" * 50)
-    try:
-        btc_trade = await btc_strategy.run_cycle()
-        if btc_trade:
-            status = btc_trade.get("status", "UNKNOWN")
-            if status == "EXECUTED":
-                logger.info(f"   ✅ Trade crypto ejecutado: ${btc_trade['amount']:.2f} {btc_trade.get('side', '')}")
-                tracker.add_trade(
-                    market_id=btc_trade.get("market_id", ""),
-                    question=btc_trade.get("question", btc_trade.get("crypto", "")),
-                    side=btc_trade.get("side", ""),
-                    amount=btc_trade["amount"],
-                    price=btc_trade.get("price", 0.50),
-                    strategy="CRYPTO"
-                )
-                if telegram:
-                    await telegram.send_trade_alert(
-                        "CRYPTO", btc_trade.get("question", btc_trade.get("crypto", "")),
-                        btc_trade.get("side", ""), btc_trade["amount"],
-                        btc_trade.get("price", 0.50), btc_trade.get("edge", 0), "~15 min")
-                    telegram.log_trade("CRYPTO", btc_trade.get("question", ""), btc_trade.get("side", ""), btc_trade["amount"])
-                    logger.info(f"   ⏳ Resuelve en: ~15 min")
-            elif status == "FAILED":
-                logger.info(f"   ❌ Trade crypto falló: ${btc_trade['amount']:.2f}")
-            else:
-                logger.info(f"   ℹ️ Trade crypto: {status}")
-    except Exception as e:
-        logger.error(f"   Error en BTC 15m: {e}")
+    if grinder:
+        try:
+            grind_trade = await grinder.run_cycle()
+            if grind_trade:
+                status = grind_trade.get("status", "UNKNOWN")
+                if status == "EXECUTED":
+                    logger.info(f"   ✅ Grind ejecutado: ${grind_trade['amount']:.2f} {grind_trade.get('side', '')}")
+                    tracker.add_trade(
+                        market_id=grind_trade.get("market_id", ""),
+                        question=grind_trade.get("question", grind_trade.get("crypto", "")),
+                        side=grind_trade.get("side", ""),
+                        amount=grind_trade["amount"],
+                        price=grind_trade.get("price", 0.97),
+                        strategy="GRINDER"
+                    )
+                    mins = grind_trade.get("minutes_left", 0)
+                    if telegram:
+                        await telegram.send_trade_alert(
+                            "CRYPTO", grind_trade.get("question", ""),
+                            grind_trade.get("side", ""), grind_trade["amount"],
+                            grind_trade.get("price", 0.97), grind_trade.get("edge", 0),
+                            f"~{mins:.0f} min")
+                        telegram.log_trade("GRINDER", grind_trade.get("question", ""), grind_trade.get("side", ""), grind_trade["amount"])
+                    logger.info(f"   ⏳ Resuelve en: ~{mins:.0f} min")
+                elif status == "FAILED":
+                    logger.info(f"   ❌ Grind falló")
+                elif status == "SIMULATED":
+                    logger.info(f"   🏃 [DRY RUN] Grind simulado: ${grind_trade['amount']:.2f}")
+                else:
+                    logger.info(f"   ℹ️ Grind: {status}")
+        except Exception as e:
+            logger.error(f"   Error en Crypto Grinder: {e}")
 
     # ===== ESTRATEGIA 3: NO Harvester (dinero casi seguro) =====
     logger.info("\n" + "=" * 50)
@@ -823,9 +830,9 @@ async def main():
     logger.info(f"   Escaneo cada: {SAFETY.scan_interval_minutes} min")
     logger.info(f"   Estrategias activas:")
     logger.info(f"     1. 🧠 IA Value Bets (Claude) - cada 15 min")
-    logger.info(f"     2. ₿ Crypto 15-Min (BTC/ETH/SOL momentum) - cada 15 min")
+    logger.info(f"     2. 💎 Crypto Grinder 95-99c (Sharky6999) - cada 15 min")
     logger.info(f"     3. 🌾 NO Harvester (>90% probabilidad) - cada 15 min")
-    logger.info(f"     4. ⛅ Weather Trader (Open-Meteo 6 modelos) - cada 15 min")
+    logger.info(f"     4. ⛅ Weather Trader (Open-Meteo) - cada 15 min")
     logger.info(f"     5. 📈 Stock Trader (S&P/NASDAQ/Dow) - cada 3 min")
 
     # Inicializar componentes auxiliares
@@ -834,6 +841,7 @@ async def main():
     tracker = WinRateTracker()
     weather_trader = WeatherTrader()
     stock_trader = StockTrader()
+    grinder = CryptoGrinder()
 
     telegram = TelegramMonitor()
 
@@ -847,7 +855,7 @@ async def main():
             # Un solo ciclo
             await run_cycle(scanner, analyzer, risk, executor,
                           btc_strategy, redeemer, harvester, tracker,
-                          weather_trader, stock_trader, telegram, args.scan_only)
+                          weather_trader, stock_trader, grinder, telegram, args.scan_only)
         else:
             # Loop continuo
             last_ia_scan = 0
@@ -889,7 +897,7 @@ async def main():
                     logger.info("=" * 50)
                     await run_cycle(scanner, analyzer, risk, executor,
                                   btc_strategy, redeemer, harvester, tracker,
-                                  weather_trader, stock_trader, telegram)
+                                  weather_trader, stock_trader, grinder, telegram)
                     last_ia_scan = now
                     logger.info(f"\n⏰ Próximo ciclo en {SAFETY.scan_interval_minutes} min")
 
@@ -913,6 +921,7 @@ async def main():
         await redeemer.close()
         await weather_trader.close()
         await stock_trader.close()
+        await grinder.close()
         await telegram.close()
 
         # Guardar log final

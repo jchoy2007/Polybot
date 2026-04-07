@@ -517,7 +517,10 @@ class WeatherTrader:
 
     async def _get_multi_model_forecast(self, city: str, date: str,
                                          metric: str) -> Dict[str, float]:
-        """Consulta Open-Meteo con múltiples modelos."""
+        """
+        Consulta Open-Meteo con múltiples modelos + GFS 31-member ensemble.
+        El ensemble da 31 predicciones independientes para mayor precisión.
+        """
         cache_key = f"{city}:{date}:{metric}"
         if cache_key in self.cache:
             c = self.cache[cache_key]
@@ -531,6 +534,53 @@ class WeatherTrader:
         forecasts = {}
         session = await self._get_session()
 
+        # Método 1: GFS 31-member ensemble (más preciso, como los bots de $24K)
+        try:
+            # Mapear daily metrics a hourly para ensemble
+            hourly_metric = metric.replace("temperature_2m_max", "temperature_2m").replace(
+                "temperature_2m_min", "temperature_2m").replace(
+                "precipitation_sum", "precipitation").replace(
+                "snowfall_sum", "snowfall").replace(
+                "wind_speed_10m_max", "wind_speed_10m")
+
+            params = {
+                "latitude": lat, "longitude": lon,
+                "hourly": hourly_metric,
+                "temperature_unit": "fahrenheit" if use_f else "celsius",
+                "wind_speed_unit": "mph",
+                "precipitation_unit": "inch",
+                "start_date": date, "end_date": date,
+                "models": "gfs_seamless",
+            }
+            async with session.get(
+                "https://ensemble-api.open-meteo.com/v1/ensemble",
+                params=params
+            ) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    hourly = data.get("hourly", {})
+                    # Buscar todas las keys que sean del metric (member_0, member_1, etc.)
+                    member_values = {}
+                    for key, values in hourly.items():
+                        if key.startswith(hourly_metric) and values:
+                            # Para max temp: tomar el máximo del día de cada miembro
+                            valid = [v for v in values if v is not None]
+                            if valid:
+                                if "max" in metric or "temperature" in metric:
+                                    member_values[key] = max(valid)
+                                elif "min" in metric:
+                                    member_values[key] = min(valid)
+                                else:
+                                    member_values[key] = sum(valid)  # precipitation sum
+
+                    if member_values:
+                        for name, val in member_values.items():
+                            forecasts[f"ensemble_{name}"] = val
+                        logger.debug(f"   GFS ensemble: {len(member_values)} members loaded")
+        except Exception as e:
+            logger.debug(f"   GFS ensemble failed: {e}")
+
+        # Método 2: Modelos individuales (fallback y complemento)
         for model in WEATHER_MODELS:
             try:
                 params = {
