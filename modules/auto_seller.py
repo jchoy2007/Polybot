@@ -56,12 +56,59 @@ class AutoSeller:
 
     async def run_cycle(self) -> List[Dict]:
         """
-        DESACTIVADO TEMPORALMENTE — el percentPnl de la Data API
-        de Polymarket reporta valores corruptos que triggereaban ventas
-        incorrectas. Se perdieron ~$10+ vendiendo Harvests buenos.
-        Se reactivará cuando tengamos un método confiable de calcular P&L.
+        v2: Calcula P&L usando precio de compra real (de bets_placed.json)
+        en vez de percentPnl de la Data API (que es corrupto).
+        Solo vende si el precio bajó más de 40% desde la compra.
+        NO toca posiciones >85¢ (Harvests).
         """
-        return []
+        if STATE.is_paused:
+            return []
+
+        now = time.time()
+        if now - self.last_run < self.min_interval:
+            return []
+        self.last_run = now
+
+        if SAFETY.dry_run:
+            return []
+
+        positions = await self._get_positions()
+        if not positions:
+            return []
+
+        # Cargar precios de compra desde bets_placed.json
+        buy_prices = self._load_buy_prices()
+
+        sales = []
+        for pos in positions:
+            action = self._should_sell_v2(pos, buy_prices)
+            if action:
+                logger.info(
+                    f"   💰 {action['reason']}: {action['title'][:40]} | "
+                    f"Compra: ${action['buy_price']:.2f} → Ahora: ${action['cur_price']:.2f}"
+                )
+
+                if not SAFETY.dry_run:
+                    sold = await self._execute_sell(pos, action)
+                    if sold:
+                        sales.append(sold)
+
+        return sales
+
+    def _load_buy_prices(self) -> Dict[str, float]:
+        """Carga precios de compra desde bets_placed.json y trade_results.json"""
+        prices = {}
+        # Desde trade_results.json (tiene el precio de compra)
+        try:
+            with open("data/trade_results.json", "r") as f:
+                trades = json.load(f)
+                for t in trades:
+                    mid = t.get("market_id", "")
+                    if mid:
+                        prices[mid] = float(t.get("price", 0))
+        except:
+            pass
+        return prices
 
     async def _get_positions(self) -> List[Dict]:
         """Obtiene posiciones actuales de la Data API."""
@@ -95,42 +142,42 @@ class AutoSeller:
 
         return positions
 
-    def _should_sell(self, pos: Dict) -> Optional[Dict]:
-        """Decide si vender una posición."""
+    def _should_sell_v2(self, pos: Dict, buy_prices: Dict[str, float]) -> Optional[Dict]:
+        """
+        v2: Decide si vender usando precio de compra REAL, no Data API.
+        Solo vende si el precio actual cayó más de 40% desde la compra.
+        NUNCA vende posiciones >85¢ (Harvests/casi ganadas).
+        """
         title = (pos.get("title") or pos.get("question") or "?")[:50]
         market_id = pos.get("market_id") or pos.get("conditionId") or ""
         asset = pos.get("asset") or ""
         side = pos.get("outcome") or "?"
-        size = float(pos.get("size") or 0)
         cur_price = float(pos.get("curPrice") or 0)
         value = float(pos.get("currentValue") or 0)
-        pnl = float(pos.get("cashPnl") or 0)
-        pnl_pct = float(pos.get("percentPnl") or 0)
 
         # Ignorar posiciones muy chicas
         if value < MIN_POSITION_VALUE:
             return None
 
-        # Ignorar si ya vendimos o está casi resuelto (>95¢)
+        # Ya vendimos esta?
         if market_id in self.sold_markets:
             return None
 
-        # No vender posiciones que están a punto de ganar (>92¢)
-        if cur_price >= 0.92:
+        # NUNCA vender posiciones >85¢ — son casi ganadoras, esperar resolución
+        if cur_price >= 0.85:
             return None
 
-        # No vender posiciones muy baratas (probablemente ya perdidas, mejor esperar)
+        # NUNCA vender posiciones muy baratas — ya perdidas, no vale la pena
         if cur_price <= 0.05:
             return None
 
-        # NO vender posiciones Harvest (>90¢ al comprar) — esas esperan resolución
-        # El percentPnl de la Data API es unreliable, usar precio actual vs 0.90
-        if cur_price >= 0.85:
-            return None  # Probablemente un harvest, dejarlo resolver
+        # Buscar precio de compra en nuestros registros
+        buy_price = buy_prices.get(market_id, 0)
+        if buy_price <= 0:
+            return None  # No tenemos datos de compra, no vender
 
-        # Ignorar posiciones con P&L porcentajes locos (bug de Data API)
-        if abs(pnl_pct) > 5.0:  # Más de 500% es imposible, dato corrupto
-            return None
+        # Calcular P&L real
+        real_pnl_pct = (cur_price - buy_price) / buy_price
 
         action = {
             "market_id": market_id,
@@ -139,20 +186,20 @@ class AutoSeller:
             "side": side,
             "value": value,
             "cur_price": cur_price,
-            "pnl": pnl,
-            "pnl_pct": pnl_pct,
+            "buy_price": buy_price,
+            "pnl_pct": real_pnl_pct,
             "reason": "",
             "token_id": asset,
         }
 
-        # TAKE PROFIT: Subió +30%
-        if pnl_pct >= TAKE_PROFIT_PCT:
-            action["reason"] = f"TAKE PROFIT (+{pnl_pct:.0%})"
+        # STOP LOSS: Precio cayó más de 40% desde compra
+        if real_pnl_pct <= STOP_LOSS_PCT:
+            action["reason"] = f"STOP LOSS ({real_pnl_pct:+.0%}) compra@{buy_price:.2f}"
             return action
 
-        # STOP LOSS: Bajó -40%
-        if pnl_pct <= STOP_LOSS_PCT:
-            action["reason"] = f"STOP LOSS ({pnl_pct:.0%})"
+        # TAKE PROFIT: Precio subió más de 30% desde compra
+        if real_pnl_pct >= TAKE_PROFIT_PCT:
+            action["reason"] = f"TAKE PROFIT ({real_pnl_pct:+.0%}) compra@{buy_price:.2f}"
             return action
 
         return None
