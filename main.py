@@ -374,11 +374,75 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
         STATE.daily_spend_date = today
     STATE.cycle_bets = 0
 
-    # ===== ESTRATEGIA 1: IA Value Bets — DESACTIVADA =====
-    # Razón: 62% win rate, pérdidas de $5-$9 en underdogs.
-    # Las otras estrategias (Grinder 99%, Harvest 100%, Weather 80%) son más rentables.
-    # Se puede reactivar cuando tengamos más capital ($500+) para absorber las pérdidas.
-    logger.info("\n🧠 IA Value Bets — DESACTIVADA (62% WR, pérdidas grandes)")
+    # ===== ESTRATEGIA 1: IA Value Bets — SOLO ESPORTS =====
+    # Esports: 4W/0L (100%) +$17.35 — excelente
+    # Sports tradicionales: 2W/5L (29%) -$12.62 — desastroso
+    # Solo analizamos mercados de esports (LoL, CS, Valorant, Dota)
+    logger.info("\n" + "=" * 50)
+    logger.info("🎮 ESTRATEGIA 1: IA Esports (solo esports, 100% WR)")
+    logger.info("=" * 50)
+    if markets:
+        try:
+            # Filtrar solo mercados de esports
+            esports_kw = ["lol:", "league of legends", "counter-strike", "cs2", "cs:",
+                          "valorant", "dota", "esport", "BO3", "bo3", "BO5", "bo5",
+                          "game 1", "game 2", "game 3", "LEC", "LCS", "LCK", "VCT",
+                          "BLAST", "ESL", "IEM", "Major"]
+            esports_markets = [m for m in markets
+                              if any(kw.lower() in (m.question or "").lower() for kw in esports_kw)]
+
+            if esports_markets:
+                logger.info(f"   🎮 {len(esports_markets)} mercados de esports encontrados")
+                analyses = await analyzer.analyze_markets_batch(esports_markets, max_to_analyze=3)
+
+                for analysis in analyses:
+                    if hasattr(analysis, 'recommended_action') and analysis.recommended_action.upper() == "SKIP":
+                        logger.info(f"   ⏭️ {analysis.question[:40]}: SKIP")
+                        continue
+                    if hasattr(analysis, 'side') and analysis.side.upper() == "SKIP":
+                        continue
+
+                    if STATE.cycle_bets >= SAFETY.max_bets_per_cycle:
+                        break
+                    if STATE.daily_spend >= SAFETY.max_daily_spend:
+                        break
+
+                    mkt = {m.market_id: m for m in esports_markets}.get(analysis.market_id)
+                    should_bet, reason, amount = risk.should_bet(
+                        estimated_prob=analysis.estimated_probability,
+                        market_price=analysis.market_price,
+                        market_liquidity=mkt.liquidity if mkt else 50000,
+                        market_volume=mkt.volume if mkt else 50000,
+                        category="esports"
+                    )
+
+                    if should_bet:
+                        result = await executor.execute_bet(analysis, amount)
+                        status = result.get('status', 'UNKNOWN')
+                        if status in ("EXECUTED", "SIMULATED"):
+                            tracker.add_trade(
+                                market_id=str(analysis.market_id),
+                                question=analysis.question,
+                                side=analysis.side,
+                                amount=amount,
+                                price=analysis.market_price,
+                                strategy="ESPORTS"
+                            )
+                            STATE.cycle_bets += 1
+                            STATE.daily_spend += amount
+                            if telegram and status == "EXECUTED":
+                                _rt = _get_resolve_time(mkt.end_date if mkt else "")
+                                await telegram.send_trade_alert(
+                                    "IA", analysis.question, analysis.side,
+                                    amount, analysis.market_price, analysis.edge, _rt)
+                                telegram.log_trade("ESPORTS", analysis.question, analysis.side, amount)
+                            logger.info(f"   ✅ Esports: {analysis.question[:40]} | ${amount:.2f} {analysis.side}")
+                    else:
+                        logger.info(f"   ❌ {analysis.question[:35]}: {reason[:40]}")
+            else:
+                logger.info("   🎮 No hay mercados de esports activos ahora")
+        except Exception as e:
+            logger.error(f"   Error en IA Esports: {e}")
 
     # ===== ESTRATEGIA 2: Crypto Grinder 95-99¢ (Sharky6999) =====
     logger.info("\n" + "=" * 50)
@@ -738,11 +802,11 @@ async def main():
     logger.info(f"   Kelly fracción: {SAFETY.kelly_fraction}")
     logger.info(f"   Escaneo cada: {SAFETY.scan_interval_minutes} min")
     logger.info(f"   Estrategias activas:")
-    logger.info(f"     1. 🧠 IA Value Bets (Claude) - cada 15 min")
-    logger.info(f"     2. 💎 Crypto Grinder 95-99c (Sharky6999) - cada 15 min")
-    logger.info(f"     3. 🌾 NO Harvester (>90% probabilidad) - cada 15 min")
-    logger.info(f"     4. ⛅ Weather Trader (Open-Meteo) - cada 15 min")
-    logger.info(f"     5. 📈 Stock Trader (S&P/NASDAQ/Dow) - cada 3 min")
+    logger.info(f"     1. 🎮 IA Esports (LoL/CS/Valorant/Dota) - 100% WR")
+    logger.info(f"     2. 💎 Crypto Grinder 95-99c (Sharky6999) - 98% WR")
+    logger.info(f"     3. 🌾 NO Harvester (>90% probabilidad) - 100% WR")
+    logger.info(f"     4. ⛅ Weather (37 modelos GFS ensemble) - cada 15 min")
+    logger.info(f"     5. 📈 Stock Trader (S&P/NASDAQ/Dow) - horario bolsa")
 
     # Inicializar componentes auxiliares
     redeemer = AutoRedeemer()
