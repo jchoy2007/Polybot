@@ -619,6 +619,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             logger.debug(f"Error actualizando P&L: {_e}")
 
     # ===== AUTO-COBRO (cada 4 ciclos ≈ 1 hora) =====
+    # Usa subprocess para ejecutar redeem.py directamente (el que SÍ funciona)
     if not SAFETY.dry_run and not hasattr(run_cycle, '_redeem_counter'):
         run_cycle._redeem_counter = 0
     if not SAFETY.dry_run:
@@ -629,34 +630,54 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             logger.info("💰 AUTO-COBRO (cada ~1 hora)")
             logger.info("=" * 50)
             try:
-                redeem_result = await redeemer.run_cycle()
-                if redeem_result.get("redeemed", 0) > 0:
-                    logger.info(f"   💰 Cobradas: {redeem_result['redeemed']} | "
-                                f"+${redeem_result['amount']:.2f}")
-                    if telegram:
-                        await telegram.send_redeem_alert(
-                            redeem_result['amount'], redeem_result['redeemed'],
-                            STATE.current_bankroll)
-                    # Also unwrap any remaining WCOL
-                    try:
-                        from web3 import Web3 as _W3r
-                        _pk_r = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
-                        _w3r = _W3r(_W3r.HTTPProvider("https://polygon-bor-rpc.publicnode.com"))
-                        _eoa_r = _w3r.eth.account.from_key(_pk_r).address
-                        _wcol_abi = [{"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"},
-                                     {"inputs":[{"name":"_to","type":"address"},{"name":"_amount","type":"uint256"}],"name":"unwrap","outputs":[],"type":"function"}]
-                        _wcol_c = _w3r.eth.contract(address=_w3r.to_checksum_address("0x3A3BD7bb9528E159577F7C2e685CC81A765002E2"), abi=_wcol_abi)
-                        _wcol_bal = _wcol_c.functions.balanceOf(_eoa_r).call()
-                        if _wcol_bal > 0:
-                            _n = _w3r.eth.get_transaction_count(_eoa_r)
-                            _tx = _wcol_c.functions.unwrap(_eoa_r, _wcol_bal).build_transaction({
-                                'from': _eoa_r, 'nonce': _n, 'gas': 200000,
-                                'gasPrice': _w3r.eth.gas_price, 'chainId': 137})
-                            _s = _w3r.eth.account.sign_transaction(_tx, _pk_r)
-                            _w3r.eth.send_raw_transaction(_s.raw_transaction)
-                            logger.info(f"   Unwrapped {_wcol_bal/1e6:.2f} WCOL restante")
-                    except Exception:
-                        pass
+                import subprocess
+                result = subprocess.run(
+                    [sys.executable, "redeem.py"],
+                    capture_output=True, text=True, timeout=300,
+                    encoding='utf-8', errors='replace'
+                )
+                output = result.stdout or ""
+                # Extraer resultado
+                for line in output.split("\n"):
+                    if "Diferencia:" in line or "Cobradas:" in line or "Balance" in line:
+                        logger.info(f"   {line.strip()}")
+
+                # Verificar si cobró algo
+                if "+$" in output and "Diferencia:" in output:
+                    # Extraer monto cobrado
+                    import re
+                    diff_match = re.search(r'Diferencia:\s+\$\+?([\d.]+)', output)
+                    cobradas_match = re.search(r'Cobradas:\s+(\d+)', output)
+                    if diff_match and float(diff_match.group(1)) > 0:
+                        amount = float(diff_match.group(1))
+                        count = int(cobradas_match.group(1)) if cobradas_match else 0
+                        # Actualizar bankroll
+                        try:
+                            from web3 import Web3 as _W3r
+                            _pk_r = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
+                            _w3r = _W3r(_W3r.HTTPProvider("https://polygon-bor-rpc.publicnode.com",
+                                        request_kwargs={'timeout': 10}))
+                            if _w3r.is_connected():
+                                _eoa_r = _w3r.eth.account.from_key(_pk_r).address
+                                _usdc_abi = [{"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"}]
+                                _usdc_c = _w3r.eth.contract(address=_w3r.to_checksum_address("0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"), abi=_usdc_abi)
+                                STATE.current_bankroll = _usdc_c.functions.balanceOf(_eoa_r).call() / 1e6
+                        except:
+                            STATE.current_bankroll += amount
+
+                        logger.info(f"   💰 Cobrado +${amount:.2f} ({count} posiciones)")
+                        logger.info(f"   💰 Balance actualizado: ${STATE.current_bankroll:.2f}")
+                        if telegram:
+                            await telegram.send_redeem_alert(amount, count, STATE.current_bankroll)
+                    else:
+                        logger.info("   Sin posiciones listas para cobrar")
+                else:
+                    logger.info("   Sin posiciones listas para cobrar")
+
+                if result.returncode != 0 and result.stderr:
+                    logger.debug(f"   Redeem stderr: {result.stderr[:100]}")
+            except subprocess.TimeoutExpired:
+                logger.warning("   Auto-cobro timeout (>5 min)")
             except Exception as e:
                 logger.error(f"   Error auto-cobro: {e}")
 
