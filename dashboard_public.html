@@ -112,7 +112,7 @@ canvas { width: 100% !important; height: 100% !important; }
 </div>
 <div class="strategy-stats">
 <div class="strategy-wr" style="color:#00e676">100%</div>
-<div class="strategy-pnl" style="color:#00e676">50W/1L | +$22.57</div>
+<div class="strategy-pnl" style="color:#00e676">50W/1L | +$16.28</div>
 </div>
 </div>
 <div class="strategy">
@@ -186,15 +186,15 @@ canvas { width: 100% !important; height: 100% !important; }
 </div>
 <div>
 <div class="card-label">Ganancias Totales</div>
-<div style="font-size:18px; font-weight:600; margin-top:4px; color:#00e676;">+$87.97</div>
+<div style="font-size:18px; font-weight:600; margin-top:4px; color:#00e676;">+$87.98</div>
 </div>
 <div>
 <div class="card-label">Perdidas Totales</div>
-<div style="font-size:18px; font-weight:600; margin-top:4px; color:#ff5252;">-$35.17</div>
+<div style="font-size:18px; font-weight:600; margin-top:4px; color:#ff5252;">-$41.46</div>
 </div>
 <div>
 <div class="card-label">Trades Totales</div>
-<div style="font-size:18px; font-weight:600; margin-top:4px;">74</div>
+<div style="font-size:18px; font-weight:600; margin-top:4px;">117</div>
 </div>
 <div>
 <div class="card-label">Dias Operando</div>
@@ -204,11 +204,11 @@ canvas { width: 100% !important; height: 100% !important; }
 <div style="margin-top:15px;">
 <div class="card-label">Progreso hacia meta ($500)</div>
 <div class="progress-bar">
-<div class="progress-fill" style="width: 37.6%; background: linear-gradient(90deg, #7b2ff7, #00d4ff);"></div>
+<div class="progress-fill" style="width: 37.8%; background: linear-gradient(90deg, #7b2ff7, #00d4ff);"></div>
 </div>
 <div style="display:flex; justify-content:space-between; margin-top:5px;">
 <span style="font-size:11px; color:#8892a4;">$0</span>
-<span style="font-size:11px; color:#00d4ff;">$188 (37.6%)</span>
+<span style="font-size:11px; color:#00d4ff;">$189 (37.8%)</span>
 <span style="font-size:11px; color:#8892a4;">$500</span>
 </div>
 </div>
@@ -222,15 +222,15 @@ canvas { width: 100% !important; height: 100% !important; }
 <script>
 // === DATOS DEL BOT (actualizar manualmente o con script) ===
 const DATA = {
-    updated: "2026-04-08 16:13",
-    balance: 93.21,
-    inPositions: 95.00,
+    updated: "2026-04-08 18:29",
+    balance: 93.41,
+    inPositions: 95.78,
     deposited: 200,
-    winRate: 89,
+    winRate: 88,
     wins: 66,
-    losses: 8,
+    losses: 9,
     pending: 42,
-    pnlNet: 52.80,
+    pnlNet: 46.52,
 
     // Balance diario (actualizar cada dia)
     daily: [
@@ -239,29 +239,32 @@ const DATA = {
         { date: "Abr 5", balance: 226, label: "Dia 2" },
         { date: "Abr 6", balance: 198, label: "Dia 3" },
         { date: "Abr 7", balance: 205, label: "Dia 4" },
-        { date: "Abr 8", balance: 188, label: "Hoy" },
+        { date: "Abr 8", balance: 189, label: "Hoy" },
     ],
 
     // Posiciones ganadoras (top)
     winning: [
-        { name: "S&P 500 Up Apr 7", value: 18.11, pnl: "+$11.41", pct: "100%" },
-        { name: "ETH >$2K Apr 8", value: 5.98, pnl: "+$0.30", pct: "100%" },
-        { name: "Real Madrid CF", value: 5.42, pnl: "+$0.43", pct: "100%" },
+        { name: "Atlanta temp 70-71 NO", value: 6.35, pnl: "+$1.38", pct: "100%" },
+        { name: "WTI Crude Oil NO", value: 6.07, pnl: "+$0.08", pct: "99%" },
+        { name: "BTC >$68K Apr 8", value: 5.96, pnl: "-$0.03", pct: "97%" },
+        { name: "BTC >$74K Apr 9 NO", value: 5.60, pnl: "+$0.03", pct: "98%" },
         { name: "Drama Box Office >10m", value: 5.22, pnl: "+$0.25", pct: "100%" },
-        { name: "Shanghai 20C", value: 5.06, pnl: "+$0.07", pct: "100%" },
-        { name: "BTC >$66K Apr 8", value: 4.33, pnl: "+$0.27", pct: "100%" },
-        { name: "Iran Ceasefire", value: 4.23, pnl: "+$0.22", pct: "100%" },
-        { name: "Musk Tweets", value: 4.19, pnl: "+$0.41", pct: "100%" },
+        { name: "Shanghai 20C NO", value: 5.06, pnl: "+$0.07", pct: "100%" },
+        { name: "Iran Ceasefire NO", value: 5.00, pnl: "+$0.00", pct: "95%" },
+        { name: "Elizabeth Taylor YES", value: 4.91, pnl: "-$0.09", pct: "96%" },
+        { name: "Drama $15-16m NO", value: 4.60, pnl: "+$0.05", pct: "100%" },
+        { name: "LA temp 68-69 NO", value: 4.45, pnl: "+$0.27", pct: "94%" },
     ],
 
     // Posiciones en juego
     pending_positions: [
-        { name: "SpaceX IPO", value: 9.55, pnl: "-$0.06", pct: "81%" },
-        { name: "S&P Opens Up Apr 9", value: 6.00, pnl: "nuevo", pct: "56%" },
-        { name: "BTC >$74K Apr 9", value: 5.29, pnl: "-$0.28", pct: "93%" },
-        { name: "Atlanta temp", value: 4.20, pnl: "-$0.78", pct: "58%" },
-        { name: "Seattle temp", value: 2.58, pnl: "-$1.81", pct: "38%" },
-        { name: "Miami temp", value: 2.87, pnl: "-$0.02", pct: "60%" },
+        { name: "SpaceX IPO NO", value: 9.55, pnl: "-$0.06", pct: "81%" },
+        { name: "S&P Opens Up Apr 9", value: 4.55, pnl: "-$1.45", pct: "44%" },
+        { name: "Atlanta temp 70-71 NO", value: 4.91, pnl: "-$0.59", pct: "55%" },
+        { name: "Miami temp NO", value: 2.92, pnl: "+$0.02", pct: "62%" },
+        { name: "LA temp 68-69 NO", value: 2.80, pnl: "-$0.72", pct: "64%" },
+        { name: "LA temp Apr 9 NO", value: 2.01, pnl: "-$0.74", pct: "64%" },
+        { name: "SF temp NO", value: 1.58, pnl: "-$0.40", pct: "62%" },
     ],
 };
 
