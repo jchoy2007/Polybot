@@ -216,9 +216,10 @@ async def redeem_all():
                     print(f"  WCOL +{wcol_gained/1e6:.2f} (unwrap fallo: {str(e)[:40]}) | {title}")
 
             elif receipt.status == 1 and wcol_gained == 0:
-                # Tokens quemados pero sin WCOL = es un LOSS
-                success = True
-                print(f"  $0.00 LOSS (WCOL redeem)      | {title}")
+                # WCOL dio $0 — NO marcar como success, intentar USDC.e después
+                # Puede ser: (a) mercado no-neg_risk, o (b) pérdida real
+                print(f"  WCOL $0 (intentando USDC.e...) | {title}")
+                # NO poner success = True aquí — deja que Method 2 intente
             else:
                 print(f"  WCOL redeem fallo (status={receipt.status}) | {title}")
 
