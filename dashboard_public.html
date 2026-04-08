@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PolyBot - Dashboard de Trading</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0e17; color: #e1e5ee; min-height: 100vh; padding: 15px; }
+.header { text-align: center; padding: 20px 0; }
+.header h1 { font-size: 28px; background: linear-gradient(135deg, #00d4ff, #7b2ff7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { color: #8892a4; margin-top: 5px; font-size: 14px; }
+.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 15px 0; }
+.card { background: #141b2d; border-radius: 12px; padding: 15px; border: 1px solid #1e2a3a; }
+.card-label { font-size: 11px; color: #8892a4; text-transform: uppercase; letter-spacing: 1px; }
+.card-value { font-size: 24px; font-weight: 700; margin-top: 4px; }
+.card-value.green { color: #00e676; }
+.card-value.red { color: #ff5252; }
+.card-value.blue { color: #00d4ff; }
+.card-value.gold { color: #ffd740; }
+.card-sub { font-size: 12px; color: #8892a4; margin-top: 2px; }
+.section { background: #141b2d; border-radius: 12px; padding: 15px; margin: 15px 0; border: 1px solid #1e2a3a; }
+.section h2 { font-size: 16px; margin-bottom: 12px; color: #00d4ff; }
+.chart-container { width: 100%; height: 200px; position: relative; }
+canvas { width: 100% !important; height: 100% !important; }
+.strategy { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #1e2a3a; }
+.strategy:last-child { border-bottom: none; }
+.strategy-name { display: flex; align-items: center; gap: 8px; }
+.strategy-emoji { font-size: 20px; }
+.strategy-label { font-size: 14px; }
+.strategy-stats { text-align: right; }
+.strategy-wr { font-size: 16px; font-weight: 700; }
+.strategy-pnl { font-size: 12px; }
+.position { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0a0e17; }
+.position:last-child { border-bottom: none; }
+.pos-name { font-size: 12px; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pos-value { text-align: right; }
+.pos-amount { font-size: 14px; font-weight: 600; }
+.pos-pct { font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+.pos-pct.win { background: #00e67622; color: #00e676; }
+.pos-pct.lose { background: #ff525222; color: #ff5252; }
+.pos-pct.pending { background: #ffd74022; color: #ffd740; }
+.progress-bar { width: 100%; height: 8px; background: #1e2a3a; border-radius: 4px; margin-top: 8px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+.timeline { display: flex; justify-content: space-between; margin-top: 15px; }
+.timeline-item { text-align: center; flex: 1; }
+.timeline-date { font-size: 10px; color: #8892a4; }
+.timeline-value { font-size: 13px; font-weight: 600; margin-top: 2px; }
+.timeline-bar { height: 4px; background: #1e2a3a; border-radius: 2px; margin-top: 4px; }
+.timeline-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #7b2ff7, #00d4ff); }
+.footer { text-align: center; padding: 20px 0; color: #8892a4; font-size: 12px; }
+.update-time { text-align: center; color: #8892a4; font-size: 11px; margin: 10px 0; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.badge.live { background: #00e67622; color: #00e676; }
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>PolyBot Trading</h1>
+<p>Bot automatizado de Polymarket <span class="badge live">LIVE</span></p>
+</div>
+
+<div class="update-time" id="updateTime">Actualizado: cargando...</div>
+
+<div class="cards">
+<div class="card">
+<div class="card-label">Balance Libre</div>
+<div class="card-value blue" id="balance">$93.21</div>
+<div class="card-sub">USDC.e disponible</div>
+</div>
+<div class="card">
+<div class="card-label">En Posiciones</div>
+<div class="card-value gold" id="positions">$95.00</div>
+<div class="card-sub" id="posCount">25 activas</div>
+</div>
+<div class="card">
+<div class="card-label">Total Estimado</div>
+<div class="card-value green" id="total">$188.21</div>
+<div class="card-sub">Balance + Posiciones</div>
+</div>
+<div class="card">
+<div class="card-label">Win Rate</div>
+<div class="card-value green" id="winrate">89%</div>
+<div class="card-sub" id="wlRecord">66W / 8L</div>
+</div>
+</div>
+
+<!-- Grafico de Progreso -->
+<div class="section">
+<h2>Progreso del Capital</h2>
+<div class="chart-container">
+<canvas id="progressChart"></canvas>
+</div>
+</div>
+
+<!-- P&L por dia -->
+<div class="section">
+<h2>Balance por Dia</h2>
+<div class="timeline" id="dailyTimeline">
+</div>
+</div>
+
+<!-- Estrategias -->
+<div class="section">
+<h2>Estrategias</h2>
+<div id="strategies">
+<div class="strategy">
+<div class="strategy-name">
+<span class="strategy-emoji">🌾</span>
+<span class="strategy-label">Harvest</span>
+</div>
+<div class="strategy-stats">
+<div class="strategy-wr" style="color:#00e676">100%</div>
+<div class="strategy-pnl" style="color:#00e676">50W/1L | +$22.57</div>
+</div>
+</div>
+<div class="strategy">
+<div class="strategy-name">
+<span class="strategy-emoji">📈</span>
+<span class="strategy-label">Stocks</span>
+</div>
+<div class="strategy-stats">
+<div class="strategy-wr" style="color:#00e676">100%</div>
+<div class="strategy-pnl" style="color:#00e676">3W/0L | +$16.82</div>
+</div>
+</div>
+<div class="strategy">
+<div class="strategy-name">
+<span class="strategy-emoji">🎮</span>
+<span class="strategy-label">IA Esports</span>
+</div>
+<div class="strategy-stats">
+<div class="strategy-wr" style="color:#ffd740">62%</div>
+<div class="strategy-pnl" style="color:#00e676">8W/5L | +$16.80</div>
+</div>
+</div>
+<div class="strategy">
+<div class="strategy-name">
+<span class="strategy-emoji">⛅</span>
+<span class="strategy-label">Weather</span>
+</div>
+<div class="strategy-stats">
+<div class="strategy-wr" style="color:#ffd740">TBD</div>
+<div class="strategy-pnl" style="color:#8892a4">1W/0L | 33 pendientes</div>
+</div>
+</div>
+<div class="strategy">
+<div class="strategy-name">
+<span class="strategy-emoji">💎</span>
+<span class="strategy-label">Crypto Grinder</span>
+</div>
+<div class="strategy-stats">
+<div class="strategy-wr" style="color:#8892a4">Nuevo</div>
+<div class="strategy-pnl" style="color:#8892a4">Esperando mercados</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Posiciones Ganadoras -->
+<div class="section">
+<h2>Top Posiciones Ganadoras</h2>
+<div id="winningPositions">
+</div>
+</div>
+
+<!-- Posiciones En Juego -->
+<div class="section">
+<h2>Posiciones En Juego</h2>
+<div id="pendingPositions">
+</div>
+</div>
+
+<!-- Resumen -->
+<div class="section">
+<h2>Resumen General</h2>
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+<div>
+<div class="card-label">Depositado</div>
+<div style="font-size:18px; font-weight:600; margin-top:4px;">$200.00</div>
+</div>
+<div>
+<div class="card-label">P&L Neto</div>
+<div style="font-size:18px; font-weight:600; margin-top:4px; color:#00e676;" id="pnlNet">+$52.80</div>
+</div>
+<div>
+<div class="card-label">Ganancias Totales</div>
+<div style="font-size:18px; font-weight:600; margin-top:4px; color:#00e676;">+$87.97</div>
+</div>
+<div>
+<div class="card-label">Perdidas Totales</div>
+<div style="font-size:18px; font-weight:600; margin-top:4px; color:#ff5252;">-$35.17</div>
+</div>
+<div>
+<div class="card-label">Trades Totales</div>
+<div style="font-size:18px; font-weight:600; margin-top:4px;">74</div>
+</div>
+<div>
+<div class="card-label">Dias Operando</div>
+<div style="font-size:18px; font-weight:600; margin-top:4px;">6</div>
+</div>
+</div>
+<div style="margin-top:15px;">
+<div class="card-label">Progreso hacia meta ($500)</div>
+<div class="progress-bar">
+<div class="progress-fill" style="width: 37.6%; background: linear-gradient(90deg, #7b2ff7, #00d4ff);"></div>
+</div>
+<div style="display:flex; justify-content:space-between; margin-top:5px;">
+<span style="font-size:11px; color:#8892a4;">$0</span>
+<span style="font-size:11px; color:#00d4ff;">$188 (37.6%)</span>
+<span style="font-size:11px; color:#8892a4;">$500</span>
+</div>
+</div>
+</div>
+
+<div class="footer">
+<p>PolyBot Trading Dashboard v1.0</p>
+<p style="margin-top:5px;">Powered by Claude AI + Python</p>
+</div>
+
+<script>
+// === DATOS DEL BOT (actualizar manualmente o con script) ===
+const DATA = {
+    updated: "2026-04-08 16:13",
+    balance: 93.21,
+    inPositions: 95.00,
+    deposited: 200,
+    winRate: 89,
+    wins: 66,
+    losses: 8,
+    pending: 42,
+    pnlNet: 52.80,
+
+    // Balance diario (actualizar cada dia)
+    daily: [
+        { date: "Abr 3", balance: 200, label: "Inicio" },
+        { date: "Abr 4", balance: 209, label: "Dia 1" },
+        { date: "Abr 5", balance: 226, label: "Dia 2" },
+        { date: "Abr 6", balance: 198, label: "Dia 3" },
+        { date: "Abr 7", balance: 205, label: "Dia 4" },
+        { date: "Abr 8", balance: 188, label: "Hoy" },
+    ],
+
+    // Posiciones ganadoras (top)
+    winning: [
+        { name: "S&P 500 Up Apr 7", value: 18.11, pnl: "+$11.41", pct: "100%" },
+        { name: "ETH >$2K Apr 8", value: 5.98, pnl: "+$0.30", pct: "100%" },
+        { name: "Real Madrid CF", value: 5.42, pnl: "+$0.43", pct: "100%" },
+        { name: "Drama Box Office >10m", value: 5.22, pnl: "+$0.25", pct: "100%" },
+        { name: "Shanghai 20C", value: 5.06, pnl: "+$0.07", pct: "100%" },
+        { name: "BTC >$66K Apr 8", value: 4.33, pnl: "+$0.27", pct: "100%" },
+        { name: "Iran Ceasefire", value: 4.23, pnl: "+$0.22", pct: "100%" },
+        { name: "Musk Tweets", value: 4.19, pnl: "+$0.41", pct: "100%" },
+    ],
+
+    // Posiciones en juego
+    pending_positions: [
+        { name: "SpaceX IPO", value: 9.55, pnl: "-$0.06", pct: "81%" },
+        { name: "S&P Opens Up Apr 9", value: 6.00, pnl: "nuevo", pct: "56%" },
+        { name: "BTC >$74K Apr 9", value: 5.29, pnl: "-$0.28", pct: "93%" },
+        { name: "Atlanta temp", value: 4.20, pnl: "-$0.78", pct: "58%" },
+        { name: "Seattle temp", value: 2.58, pnl: "-$1.81", pct: "38%" },
+        { name: "Miami temp", value: 2.87, pnl: "-$0.02", pct: "60%" },
+    ],
+};
+
+// Actualizar pagina
+document.getElementById('updateTime').textContent = 'Actualizado: ' + DATA.updated;
+document.getElementById('balance').textContent = '$' + DATA.balance.toFixed(2);
+document.getElementById('positions').textContent = '$' + DATA.inPositions.toFixed(2);
+document.getElementById('total').textContent = '$' + (DATA.balance + DATA.inPositions).toFixed(2);
+document.getElementById('winrate').textContent = DATA.winRate + '%';
+document.getElementById('wlRecord').textContent = DATA.wins + 'W / ' + DATA.losses + 'L';
+document.getElementById('pnlNet').textContent = '+$' + DATA.pnlNet.toFixed(2);
+document.getElementById('posCount').textContent = (DATA.wins + DATA.losses + DATA.pending) + ' totales';
+
+// Renderizar posiciones ganadoras
+const winDiv = document.getElementById('winningPositions');
+DATA.winning.forEach(p => {
+    winDiv.innerHTML += `
+    <div class="position">
+        <div class="pos-name">${p.name}</div>
+        <div class="pos-value">
+            <div class="pos-amount">$${p.value.toFixed(2)}</div>
+            <span class="pos-pct win">${p.pct}</span>
+        </div>
+    </div>`;
+});
+
+// Renderizar posiciones pendientes
+const pendDiv = document.getElementById('pendingPositions');
+DATA.pending_positions.forEach(p => {
+    const cls = parseInt(p.pct) >= 80 ? 'win' : (parseInt(p.pct) < 40 ? 'lose' : 'pending');
+    pendDiv.innerHTML += `
+    <div class="position">
+        <div class="pos-name">${p.name}</div>
+        <div class="pos-value">
+            <div class="pos-amount">$${p.value.toFixed(2)}</div>
+            <span class="pos-pct ${cls}">${p.pct}</span>
+        </div>
+    </div>`;
+});
+
+// Timeline diario
+const tlDiv = document.getElementById('dailyTimeline');
+const maxBal = Math.max(...DATA.daily.map(d => d.balance));
+DATA.daily.forEach(d => {
+    const pct = (d.balance / maxBal * 100).toFixed(0);
+    const color = d.balance >= 200 ? '#00e676' : '#ff5252';
+    tlDiv.innerHTML += `
+    <div class="timeline-item">
+        <div class="timeline-date">${d.date}</div>
+        <div class="timeline-value" style="color:${color}">$${d.balance}</div>
+        <div class="timeline-bar">
+            <div class="timeline-fill" style="width:${pct}%"></div>
+        </div>
+    </div>`;
+});
+
+// Grafico Canvas
+const canvas = document.getElementById('progressChart');
+const ctx = canvas.getContext('2d');
+canvas.width = canvas.parentElement.offsetWidth;
+canvas.height = 200;
+
+function drawChart() {
+    const w = canvas.width;
+    const h = canvas.height;
+    const padding = { top: 20, right: 15, bottom: 30, left: 45 };
+    const chartW = w - padding.left - padding.right;
+    const chartH = h - padding.top - padding.bottom;
+
+    const values = DATA.daily.map(d => d.balance);
+    const minV = Math.min(...values) - 20;
+    const maxV = Math.max(...values) + 20;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Grid lines
+    ctx.strokeStyle = '#1e2a3a';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = padding.top + (chartH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(w - padding.right, y);
+        ctx.stroke();
+
+        const val = maxV - ((maxV - minV) / 4) * i;
+        ctx.fillStyle = '#8892a4';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('$' + val.toFixed(0), padding.left - 5, y + 4);
+    }
+
+    // $200 deposited line
+    const depY = padding.top + chartH * (1 - (200 - minV) / (maxV - minV));
+    ctx.strokeStyle = '#ff525244';
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(padding.left, depY);
+    ctx.lineTo(w - padding.right, depY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ff5252';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Depositado $200', padding.left + 5, depY - 5);
+
+    // Data line
+    const gradient = ctx.createLinearGradient(0, padding.top, 0, h - padding.bottom);
+    gradient.addColorStop(0, '#00d4ff44');
+    gradient.addColorStop(1, '#00d4ff00');
+
+    ctx.beginPath();
+    values.forEach((v, i) => {
+        const x = padding.left + (chartW / (values.length - 1)) * i;
+        const y = padding.top + chartH * (1 - (v - minV) / (maxV - minV));
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+
+    // Fill area
+    const lastX = padding.left + chartW;
+    const lastY = padding.top + chartH * (1 - (values[values.length-1] - minV) / (maxV - minV));
+    ctx.lineTo(lastX, h - padding.bottom);
+    ctx.lineTo(padding.left, h - padding.bottom);
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    values.forEach((v, i) => {
+        const x = padding.left + (chartW / (values.length - 1)) * i;
+        const y = padding.top + chartH * (1 - (v - minV) / (maxV - minV));
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = '#00d4ff';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Dots
+    values.forEach((v, i) => {
+        const x = padding.left + (chartW / (values.length - 1)) * i;
+        const y = padding.top + chartH * (1 - (v - minV) / (maxV - minV));
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = v >= 200 ? '#00e676' : '#ff5252';
+        ctx.fill();
+        ctx.strokeStyle = '#0a0e17';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Label
+        ctx.fillStyle = '#e1e5ee';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('$' + v, x, y - 10);
+    });
+
+    // X labels
+    DATA.daily.forEach((d, i) => {
+        const x = padding.left + (chartW / (values.length - 1)) * i;
+        ctx.fillStyle = '#8892a4';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(d.date, x, h - 5);
+    });
+}
+
+drawChart();
+window.addEventListener('resize', () => {
+    canvas.width = canvas.parentElement.offsetWidth;
+    drawChart();
+});
+</script>
+</body>
+</html>
