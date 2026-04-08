@@ -56,11 +56,13 @@ class SafetyRules:
     max_daily_spend: float = 80.0     # Máximo $80/día (sube automático con capital)
     max_resolution_days: int = 2      # Solo mercados que resuelven en 2 días máx
 
-    # --- Stop-loss automáticos (mantener protección) ---
-    max_daily_loss_pct: float = 0.15    # Parar si pierde 15% en un día
+    # --- Stop-loss automáticos (protección real de capital) ---
+    max_daily_loss_pct: float = 0.20    # Parar si pierde 20% en un día
     max_weekly_loss_pct: float = 0.25   # Parar si pierde 25% en una semana
-    max_total_loss_pct: float = 0.35    # Parar si pierde 35% del capital inicial
-    cooldown_hours_after_stoploss: int = 12  # Pausa de 12 horas tras stop-loss
+    max_total_loss_pct: float = 0.40    # Kill switch: parar si pierde 40% del ATH
+    cooldown_hours_after_stoploss: int = 6  # Pausa de 6 horas tras stop-loss
+    max_consecutive_losses: int = 5     # Pausa 30 min después de 5 pérdidas seguidas
+    consecutive_loss_pause_minutes: int = 30  # Minutos de pausa tras pérdidas seguidas
 
     # --- Diversificación ---
     max_open_positions: int = 15          # Máximo 15 posiciones abiertas
@@ -97,6 +99,9 @@ class BotState:
     losing_trades: int = 0
     is_paused: bool = False
     pause_reason: str = ""
+    consecutive_losses: int = 0          # Contador de pérdidas seguidas
+    consecutive_loss_pause_until: float = 0  # Timestamp hasta cuando pausar
+    all_time_high: float = 200.0         # ATH del bankroll para kill switch
     last_scan_time: str = ""
     daily_spend: float = 0.0          # Gastado hoy en apuestas nuevas
     daily_spend_date: str = ""        # Fecha del tracking

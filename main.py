@@ -309,7 +309,31 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
     logger.info(f"   {tracker.get_summary()}")
     logger.info("=" * 60)
 
-    # --- Paso 0: Sincronizar open_positions desde posiciones reales ---
+    # --- Paso 0: Kill switch y protección de capital ---
+    # Actualizar ATH (All-Time High)
+    if STATE.current_bankroll > STATE.all_time_high:
+        STATE.all_time_high = STATE.current_bankroll
+
+    # Kill switch: si el bankroll cae 40% del ATH, parar todo
+    if STATE.all_time_high > 0 and STATE.current_bankroll < STATE.all_time_high * (1 - SAFETY.max_total_loss_pct):
+        STATE.is_paused = True
+        STATE.pause_reason = f"KILL SWITCH: Balance ${STATE.current_bankroll:.2f} cayó más de {SAFETY.max_total_loss_pct:.0%} del ATH ${STATE.all_time_high:.2f}"
+        logger.warning(f"🚨 {STATE.pause_reason}")
+        if telegram:
+            await telegram.send_error_alert(STATE.pause_reason)
+
+    # Pausa por pérdidas consecutivas
+    import time as _time_mod
+    if STATE.consecutive_loss_pause_until > 0 and _time_mod.time() < STATE.consecutive_loss_pause_until:
+        remaining = (STATE.consecutive_loss_pause_until - _time_mod.time()) / 60
+        logger.info(f"⏸️ Pausa por {STATE.consecutive_losses} pérdidas seguidas. {remaining:.0f} min restantes.")
+        return
+    elif STATE.consecutive_loss_pause_until > 0 and _time_mod.time() >= STATE.consecutive_loss_pause_until:
+        STATE.consecutive_loss_pause_until = 0
+        STATE.consecutive_losses = 0
+        logger.info("✅ Pausa por pérdidas terminada, reanudando operaciones")
+
+    # --- Sincronizar open_positions desde posiciones reales ---
     if not SAFETY.dry_run:
         try:
             import aiohttp as _aio
@@ -615,6 +639,31 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 _today_trades = [t for t in _won + _lost
                                  if t.get("timestamp", "").startswith(_today)]
                 STATE.daily_pnl = sum(t["profit"] for t in _today_trades)
+
+                # Track pérdidas consecutivas
+                _all_resolved = sorted(
+                    [t for t in tracker.trades if t["result"] in ("WON", "LOST")],
+                    key=lambda t: t.get("timestamp", ""),
+                    reverse=True
+                )
+                # Contar pérdidas seguidas desde el trade más reciente
+                _consec = 0
+                for t in _all_resolved[:10]:  # Solo últimos 10
+                    if t["result"] == "LOST":
+                        _consec += 1
+                    else:
+                        break
+                STATE.consecutive_losses = _consec
+
+                # Si 5+ pérdidas seguidas, pausar 30 minutos
+                if _consec >= SAFETY.max_consecutive_losses and STATE.consecutive_loss_pause_until == 0:
+                    import time as _t
+                    STATE.consecutive_loss_pause_until = _t.time() + (SAFETY.consecutive_loss_pause_minutes * 60)
+                    logger.warning(f"⚠️ {_consec} pérdidas seguidas — pausa de {SAFETY.consecutive_loss_pause_minutes} min")
+                    if telegram:
+                        await telegram.send_error_alert(
+                            f"{_consec} pérdidas seguidas. Bot pausado {SAFETY.consecutive_loss_pause_minutes} min."
+                        )
         except Exception as _e:
             logger.debug(f"Error actualizando P&L: {_e}")
 

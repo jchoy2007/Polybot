@@ -41,11 +41,22 @@ WCOL_ABI = [
 ]
 
 def connect_polygon():
-    for rpc in ["https://polygon-bor-rpc.publicnode.com", "https://1rpc.io/matic",
-                "https://polygon-rpc.com"]:
+    # Priorizar Alchemy RPC si está configurado (más rápido y confiable)
+    alchemy = os.getenv("ALCHEMY_RPC_URL", "")
+    rpcs = []
+    if alchemy:
+        rpcs.append(alchemy)
+    rpcs.extend([
+        "https://polygon-bor-rpc.publicnode.com",
+        "https://1rpc.io/matic",
+        "https://polygon-rpc.com"
+    ])
+    for rpc in rpcs:
         try:
             w3 = Web3(Web3.HTTPProvider(rpc, request_kwargs={'timeout': 10}))
             if w3.is_connected():
+                if rpc == alchemy:
+                    print(f"  Conectado via Alchemy RPC")
                 return w3
         except:
             continue
