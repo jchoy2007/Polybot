@@ -551,21 +551,11 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     else:
                         logger.info(f"   ❌ {analysis.question[:35]}: {reason[:40]}")
             else:
-                logger.info("   🎮 No hay mercados de esports activos ahora")
+                logger.info("   🏆 No hay mercados de deportes/esports activos ahora")
         except Exception as e:
             logger.error(f"   Error en IA Esports: {e}")
 
-    # ===== Crypto Grinder — DESACTIVADO (sin mercados 39/55 ciclos) =====
-
-    # ===== ESTRATEGIA 3: NO Harvester — DESACTIVADA =====
-    # Razón: 13W/1L pero P&L = -$3.07. Ganancias de $0.20 no compensan pérdidas de $6.
-    # Con más capital ($500+) se reactiva con apuestas más pequeñas.
-    logger.info("\n🌾 Harvester — DESACTIVADA (ganancias no compensan pérdidas)")
-
-    # ===== ESTRATEGIA 4: Weather Trader — DESACTIVADA =====
-    # Razón: 0W/1L, -$6.94. Edge 18% no es suficiente para weather.
-    # Se reactiva cuando tengamos $500+ o mejoremos el modelo.
-    logger.info("\n⛅ Weather Trader — DESACTIVADA (0W/1L, -$6.94)")
+    # (Harvest, Weather, Crypto — eliminados del ciclo)
 
     # ===== ESTRATEGIA 5: Stock Market Trader =====
     logger.info("\n" + "=" * 50)
@@ -872,10 +862,9 @@ async def main():
     logger.info(f"   Edge mínimo: {SAFETY.min_edge_required:.0%}")
     logger.info(f"   Kelly fracción: {SAFETY.kelly_fraction}")
     logger.info(f"   Escaneo cada: {SAFETY.scan_interval_minutes} min")
-    logger.info(f"   Estrategias activas (solo las que GANAN):")
-    logger.info(f"     1. 📈 STOCKS (S&P/NASDAQ/Russell/Dow) - 100% WR, +$19.82")
-    logger.info(f"     2. 🏆 DEPORTES + ESPORTS (fútbol, NBA, NHL, MMA, LoL, CS, etc.)")
-    logger.info(f"     ❌ Harvest, Weather, Crypto — DESACTIVADAS")
+    logger.info(f"   Estrategias activas:")
+    logger.info(f"     1. 📈 STOCKS (S&P/NASDAQ/Russell/Dow)")
+    logger.info(f"     2. 🏆 DEPORTES + ESPORTS (NBA, NHL, fútbol, MMA, LoL, CS)")
 
     # Inicializar componentes auxiliares
     redeemer = AutoRedeemer()
@@ -908,7 +897,7 @@ async def main():
             if stop_hour:
                 logger.info(f"⏰ Auto-stop programado a las {stop_hour}:00")
 
-            logger.info("\n🚀 Modo continuo: 6 estrategias activas\n")
+            logger.info("\n🚀 Modo continuo: 2 estrategias activas\n")
 
             while True:
                 now = time.time()
@@ -936,7 +925,7 @@ async def main():
 
                 if now - last_ia_scan >= ia_interval:
                     logger.info("\n" + "=" * 50)
-                    logger.info("🧠 Ciclo completo (cada 15 min) — 6 estrategias")
+                    logger.info("🧠 Ciclo completo — Stocks + Deportes")
                     logger.info("=" * 50)
                     await run_cycle(scanner, analyzer, risk, executor,
                                   redeemer, harvester, tracker,
