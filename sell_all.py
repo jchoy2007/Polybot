@@ -571,10 +571,9 @@ async def main():
     print(f"\n   💰 Valor total estimado: ${total_value:.2f}")
 
     # Confirmar
-    confirm = input(f"\n¿Vender todo por ~${total_value:.2f}? (si/no): ")
-    if confirm.lower() not in ("si", "sí", "s", "yes", "y"):
-        print("Cancelado.")
-        return
+    print(f"\n   VENDIENDO TODO EN 5 SEGUNDOS... (Ctrl+C para cancelar)")
+    import time as _t
+    _t.sleep(5)
 
     # Inicializar CLOB client
     client = get_clob_client()
@@ -621,9 +620,9 @@ async def main():
     if sold > 0:
         print(f"\n   Verifica en polymarket.com que las posiciones se cerraron.")
 
-    # Preguntar si limpiar historial de duplicados
-    clean = input(f"\n¿Limpiar historial de duplicados para empezar fresco? (si/no): ")
-    if clean.lower() in ("si", "sí", "s", "yes", "y"):
+    # Limpiar historial de duplicados automáticamente
+    print(f"\n   Limpiando historial de duplicados...")
+    if True:
         import shutil
         from datetime import datetime as dt
         timestamp = dt.now().strftime("%Y%m%d_%H%M")
