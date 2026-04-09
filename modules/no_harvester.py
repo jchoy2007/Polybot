@@ -137,12 +137,12 @@ class NOHarvester:
                     harvest_price = 0
                     harvest_token = ""
 
-                    if yes_price >= 0.90 and yes_price <= 0.98:
+                    if yes_price >= 0.94 and yes_price <= 0.98:
                         harvest_side = "YES"
                         harvest_price = yes_price
                         harvest_token = tokens[0]
                         profit_per_dollar = 1.0 - yes_price
-                    elif no_price >= 0.90 and no_price <= 0.98:
+                    elif no_price >= 0.94 and no_price <= 0.98:
                         harvest_side = "NO"
                         harvest_price = no_price
                         harvest_token = tokens[1]
@@ -181,6 +181,15 @@ class NOHarvester:
                     if "up or down" in q_lower or "up/down" in q_lower:
                         continue
 
+                    # BLOQUEAR crypto volátil — "reach" y "dip" en crypto son trampas
+                    # BTC $73K perdió -$6.24 porque BTC es impredecible a corto plazo
+                    crypto_danger = ["bitcoin reach", "btc reach", "ethereum reach",
+                                     "eth reach", "solana reach", "sol reach",
+                                     "bitcoin dip", "btc dip", "ethereum dip",
+                                     "bitcoin hit", "btc hit", "eth hit"]
+                    if any(kw in q_lower for kw in crypto_danger):
+                        continue
+
                     # Bloquear mercados sin fecha clara
                     BLOCKED_KW = ["ipo", "valuation", "spacex", "market cap",
                                   "by end of", "by december", "annual", "lifetime",
@@ -188,12 +197,12 @@ class NOHarvester:
                     if any(kw in q_lower for kw in BLOCKED_KW):
                         continue
 
-                    # Calcular monto — más conservador para harvester
+                    # Calcular monto — CONSERVADOR, ganancias chicas no justifican riesgo grande
+                    # Una pérdida de $6 borra 30 trades ganados de $0.20
                     bankroll = STATE.current_bankroll
-                    # Apuesta más grande porque es más seguro
                     bet_amount = min(
-                        bankroll * 0.06,  # 6% del bankroll
-                        SAFETY.max_bet_absolute,
+                        bankroll * 0.03,  # 3% del bankroll (era 6%)
+                        SAFETY.max_bet_absolute * 0.6,  # 60% del max (era 100%)
                         bankroll * 0.10  # Nunca > 10%
                     )
                     bet_amount = max(bet_amount, 2.0)  # Mínimo $2

@@ -540,69 +540,15 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
         except Exception as e:
             logger.error(f"   Error en Crypto Grinder: {e}")
 
-    # ===== ESTRATEGIA 3: NO Harvester (dinero casi seguro) =====
-    logger.info("\n" + "=" * 50)
-    logger.info("🌾 ESTRATEGIA 3: NO Harvester (>90% probabilidad)")
-    logger.info("=" * 50)
-    try:
-        harvest_opps = await harvester.find_harvest_opportunities()
-        if harvest_opps:
-            logger.info(f"   Encontradas {len(harvest_opps)} oportunidades de harvest")
-            harvest_results = await harvester.execute_harvest(harvest_opps, max_harvests=3)
-            executed_h = [h for h in harvest_results if h.get("status") == "EXECUTED"]
-            if executed_h:
-                total_profit = sum(h["expected_profit"] for h in executed_h)
-                logger.info(f"   ✅ {len(executed_h)} harvests ejecutados | Profit esperado: ~${total_profit:.2f}")
-                for h in executed_h:
-                    tracker.add_trade(
-                        market_id=h.get("market_id", ""),
-                        question=h.get("question", ""),
-                        side=h.get("side", ""),
-                        amount=h.get("bet_amount", 0),
-                        price=h.get("price", 0.95),
-                        strategy="HARVEST"
-                    )
-                    if telegram:
-                        telegram.log_trade("HARVEST", h.get("question", ""), h.get("side", ""), h.get("bet_amount", 0))
-        else:
-            logger.info("   Sin oportunidades de harvest en este ciclo")
-    except Exception as e:
-        logger.error(f"   Error en Harvester: {e}")
+    # ===== ESTRATEGIA 3: NO Harvester — DESACTIVADA =====
+    # Razón: 13W/1L pero P&L = -$3.07. Ganancias de $0.20 no compensan pérdidas de $6.
+    # Con más capital ($500+) se reactiva con apuestas más pequeñas.
+    logger.info("\n🌾 Harvester — DESACTIVADA (ganancias no compensan pérdidas)")
 
-    # ===== ESTRATEGIA 4: Weather Trader =====
-    logger.info("\n" + "=" * 50)
-    logger.info("⛅ ESTRATEGIA 4: Weather Trader (clima)")
-    logger.info("=" * 50)
-    try:
-        weather_trade = await weather_trader.run_cycle()
-        if weather_trade:
-            status = weather_trade.get("status", "UNKNOWN")
-            if status == "EXECUTED":
-                logger.info(f"   ✅ Weather trade ejecutado: ${weather_trade['amount']:.2f} "
-                           f"{weather_trade.get('side', '')} | Edge: {weather_trade.get('edge', 0):.1%}")
-                tracker.add_trade(
-                    market_id=weather_trade.get("market_id", ""),
-                    question=weather_trade.get("question", ""),
-                    side=weather_trade.get("side", ""),
-                    amount=weather_trade["amount"],
-                    price=weather_trade.get("price", 0.50),
-                    strategy="WEATHER"
-                )
-                if telegram:
-                    await telegram.send_trade_alert(
-                        "WEATHER", weather_trade.get("question", ""),
-                        weather_trade.get("side", ""), weather_trade["amount"],
-                        weather_trade.get("price", 0.50), weather_trade.get("edge", 0), "hoy/mañana")
-                    telegram.log_trade("WEATHER", weather_trade.get("question", ""), weather_trade.get("side", ""), weather_trade["amount"])
-                    logger.info(f"   ⏳ Resuelve en: hoy/mañana")
-            elif status == "SIMULATED":
-                logger.info(f"   🏃 Weather simulado: ${weather_trade['amount']:.2f} {weather_trade.get('side', '')}")
-            elif status == "FAILED":
-                logger.info(f"   ❌ Weather trade falló")
-            else:
-                logger.info(f"   ℹ️ Weather: {status}")
-    except Exception as e:
-        logger.error(f"   Error en Weather Trader: {e}")
+    # ===== ESTRATEGIA 4: Weather Trader — DESACTIVADA =====
+    # Razón: 0W/1L, -$6.94. Edge 18% no es suficiente para weather.
+    # Se reactiva cuando tengamos $500+ o mejoremos el modelo.
+    logger.info("\n⛅ Weather Trader — DESACTIVADA (0W/1L, -$6.94)")
 
     # ===== ESTRATEGIA 5: Stock Market Trader =====
     logger.info("\n" + "=" * 50)
@@ -909,12 +855,11 @@ async def main():
     logger.info(f"   Edge mínimo: {SAFETY.min_edge_required:.0%}")
     logger.info(f"   Kelly fracción: {SAFETY.kelly_fraction}")
     logger.info(f"   Escaneo cada: {SAFETY.scan_interval_minutes} min")
-    logger.info(f"   Estrategias activas:")
-    logger.info(f"     1. 🎮 IA Esports (LoL/CS/Valorant/Dota) - 100% WR")
-    logger.info(f"     2. 💎 Crypto Grinder 95-99c (Sharky6999) - 98% WR")
-    logger.info(f"     3. 🌾 NO Harvester (>90% probabilidad) - 100% WR")
-    logger.info(f"     4. ⛅ Weather (37 modelos GFS ensemble) - cada 15 min")
-    logger.info(f"     5. 📈 Stock Trader (S&P/NASDAQ/Dow) - horario bolsa")
+    logger.info(f"   Estrategias activas (enfocadas en las que GANAN):")
+    logger.info(f"     1. 📈 STOCKS (S&P/NASDAQ/Russell) - 100% WR, +$19.82 — PRINCIPAL")
+    logger.info(f"     2. 🎮 IA Esports (LoL/CS/Valorant/Dota) - +$16.80")
+    logger.info(f"     3. 💎 Crypto Grinder 95-99c (cuando hay mercados)")
+    logger.info(f"     ❌ Harvest, Weather — DESACTIVADAS (P&L negativo)")
 
     # Inicializar componentes auxiliares
     redeemer = AutoRedeemer()

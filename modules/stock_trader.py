@@ -133,11 +133,15 @@ class StockTrader:
         """Busca mercados de índices bursátiles activos."""
         session = await self._get_session()
 
-        # Keywords EXCLUSIVOS de bolsa (no genéricos como "up", "down", "red")
-        stock_keywords = ["s&p", "s&p 500", "sp500", "nasdaq", "dow jones",
-                          "djia", "russell 2000", "stock market",
+        # Keywords EXCLUSIVOS de bolsa — ampliados para encontrar más mercados
+        stock_keywords = ["s&p", "s&p 500", "sp500", "spx", "spy",
+                          "nasdaq", "ndx", "qqq",
+                          "dow jones", "djia", "dia",
+                          "russell 2000", "rut", "iwm",
+                          "stock market",
                           "close up", "close down", "close green", "close red",
-                          "trading day"]
+                          "opens up", "opens down",
+                          "trading day", "hit (high)", "hit (low)"]
 
         # Excluir crypto para evitar falsos positivos
         crypto_exclude = ["btc", "bitcoin", "eth", "ethereum", "sol", "solana",
@@ -261,13 +265,14 @@ class StockTrader:
 
         logger.info(f"      🎯 EDGE {side}: {edge:.1%}")
 
-        # 5. Sizing — más agresivo para stocks (mejor trade día 1)
+        # 5. Sizing — ESTRATEGIA PRINCIPAL, apuesta más grande
+        # Stocks: 3W/0L (100% WR, +$19.82) — nuestra mejor estrategia
         bet_amount = min(
-            STATE.current_bankroll * 0.08,
-            SAFETY.max_bet_absolute * 1.2,  # 20% extra vs normal
-            STATE.current_bankroll * 0.12
+            STATE.current_bankroll * 0.12,      # 12% del bankroll (era 8%)
+            SAFETY.max_bet_absolute * 1.5,      # 50% extra vs normal
+            STATE.current_bankroll * 0.15        # Techo 15%
         )
-        bet_amount = max(bet_amount, 2.0)
+        bet_amount = max(bet_amount, 4.0)
         bet_amount = round(bet_amount, 2)
 
         # 6. Ejecutar
