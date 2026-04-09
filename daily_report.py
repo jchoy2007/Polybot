@@ -210,26 +210,118 @@ async def generate_report() -> str:
                     f"| P&L: ${t.get('profit', 0):+.2f}"
                 )
 
-    # === 5. LOG DEL BOT HOY ===
+    # === 5. ANÁLISIS DEL LOG ===
     log_file = os.path.join(LOGS_DIR, f"polybot_{now.strftime('%Y%m%d')}.log")
     if os.path.exists(log_file):
         log_size = os.path.getsize(log_file)
-        lines.append(f"\n--- LOG ---")
+        lines.append(f"\n--- LOG DEL BOT ---")
         lines.append(f"  Archivo: {log_file}")
         lines.append(f"  Tamaño: {log_size / 1024:.1f} KB")
 
-        # Contar ciclos ejecutados
         try:
             with open(log_file, "r", encoding="utf-8", errors="replace") as f:
                 log_content = f.read()
+            log_lines = log_content.split("\n")
+
+            # Contadores generales
             cycle_count = log_content.count("NUEVO CICLO")
-            error_count = log_content.count("ERROR")
-            executed_count = log_content.count("EJECUTADA") + log_content.count("EXECUTED")
-            lines.append(f"  Ciclos: {cycle_count}")
-            lines.append(f"  Trades ejecutados: {executed_count}")
-            lines.append(f"  Errores: {error_count}")
-        except:
-            pass
+            lines.append(f"  Ciclos ejecutados: {cycle_count}")
+
+            # === TRADES EJECUTADOS ===
+            executed = []
+            for line in log_lines:
+                if "Harvest ejecutado" in line or "FOK ejecutada" in line or "GTC ejecutada" in line:
+                    # Extraer hora
+                    hora = line[:8] if len(line) > 8 else ""
+                    executed.append(f"    {hora} {line.split(']')[-1].strip()[:70]}" if ']' in line else f"    {line[:80]}")
+
+            lines.append(f"  Trades ejecutados: {len(executed)}")
+            if executed:
+                lines.append(f"\n--- TRADES EJECUTADOS ---")
+                for e in executed[-15:]:  # Últimos 15
+                    lines.append(e)
+                if len(executed) > 15:
+                    lines.append(f"    ... y {len(executed)-15} más")
+
+            # === SKIPS DE IA ===
+            skips = [l for l in log_lines if "SKIP" in l and "recomienda" in l]
+            lines.append(f"\n--- IA ANÁLISIS ---")
+            lines.append(f"  Mercados analizados que dieron SKIP: {len(skips)}")
+            # Mostrar últimos 5 skips
+            for s in skips[-5:]:
+                hora = s[:8] if len(s) > 8 else ""
+                # Extraer nombre del mercado
+                if "⏭️" in s:
+                    market = s.split("⏭️")[-1].split(":")[0].strip()
+                    lines.append(f"    {hora} SKIP: {market[:50]}")
+
+            # === ERRORES ===
+            errors = [l for l in log_lines if "ERROR" in l.upper() and "polybot" in l.lower()]
+            error_count = len(errors)
+            lines.append(f"\n--- ERRORES ---")
+            if error_count == 0:
+                lines.append(f"  ✅ Sin errores durante el día")
+            else:
+                lines.append(f"  ⚠️ {error_count} errores detectados:")
+                for e in errors[-10:]:
+                    hora = e[:8] if len(e) > 8 else ""
+                    msg = e.split("]")[-1].strip()[:80] if "]" in e else e[:80]
+                    lines.append(f"    {hora} {msg}")
+
+            # === AUTO-SELL ===
+            sells = [l for l in log_lines if "VENDIDO" in l or "VENTA" in l]
+            sell_attempts = [l for l in log_lines if "STOP LOSS" in l or "TAKE PROFIT" in l]
+            lines.append(f"\n--- AUTO-SELL ---")
+            if not sells and not sell_attempts:
+                lines.append(f"  Sin actividad de auto-sell")
+            else:
+                lines.append(f"  Intentos de venta: {len(sell_attempts)}")
+                lines.append(f"  Ventas exitosas: {len(sells)}")
+                for s in sells[-5:]:
+                    hora = s[:8] if len(s) > 8 else ""
+                    msg = s.split("]")[-1].strip()[:70] if "]" in s else s[:70]
+                    lines.append(f"    {hora} {msg}")
+
+            # === AUTO-REDEEM ===
+            redeems = [l for l in log_lines if "Cobrado" in l or "COBRO" in l]
+            redeem_attempts = [l for l in log_lines if "AUTO-COBRO" in l]
+            lines.append(f"\n--- AUTO-REDEEM ---")
+            lines.append(f"  Intentos de cobro: {len(redeem_attempts)}")
+            if redeems:
+                for r in redeems[-5:]:
+                    hora = r[:8] if len(r) > 8 else ""
+                    msg = r.split("]")[-1].strip()[:70] if "]" in r else r[:70]
+                    lines.append(f"    {hora} {msg}")
+            else:
+                lines.append(f"  Sin cobros exitosos hoy")
+
+            # === KILL SWITCH / PAUSAS ===
+            kills = [l for l in log_lines if "KILL SWITCH" in l or "pérdidas seguidas" in l or "PAUSADO" in l]
+            lines.append(f"\n--- PROTECCIONES ---")
+            if not kills:
+                lines.append(f"  ✅ Sin activaciones de kill switch o pausas")
+            else:
+                for k in kills:
+                    hora = k[:8] if len(k) > 8 else ""
+                    msg = k.split("]")[-1].strip()[:70] if "]" in k else k[:70]
+                    lines.append(f"    ⚠️ {hora} {msg}")
+
+            # === ESTRATEGIAS SIN OPORTUNIDADES ===
+            no_crypto = log_content.count("No hay mercados crypto cortos activos")
+            no_harvest = log_content.count("Sin oportunidades de harvest")
+            no_weather = log_content.count("Sin oportunidades de clima")
+            no_stocks = log_content.count("No se encontraron mercados de bolsa")
+            no_esports = log_content.count("No hay mercados de esports")
+
+            lines.append(f"\n--- OPORTUNIDADES POR ESTRATEGIA ---")
+            lines.append(f"  Crypto Grinder: sin mercados {no_crypto}/{cycle_count} ciclos")
+            lines.append(f"  Harvester: sin oportunidades {no_harvest}/{cycle_count} ciclos")
+            lines.append(f"  Weather: sin oportunidades {no_weather}/{cycle_count} ciclos")
+            lines.append(f"  Stocks: sin mercados {no_stocks}/{cycle_count} ciclos")
+            lines.append(f"  Esports: sin mercados {no_esports}/{cycle_count} ciclos")
+
+        except Exception as e:
+            lines.append(f"  Error leyendo log: {e}")
 
     lines.append(f"\n{'=' * 60}")
     lines.append(f"  FIN DEL REPORTE")
