@@ -393,12 +393,17 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
     # --- Paso 1: Verificar si el bot está pausado ---
     if STATE.is_paused:
         logger.warning(f"⏸️ Bot PAUSADO: {STATE.pause_reason}")
-        if risk.check_cooldown_expired():
+        if "KILL SWITCH" in STATE.pause_reason:
+            # Kill switch requiere reinicio manual — NO reanudar automáticamente
+            logger.warning(f"   🚨 KILL SWITCH activo. Reinicia el bot manualmente para continuar.")
+            return
+        elif risk.check_cooldown_expired():
             STATE.is_paused = False
             STATE.pause_reason = ""
             logger.info("✅ Cooldown expirado, bot reanudado")
         else:
             logger.info(f"   Espera {SAFETY.cooldown_hours_after_stoploss}h antes de reanudar")
+            return
             return
 
     # --- Escanear mercados (necesario para otras estrategias) ---
