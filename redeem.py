@@ -108,6 +108,7 @@ async def redeem_all():
 
     to_redeem = []
     pending = []
+    pending_positions = []  # Posiciones que el oráculo no reportó (para vender como fallback)
 
     for pos in positions:
         title = pos.get("title") or pos.get("question") or "?"
@@ -134,6 +135,17 @@ async def redeem_all():
             payout_denom = ctf.functions.payoutDenominator(cid_bytes).call()
             if payout_denom == 0:
                 pending.append(f"  ... {str(title)[:45]} | {side} | ${cur_value:.2f} ({cur_price:.0%})")
+                # Guardar datos para venta fallback
+                if cur_value > 0.50:
+                    pending_positions.append({
+                        "title": str(title)[:55],
+                        "cid_bytes": cid_bytes,
+                        "asset": asset,
+                        "token_bal": token_bal,
+                        "is_win": cur_price >= 0.50,
+                        "side": side,
+                        "cur_price": cur_price,
+                    })
                 continue
         except:
             pending.append(f"  ... {str(title)[:45]} | {side} | ${cur_value:.2f}")
@@ -150,16 +162,22 @@ async def redeem_all():
             "token_bal": token_bal,
             "is_win": is_win,
             "side": side,
+            "cur_price": cur_price,
         })
 
     if pending:
-        print(f"\n  Pendientes ({len(pending)}):")
+        print(f"\n  Pendientes oráculo ({len(pending_positions)}):")
         for p in pending:
             print(p)
 
-    if not to_redeem:
+    if not to_redeem and not pending_positions:
         print(f"\n  No hay posiciones para cobrar")
         return
+
+    # Si no hay nada para redeem pero hay pendientes, intentar VENDER las pendientes
+    if not to_redeem and pending_positions:
+        print(f"\n  Oráculo no reportó. Intentando VENDER {len(pending_positions)} pendientes en mercado...")
+        to_redeem = pending_positions  # Intentar vender como fallback
 
     wins = sum(1 for r in to_redeem if r["is_win"])
     losses = sum(1 for r in to_redeem if not r["is_win"])
@@ -270,7 +288,78 @@ async def redeem_all():
         if success:
             redeemed += 1
         else:
-            print(f"  ?? FALLO                      | {title}")
+            # FALLBACK: Si redeem no funciona (oráculo no reportó), VENDER en mercado
+            # Esto es lo que hace sell_all.py y siempre funciona
+            print(f"  Redeem falló, intentando VENDER en mercado... | {title}")
+            try:
+                from py_clob_client.client import ClobClient
+                from py_clob_client.clob_types import MarketOrderArgs, OrderArgs, OrderType
+                from py_clob_client.order_builder.constants import SELL
+
+                pk_clean = pk[2:] if pk.startswith("0x") else pk
+                client = ClobClient(
+                    host="https://clob.polymarket.com",
+                    key=pk_clean, chain_id=137, signature_type=0
+                )
+                client.set_api_creds(client.create_or_derive_api_creds())
+
+                asset = pos.get("asset", "")
+                token_bal_shares = pos["token_bal"] / 1e6
+                cur_price = float(pos.get("cur_price", 0.5) if isinstance(pos.get("cur_price"), (int, float)) else 0.5)
+
+                if asset and token_bal_shares > 0.1 and cur_price > 0.01:
+                    # Intentar vender con FOK
+                    sell_amount = round(token_bal_shares * cur_price * 0.95, 2)
+                    if sell_amount >= 0.5:
+                        mo = MarketOrderArgs(
+                            token_id=asset,
+                            amount=sell_amount,
+                            side=SELL
+                        )
+                        signed_mo = client.create_market_order(mo)
+                        resp = client.post_order(signed_mo, OrderType.FOK)
+                        if resp and isinstance(resp, dict):
+                            oid = resp.get("orderID", "")
+                            if oid or resp.get("success"):
+                                time.sleep(2)
+                                usdc_after = usdc.functions.balanceOf(eoa).call() / 1e6
+                                gained = round(usdc_after - usdc_pre, 2)
+                                if gained > 0:
+                                    print(f"  +${gained:.2f} VENDIDO en mercado | {title}")
+                                else:
+                                    print(f"  VENDIDO (${sell_amount:.2f} est.) | {title}")
+                                redeemed += 1
+                            else:
+                                # Intentar GTC
+                                sell_price = round(cur_price - 0.02, 2)
+                                sell_price = max(0.01, sell_price)
+                                lo = OrderArgs(
+                                    token_id=asset,
+                                    price=sell_price,
+                                    size=round(token_bal_shares, 2),
+                                    side=SELL
+                                )
+                                signed_lo = client.create_order(lo)
+                                resp_lo = client.post_order(signed_lo, OrderType.GTC)
+                                if resp_lo and isinstance(resp_lo, dict):
+                                    oid = resp_lo.get("orderID", "")
+                                    if oid or resp_lo.get("success"):
+                                        print(f"  ORDEN VENTA colocada @ ${sell_price:.2f} | {title}")
+                                        redeemed += 1
+                                    else:
+                                        print(f"  ?? FALLO venta          | {title}")
+                                else:
+                                    print(f"  ?? FALLO venta          | {title}")
+                        else:
+                            print(f"  ?? FALLO venta FOK      | {title}")
+                    else:
+                        print(f"  ~$0.00 (muy poco valor)   | {title}")
+                        redeemed += 1  # No vale la pena
+                else:
+                    print(f"  ~$0.00 (sin datos)        | {title}")
+                    redeemed += 1
+            except Exception as sell_e:
+                print(f"  Venta fallback error: {str(sell_e)[:50]} | {title}")
 
     # Unwrap cualquier WCOL restante
     time.sleep(5)
