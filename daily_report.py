@@ -244,16 +244,21 @@ async def generate_report() -> str:
                     lines.append(f"    ... y {len(executed)-15} más")
 
             # === SKIPS DE IA ===
-            skips = [l for l in log_lines if "SKIP" in l and "recomienda" in l]
+            skips = [l for l in log_lines if "SKIP" in l and ("recomienda" in l or "⏭️" in l or "Acción: SKIP" in l)]
+            ia_analyzed = [l for l in log_lines if "Analizando:" in l]
             lines.append(f"\n--- IA ANÁLISIS ---")
-            lines.append(f"  Mercados analizados que dieron SKIP: {len(skips)}")
+            lines.append(f"  Mercados analizados: {len(ia_analyzed)}")
+            lines.append(f"  Dieron SKIP: {len(skips)}")
             # Mostrar últimos 5 skips
             for s in skips[-5:]:
                 hora = s[:8] if len(s) > 8 else ""
-                # Extraer nombre del mercado
                 if "⏭️" in s:
-                    market = s.split("⏭️")[-1].split(":")[0].strip()
-                    lines.append(f"    {hora} SKIP: {market[:50]}")
+                    market = s.split("⏭️")[-1].strip()[:50]
+                    lines.append(f"    {hora} SKIP: {market}")
+                elif "Acción: SKIP" in s:
+                    parts = s.split("|")
+                    if len(parts) >= 2:
+                        lines.append(f"    {hora} {parts[0].split(']')[-1].strip()[:60]}")
 
             # === ERRORES ===
             errors = [l for l in log_lines if "ERROR" in l.upper() and "polybot" in l.lower()]

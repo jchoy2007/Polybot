@@ -851,7 +851,11 @@ async def main():
                 usdc = w3.eth.contract(address=w3.to_checksum_address(USDC_E), abi=abi)
                 balance = usdc.functions.balanceOf(account.address).call() / 1e6
                 STATE.current_bankroll = balance
-                logger.info(f"   💰 Balance real USDC.e: ${balance:.2f}")
+                # Resetear ATH al balance actual al iniciar (evita kill switch falso)
+                STATE.all_time_high = balance
+                STATE.is_paused = False  # Limpiar pausas previas al reiniciar
+                STATE.pause_reason = ""
+                logger.info(f"   💰 Balance real USDC.e: ${balance:.2f} (ATH reseteado)")
             else:
                 logger.warning("   ⚠️ No se pudo conectar a Polygon para balance")
         except Exception as e:
