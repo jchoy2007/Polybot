@@ -504,7 +504,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
 
             if esports_markets:
                 logger.info(f"   🏆 {len(esports_markets)} mercados de deportes/esports encontrados")
-                analyses = await analyzer.analyze_markets_batch(esports_markets, max_to_analyze=5)
+                analyses = await analyzer.analyze_markets_batch(esports_markets, max_to_analyze=8)
 
                 for analysis in analyses:
                     if hasattr(analysis, 'recommended_action') and analysis.recommended_action.upper() == "SKIP":
@@ -537,7 +537,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                                 side=analysis.side,
                                 amount=amount,
                                 price=analysis.market_price,
-                                strategy="ESPORTS"
+                                strategy="SPORTS"
                             )
                             STATE.cycle_bets += 1
                             STATE.daily_spend += amount

@@ -48,12 +48,12 @@ class SafetyRules:
     max_bet_pct: float = 0.08         # Máximo 8% del bankroll por apuesta
     max_bet_absolute: float = 6.0     # Máximo por apuesta (auto-escala con capital)
     kelly_fraction: float = 0.25      # Quarter Kelly (los pros NUNCA usan más)
-    min_edge_required: float = 0.05   # Edge mínimo 5% para apostar - EV < 5% = SKIP
-    min_win_probability: float = 0.40  # Solo apostar si prob de ganar es >= 40%
+    min_edge_required: float = 0.03   # Edge mínimo 3% (bajado de 5% — deportes tienen edges chicos pero consistentes)
+    min_win_probability: float = 0.55  # Solo apostar favoritos (>55% prob, subido de 40%)
 
     # --- Límites por ciclo y diarios ---
-    max_bets_per_cycle: int = 3       # Máximo 3 apuestas por ciclo de 15 min
-    max_daily_spend: float = 80.0     # Máximo $80/día (sube automático con capital)
+    max_bets_per_cycle: int = 5       # Máximo 5 apuestas por ciclo (más oportunidades de deportes)
+    max_daily_spend: float = 120.0    # Máximo $120/día (tenemos más capital ahora)
     max_resolution_days: int = 2      # Solo mercados que resuelven en 2 días máx
 
     # --- Stop-loss automáticos (protección real de capital) ---

@@ -128,9 +128,9 @@ class RiskManager:
 
         # --- Verificación 9.5: Expected Value mínimo ---
         # EV = P_true × (1 - P_market) - (1 - P_true) × P_market
-        # Si EV < 5% → SKIP. Sin excepciones. (fuente: análisis 14K wallets)
+        # Bajado a 3% para deportes (favoritos tienen edge chico pero consistente)
         ev = estimated_prob * (1 - market_price) - (1 - estimated_prob) * market_price
-        if ev < 0.05:
+        if ev < 0.03:
             return False, f"EV insuficiente: ${ev:.3f}/dólar < $0.05", 0.0
 
         # --- Verificación 10: Probabilidad razonable ---

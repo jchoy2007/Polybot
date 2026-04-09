@@ -19,7 +19,7 @@ logger = logging.getLogger("polybot.analyzer")
 CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 CLAUDE_MODEL = "claude-haiku-4-5-20251001"
 # Rate limit: wait between calls (Haiku is fast but has limits)
-RATE_LIMIT_SECONDS = 5
+RATE_LIMIT_SECONDS = 3  # 3 segundos entre análisis (Haiku es rápido)
 
 
 @dataclass
@@ -131,16 +131,18 @@ MARKET:
 - Resolves in: {market.days_until_resolution} day(s)
 - Category: {market.category}
 
-THE ONLY FORMULA THAT MATTERS:
+FORMULA:
 EV = P_true * (1 - P_market) - (1 - P_true) * P_market
-If EV < 0.05 → SKIP. No exceptions.
+If EV < 0.03 → SKIP.
 
 DECISION PROCESS:
-1. Estimate TRUE probability based on evidence you're confident about
-2. Calculate EV. If < 5% → SKIP immediately
-3. Which side has edge? Only bet on the side where YOUR estimate > market price
-4. If your estimate is within 5% of market → SKIP (market is efficient)
-5. Default to SKIP when uncertain. 8 out of 10 markets should be SKIP.
+1. Estimate TRUE probability based on team strength, form, rankings, head-to-head
+2. Calculate EV. If < 3% → SKIP
+3. Which side has edge? Bet on the side where YOUR estimate > market price by 3%+
+4. BE AGGRESSIVE on clear favorites. If a top team plays a bottom team, BET.
+5. Spreads: if the favorite is clearly stronger, bet the spread.
+6. SKIP only when it's truly a coin flip (both teams equally matched).
+7. You should find a BET in roughly 3-4 out of 10 markets analyzed.
 
 Return JSON only (no markdown, no backticks):
 {{
