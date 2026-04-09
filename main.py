@@ -310,17 +310,49 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
     logger.info("=" * 60)
 
     # --- Paso 0: Kill switch y protección de capital ---
-    # Actualizar ATH (All-Time High)
-    if STATE.current_bankroll > STATE.all_time_high:
-        STATE.all_time_high = STATE.current_bankroll
+    # Calcular valor total (balance libre + posiciones) para kill switch
+    _total_value = STATE.current_bankroll
+    if not SAFETY.dry_run:
+        try:
+            import aiohttp as _aio_ks
+            _pk_ks = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
+            if _pk_ks:
+                from web3 import Web3 as _W3ks
+                _addr_ks = _W3ks().eth.account.from_key(_pk_ks).address
+                _funder_ks = os.getenv("POLYMARKET_FUNDER_ADDRESS", "")
+                for _a_ks in [_funder_ks, _addr_ks]:
+                    if not _a_ks:
+                        continue
+                    try:
+                        async with _aio_ks.ClientSession(timeout=_aio_ks.ClientTimeout(total=10)) as _s_ks:
+                            async with _s_ks.get(f"https://data-api.polymarket.com/positions?user={_a_ks.lower()}") as _r_ks:
+                                if _r_ks.status == 200:
+                                    _pos_ks = await _r_ks.json()
+                                    if _pos_ks and isinstance(_pos_ks, list):
+                                        _pos_val = sum(float(p.get("currentValue") or 0) for p in _pos_ks if float(p.get("currentValue") or 0) > 0.01)
+                                        _total_value = STATE.current_bankroll + _pos_val
+                                        break
+                    except:
+                        continue
+        except:
+            pass
 
-    # Kill switch: si el bankroll cae 40% del ATH, parar todo
-    if STATE.all_time_high > 0 and STATE.current_bankroll < STATE.all_time_high * (1 - SAFETY.max_total_loss_pct):
+    # Actualizar ATH usando valor total (libre + posiciones)
+    if _total_value > STATE.all_time_high:
+        STATE.all_time_high = _total_value
+
+    # Kill switch: si el TOTAL (no solo libre) cae 40% del ATH
+    if STATE.all_time_high > 0 and _total_value < STATE.all_time_high * (1 - SAFETY.max_total_loss_pct):
         STATE.is_paused = True
-        STATE.pause_reason = f"KILL SWITCH: Balance ${STATE.current_bankroll:.2f} cayó más de {SAFETY.max_total_loss_pct:.0%} del ATH ${STATE.all_time_high:.2f}"
+        STATE.pause_reason = f"KILL SWITCH: Total ${_total_value:.2f} (libre ${STATE.current_bankroll:.2f} + posiciones) cayó más de {SAFETY.max_total_loss_pct:.0%} del ATH ${STATE.all_time_high:.2f}"
         logger.warning(f"🚨 {STATE.pause_reason}")
         if telegram:
             await telegram.send_error_alert(STATE.pause_reason)
+    else:
+        # Si no hay kill switch, asegurar que no estamos pausados por uno anterior
+        if STATE.is_paused and "KILL SWITCH" in STATE.pause_reason:
+            STATE.is_paused = False
+            STATE.pause_reason = ""
 
     # Pausa por pérdidas consecutivas
     import time as _time_mod
