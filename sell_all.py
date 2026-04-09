@@ -621,6 +621,37 @@ async def main():
     if sold > 0:
         print(f"\n   Verifica en polymarket.com que las posiciones se cerraron.")
 
+    # Preguntar si limpiar historial de duplicados
+    clean = input(f"\n¿Limpiar historial de duplicados para empezar fresco? (si/no): ")
+    if clean.lower() in ("si", "sí", "s", "yes", "y"):
+        import shutil
+        from datetime import datetime as dt
+        timestamp = dt.now().strftime("%Y%m%d_%H%M")
+
+        # Backup y limpiar bets_placed.json
+        try:
+            if os.path.exists("data/bets_placed.json"):
+                shutil.copy("data/bets_placed.json", f"data/bets_placed_backup_{timestamp}.json")
+                with open("data/bets_placed.json", "w") as f:
+                    json.dump({"market_ids": [], "history": []}, f, indent=2)
+                print(f"   ✅ bets_placed.json limpiado (backup guardado)")
+        except Exception as e:
+            print(f"   ❌ Error limpiando bets_placed: {e}")
+
+        # Backup y limpiar trade_results.json
+        try:
+            if os.path.exists("data/trade_results.json"):
+                shutil.copy("data/trade_results.json", f"data/trade_results_backup_{timestamp}.json")
+                with open("data/trade_results.json", "w") as f:
+                    json.dump([], f, indent=2)
+                print(f"   ✅ trade_results.json limpiado (backup guardado)")
+        except Exception as e:
+            print(f"   ❌ Error limpiando trade_results: {e}")
+
+        print(f"\n   🆕 Bot listo para empezar fresco!")
+        print(f"   Los backups están en data/bets_placed_backup_{timestamp}.json")
+        print(f"   y data/trade_results_backup_{timestamp}.json")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
