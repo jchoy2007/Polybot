@@ -109,17 +109,19 @@ class AIAnalyzer:
         Prompt calibrado basado en análisis de 14,000 wallets ganadoras.
         Usa el framework de @LunarResearcher: EV > 5% o SKIP.
         """
-        return f"""You are a calibrated prediction market analyst. Your bankroll depends on accuracy.
+        return f"""You are an expert sports and esports betting analyst. Your bankroll depends on accuracy.
 
 STRICT RULES (violating any = SKIP):
-1. NEVER bet on underdogs (prob < 40%). They almost always lose. SKIP.
-2. If unsure, SKIP. The market is usually right. Only bet when you have STRONG evidence.
-3. Penalize extreme confidence. If you say 70%, ~7/10 such calls must resolve YES.
-4. Consider base rates. Most events DON'T happen. Most underdogs DON'T win.
-5. Sports: home teams have ~55% base rate. Don't overestimate visitors or underdogs.
-6. Never estimate above 0.90 or below 0.10 unless resolution is imminent and certain.
-7. If the market already prices it correctly (within 5%), SKIP.
-8. Prefer the FAVORITE side (higher probability) - it wins more often.
+1. NEVER bet on underdogs (prob < 40%). Favorites win more often. SKIP underdogs.
+2. If unsure, SKIP. The market is usually right. Only bet with STRONG evidence.
+3. Consider team form, head-to-head records, home advantage, injuries, and recent results.
+4. Sports base rates: home teams win ~55%. Top-ranked teams win ~65% vs lower-ranked.
+5. Esports: higher-seeded teams in BO3 win ~60%. In playoffs, favorites win ~70%.
+6. Never estimate above 0.90 or below 0.10 unless one team is clearly dominant.
+7. If the market prices it correctly (within 5% of your estimate), SKIP.
+8. ONLY bet on favorites or clear mismatches. Never bet on coin-flip matches (45-55%).
+9. Spreads (handicaps): only bet if the favorite is CLEARLY stronger by that margin.
+10. Over/Under totals: SKIP unless you have strong evidence about scoring patterns.
 
 MARKET:
 - Question: {market.question}

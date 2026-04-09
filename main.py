@@ -433,26 +433,78 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
         STATE.daily_spend_date = today
     STATE.cycle_bets = 0
 
-    # ===== ESTRATEGIA 1: IA Value Bets — SOLO ESPORTS =====
-    # Esports: 4W/0L (100%) +$17.35 — excelente
-    # Sports tradicionales: 2W/5L (29%) -$12.62 — desastroso
-    # Solo analizamos mercados de esports (LoL, CS, Valorant, Dota)
+    # ===== ESTRATEGIA 1: IA Deportes + Esports =====
+    # Stocks: 100% WR (+$19.82) — mejor estrategia
+    # Esports: 100% WR (+$16.80) — segunda mejor
+    # Ahora incluimos TODOS los deportes + esports
     logger.info("\n" + "=" * 50)
-    logger.info("🎮 ESTRATEGIA 1: IA Esports (solo esports, 100% WR)")
+    logger.info("🏆 ESTRATEGIA 1: IA Deportes + Esports")
     logger.info("=" * 50)
     if markets:
         try:
-            # Filtrar solo mercados de esports
-            esports_kw = ["lol:", "league of legends", "counter-strike", "cs2", "cs:",
-                          "valorant", "dota", "esport", "BO3", "bo3", "BO5", "bo5",
-                          "game 1", "game 2", "game 3", "LEC", "LCS", "LCK", "VCT",
-                          "BLAST", "ESL", "IEM", "Major"]
-            esports_markets = [m for m in markets
-                              if any(kw.lower() in (m.question or "").lower() for kw in esports_kw)]
+            # Filtrar mercados de deportes Y esports
+            sports_kw = [
+                # Esports
+                "lol:", "league of legends", "counter-strike", "cs2", "cs:",
+                "valorant", "dota", "esport", "BO3", "bo3", "BO5", "bo5",
+                "game 1", "game 2", "game 3", "LEC", "LCS", "LCK", "VCT",
+                "BLAST", "ESL", "IEM", "Major",
+                # Fútbol
+                "FC", "vs.", "win on", "premier league", "la liga", "serie a",
+                "bundesliga", "ligue 1", "champions league", "europa league",
+                "copa", "libertadores", "world cup",
+                # NBA / Basketball
+                "nba", "celtics", "lakers", "warriors", "nuggets", "76ers",
+                "bucks", "heat", "knicks", "nets", "pacers", "cavaliers",
+                "thunder", "suns", "rockets", "hornets", "pistons", "magic",
+                "hawks", "grizzlies", "bulls", "clippers", "spurs", "kings",
+                "blazers", "jazz", "pelicans", "raptors", "wizards", "timberwolves",
+                # NFL / Football americano
+                "nfl", "chiefs", "eagles", "49ers", "cowboys", "ravens",
+                "bills", "bengals", "dolphins", "lions", "packers",
+                "super bowl", "touchdown", "quarterback",
+                # MLB / Baseball
+                "mlb", "yankees", "dodgers", "astros", "braves", "mets",
+                "phillies", "padres", "cubs", "red sox", "giants",
+                "world series", "home run",
+                # NHL / Hockey
+                "nhl", "stanley cup", "maple leafs", "bruins", "oilers",
+                "panthers", "rangers", "avalanche", "hurricanes", "stars",
+                # MMA / Boxing
+                "ufc", "mma", "fight", "knockout", "round",
+                # Tennis
+                "atp", "wta", "grand slam", "wimbledon", "us open",
+                "french open", "australian open", "roland garros",
+                # Fútbol equipos
+                "barcelona", "real madrid", "manchester", "liverpool", "arsenal",
+                "chelsea", "juventus", "bayern", "psg", "inter", "milan",
+                "atletico", "dortmund", "sporting", "benfica", "porto",
+                # General deportes
+                "spread:", "o/u", "over/under", "handicap", "total points",
+                "game total", "moneyline",
+            ]
+
+            # Excluir mercados que NO son deportes
+            exclude_kw = ["temperature", "weather", "temp", "°f", "°c",
+                          "bitcoin", "btc", "ethereum", "eth", "solana", "sol",
+                          "price of", "ipo", "valuation", "gdp", "inflation",
+                          "election", "president", "congress", "tweet", "musk"]
+
+            sports_markets = []
+            for m in markets:
+                q = (m.question or "").lower()
+                # Tiene keyword de deportes?
+                has_sport = any(kw.lower() in q for kw in sports_kw)
+                # NO tiene keywords de exclusión?
+                has_exclude = any(kw in q for kw in exclude_kw)
+                if has_sport and not has_exclude:
+                    sports_markets.append(m)
+
+            esports_markets = sports_markets  # Mantener nombre para compatibilidad
 
             if esports_markets:
-                logger.info(f"   🎮 {len(esports_markets)} mercados de esports encontrados")
-                analyses = await analyzer.analyze_markets_batch(esports_markets, max_to_analyze=3)
+                logger.info(f"   🏆 {len(esports_markets)} mercados de deportes/esports encontrados")
+                analyses = await analyzer.analyze_markets_batch(esports_markets, max_to_analyze=5)
 
                 for analysis in analyses:
                     if hasattr(analysis, 'recommended_action') and analysis.recommended_action.upper() == "SKIP":
@@ -503,42 +555,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
         except Exception as e:
             logger.error(f"   Error en IA Esports: {e}")
 
-    # ===== ESTRATEGIA 2: Crypto Grinder 95-99¢ (Sharky6999) =====
-    logger.info("\n" + "=" * 50)
-    logger.info("💎 ESTRATEGIA 2: Crypto Grinder 95-99¢")
-    logger.info("=" * 50)
-    if grinder:
-        try:
-            grind_trade = await grinder.run_cycle()
-            if grind_trade:
-                status = grind_trade.get("status", "UNKNOWN")
-                if status == "EXECUTED":
-                    logger.info(f"   ✅ Grind ejecutado: ${grind_trade['amount']:.2f} {grind_trade.get('side', '')}")
-                    tracker.add_trade(
-                        market_id=grind_trade.get("market_id", ""),
-                        question=grind_trade.get("question", grind_trade.get("crypto", "")),
-                        side=grind_trade.get("side", ""),
-                        amount=grind_trade["amount"],
-                        price=grind_trade.get("price", 0.97),
-                        strategy="GRINDER"
-                    )
-                    mins = grind_trade.get("minutes_left", 0)
-                    if telegram:
-                        await telegram.send_trade_alert(
-                            "CRYPTO", grind_trade.get("question", ""),
-                            grind_trade.get("side", ""), grind_trade["amount"],
-                            grind_trade.get("price", 0.97), grind_trade.get("edge", 0),
-                            f"~{mins:.0f} min")
-                        telegram.log_trade("GRINDER", grind_trade.get("question", ""), grind_trade.get("side", ""), grind_trade["amount"])
-                    logger.info(f"   ⏳ Resuelve en: ~{mins:.0f} min")
-                elif status == "FAILED":
-                    logger.info(f"   ❌ Grind falló")
-                elif status == "SIMULATED":
-                    logger.info(f"   🏃 [DRY RUN] Grind simulado: ${grind_trade['amount']:.2f}")
-                else:
-                    logger.info(f"   ℹ️ Grind: {status}")
-        except Exception as e:
-            logger.error(f"   Error en Crypto Grinder: {e}")
+    # ===== Crypto Grinder — DESACTIVADO (sin mercados 39/55 ciclos) =====
 
     # ===== ESTRATEGIA 3: NO Harvester — DESACTIVADA =====
     # Razón: 13W/1L pero P&L = -$3.07. Ganancias de $0.20 no compensan pérdidas de $6.
@@ -855,11 +872,10 @@ async def main():
     logger.info(f"   Edge mínimo: {SAFETY.min_edge_required:.0%}")
     logger.info(f"   Kelly fracción: {SAFETY.kelly_fraction}")
     logger.info(f"   Escaneo cada: {SAFETY.scan_interval_minutes} min")
-    logger.info(f"   Estrategias activas (enfocadas en las que GANAN):")
-    logger.info(f"     1. 📈 STOCKS (S&P/NASDAQ/Russell) - 100% WR, +$19.82 — PRINCIPAL")
-    logger.info(f"     2. 🎮 IA Esports (LoL/CS/Valorant/Dota) - +$16.80")
-    logger.info(f"     3. 💎 Crypto Grinder 95-99c (cuando hay mercados)")
-    logger.info(f"     ❌ Harvest, Weather — DESACTIVADAS (P&L negativo)")
+    logger.info(f"   Estrategias activas (solo las que GANAN):")
+    logger.info(f"     1. 📈 STOCKS (S&P/NASDAQ/Russell/Dow) - 100% WR, +$19.82")
+    logger.info(f"     2. 🏆 DEPORTES + ESPORTS (fútbol, NBA, NHL, MMA, LoL, CS, etc.)")
+    logger.info(f"     ❌ Harvest, Weather, Crypto — DESACTIVADAS")
 
     # Inicializar componentes auxiliares
     redeemer = AutoRedeemer()
