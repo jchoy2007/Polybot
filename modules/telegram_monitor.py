@@ -3,10 +3,11 @@ PolyBot - Telegram Monitor
 ============================
 Envía reportes periódicos a Telegram para monitorear el bot
 desde el celular. Incluye:
-- Balance actual y P&L
-- Posiciones activas con precios
-- Trades ejecutados en el ciclo
-- Alertas de errores
+- Balance libre / en posiciones / total estimado
+- Posiciones clasificadas (GANANDO / EN JUEGO / PERDIENDO)
+- Tiempo hasta resolución por posición
+- Trades ejecutados con hora de apuesta y cuenta regresiva
+- Alertas de errores y cobros
 
 SETUP:
 1. Habla con @BotFather en Telegram → /newbot → copia el token
@@ -38,7 +39,7 @@ class TelegramMonitor:
         self.last_trades: List[str] = []  # Trades del ciclo actual
 
         if self.enabled:
-            logger.info("   📱 Telegram Monitor activo")
+            logger.info(f"   📱 Telegram Monitor activo (chat_id={self.chat_id})")
         else:
             logger.info("   📱 Telegram no configurado (opcional)")
 
@@ -53,39 +54,89 @@ class TelegramMonitor:
         if self.session and not self.session.closed:
             await self.session.close()
 
-    async def send(self, message: str):
-        """Envía mensaje a Telegram."""
+    async def send(self, message: str, parse_mode: Optional[str] = None):
+        """
+        Envía mensaje a Telegram con manejo de errores visible.
+        Por defecto sin parse_mode (texto plano) para evitar errores
+        de Markdown con caracteres especiales en nombres de mercados.
+        """
         if not self.enabled:
-            return
+            return False
 
         try:
             session = await self._get_session()
             url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
-            await session.post(url, json={
+            payload = {
                 "chat_id": self.chat_id,
-                "text": message,
-                "parse_mode": "Markdown",
+                "text": message[:4000],  # Telegram max 4096 chars
                 "disable_web_page_preview": True,
-            })
-        except Exception as e:
-            logger.debug(f"Telegram send error: {e}")
+            }
+            if parse_mode:
+                payload["parse_mode"] = parse_mode
 
-    # ═══════════════════════════════════════════════════════════════
+            async with session.post(url, json=payload) as resp:
+                if resp.status == 200:
+                    return True
+                # Error visible — por esto no llegaba nada antes
+                body = await resp.text()
+                logger.warning(
+                    f"Telegram HTTP {resp.status}: {body[:200]}"
+                )
+                return False
+        except Exception as e:
+            logger.warning(f"Telegram send error: {e}")
+            return False
+
+    # =================================================================
+    # HELPERS
+    # =================================================================
+
+    @staticmethod
+    def _calc_resolve_time(end_date_str: str) -> str:
+        """
+        Retorna un tag corto con el tiempo hasta resolución.
+        Ejemplos: [POR COBRAR], [45min], [3.2hrs], [2d]
+        """
+        if not end_date_str:
+            return ""
+        try:
+            if end_date_str.endswith("Z"):
+                end_dt = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
+            elif "+" in end_date_str[-6:]:
+                end_dt = datetime.fromisoformat(end_date_str)
+            else:
+                end_dt = datetime.fromisoformat(end_date_str).replace(tzinfo=timezone.utc)
+            diff = (end_dt - datetime.now(timezone.utc)).total_seconds()
+            if diff <= 0:
+                return "[POR COBRAR]"
+            if diff < 3600:
+                return f"[{diff/60:.0f}min]"
+            if diff < 86400:
+                return f"[{diff/3600:.1f}hrs]"
+            return f"[{diff/86400:.0f}d]"
+        except Exception:
+            return ""
+
+    # =================================================================
     # REPORTES
-    # ═══════════════════════════════════════════════════════════════
+    # =================================================================
 
     async def send_startup(self, bankroll: float, mode: str):
         """Envía notificación de inicio."""
         msg = (
-            f"🤖 *PolyBot INICIADO*\n"
+            f"🤖 PolyBot INICIADO\n"
             f"━━━━━━━━━━━━━━━━━━\n"
             f"💰 Balance: ${bankroll:.2f}\n"
             f"⚙️ Modo: {mode}\n"
-            f"🕐 {datetime.now().strftime('%H:%M:%S')}\n"
+            f"🕐 {datetime.now().strftime('%H:%M:%S %d/%m')}\n"
             f"━━━━━━━━━━━━━━━━━━\n"
             f"Reportes cada ~1 hora"
         )
-        await self.send(msg)
+        ok = await self.send(msg)
+        if ok:
+            logger.info("   Telegram: mensaje de inicio enviado")
+        else:
+            logger.warning("   Telegram: fallo al enviar mensaje de inicio")
 
     async def send_trade_alert(self, strategy: str, question: str,
                                 side: str, amount: float, price: float,
@@ -121,8 +172,8 @@ class TelegramMonitor:
                 resolve_line = ""
 
         msg = (
-            f"{emoji} *TRADE EJECUTADO*\n"
-            f"📋 {question[:50]}\n"
+            f"{emoji} TRADE EJECUTADO\n"
+            f"📋 {question[:60]}\n"
             f"📍 {side} ${amount:.2f} @ {price:.2f}\n"
             f"📊 Edge: {edge:.1%}\n"
             f"{resolve_line}"
@@ -133,50 +184,104 @@ class TelegramMonitor:
     async def send_periodic_report(self, bankroll: float, pnl_total: float,
                                      positions: List[Dict],
                                      tracker_summary: str):
-        """Reporte periódico completo (~cada hora)."""
+        """
+        Reporte periódico completo (~cada hora).
+        Formato rico con Balance libre / En posiciones / Total estimado
+        y clasificación de posiciones en GANANDO / EN JUEGO / PERDIENDO.
+        """
         self.cycle_count += 1
         if self.cycle_count < self.report_interval:
             return
         self.cycle_count = 0
 
-        # Header
-        pnl_emoji = "📈" if pnl_total >= 0 else "📉"
-        roi = ((bankroll - 200) / 200) * 100  # 200 = deposited
+        # Filtrar posiciones activas (valor > 1¢) y calcular totales
+        active = []
+        total_val = 0.0
+        if positions:
+            for p in positions:
+                val = float(p.get("currentValue") or 0)
+                if val > 0.01:
+                    active.append(p)
+                    total_val += val
+
+        total_estimated = bankroll + total_val
+        # Asumimos $200 como capital inicial para ROI (ajustable)
+        initial = 200.0
+        pnl_real = total_estimated - initial
+        real_roi = (pnl_real / initial) * 100 if initial > 0 else 0
+        pnl_emoji = "📈" if pnl_real >= 0 else "📉"
 
         lines = [
-            f"📊 *REPORTE POLYBOT*",
-            f"━━━━━━━━━━━━━━━━━━",
-            f"💰 Balance: ${bankroll:.2f}",
-            f"{pnl_emoji} P&L Total: ${pnl_total:+.2f}",
-            f"📈 ROI: {roi:+.1f}%",
+            "📊 REPORTE POLYBOT",
+            "━━━━━━━━━━━━━━━━━━",
+            f"💰 Balance libre: ${bankroll:.2f}",
+            f"💰 En posiciones: ${total_val:.2f}",
+            f"💰 Total estimado: ${total_estimated:.2f}",
+            f"{pnl_emoji} P/L: ${pnl_real:+.2f} ({real_roi:+.1f}%)",
             f"🕐 {datetime.now().strftime('%H:%M %d/%m')}",
         ]
 
-        # Posiciones activas (top 5)
-        if positions:
-            lines.append(f"\n📋 *Posiciones* ({len(positions)}):")
-            # Sort by value descending
-            sorted_pos = sorted(positions,
-                                key=lambda p: float(p.get("currentValue") or 0),
-                                reverse=True)
-            for p in sorted_pos[:8]:
-                title = (p.get("title") or p.get("question") or "?")[:35]
-                value = float(p.get("currentValue") or 0)
+        if active:
+            # Clasificar posiciones por curPrice
+            winning = []   # cur_price >= 0.85 (casi ganadas)
+            losing = []    # cur_price < 0.30 (casi perdidas)
+            pending = []   # el resto (en juego)
+            for p in active:
                 cur_price = float(p.get("curPrice") or 0)
-                side = p.get("outcome") or "?"
-                pnl = float(p.get("cashPnl") or 0)
-                emoji = "✅" if pnl >= 0 else "📉"
-                lines.append(f"{emoji} {title} | {side} ${value:.2f} ({cur_price:.0%})")
+                if cur_price >= 0.85:
+                    winning.append(p)
+                elif cur_price < 0.30:
+                    losing.append(p)
+                else:
+                    pending.append(p)
 
-            if len(sorted_pos) > 8:
-                lines.append(f"   ... +{len(sorted_pos)-8} más")
+            # GANADORAS
+            if winning:
+                lines.append(f"\n✅ GANANDO ({len(winning)}):")
+                for p in sorted(winning, key=lambda x: float(x.get("currentValue") or 0), reverse=True)[:8]:
+                    title = (p.get("title") or p.get("question") or "?")[:28]
+                    value = float(p.get("currentValue") or 0)
+                    cur_price = float(p.get("curPrice") or 0)
+                    side = p.get("outcome") or "?"
+                    resolve = self._calc_resolve_time(p.get("endDate") or "")
+                    lines.append(f"  {title} | {side} ${value:.2f} ({cur_price:.0%}) {resolve}")
+                if len(winning) > 8:
+                    lines.append(f"  ... y {len(winning)-8} más")
 
-        # Win rate
-        lines.append(f"\n{tracker_summary[:200]}")
+            # EN JUEGO
+            if pending:
+                lines.append(f"\n⏳ EN JUEGO ({len(pending)}):")
+                for p in sorted(pending, key=lambda x: float(x.get("currentValue") or 0), reverse=True)[:6]:
+                    title = (p.get("title") or p.get("question") or "?")[:28]
+                    value = float(p.get("currentValue") or 0)
+                    cur_price = float(p.get("curPrice") or 0)
+                    side = p.get("outcome") or "?"
+                    pnl = float(p.get("cashPnl") or 0)
+                    resolve = self._calc_resolve_time(p.get("endDate") or "")
+                    pnl_str = f"+${pnl:.2f}" if pnl >= 0 else f"-${abs(pnl):.2f}"
+                    lines.append(f"  {title} | {side} ${value:.2f} ({cur_price:.0%}) {pnl_str} {resolve}")
+                if len(pending) > 6:
+                    lines.append(f"  ... y {len(pending)-6} más")
 
-        # Recent trades
+            # PERDIENDO
+            if losing:
+                lines.append(f"\n❌ PERDIENDO ({len(losing)}):")
+                for p in losing[:4]:
+                    title = (p.get("title") or p.get("question") or "?")[:28]
+                    value = float(p.get("currentValue") or 0)
+                    pnl = float(p.get("cashPnl") or 0)
+                    lines.append(f"  {title} | ${value:.2f} (P/L: -${abs(pnl):.2f})")
+
+        # Historial (win rate del tracker) — primera línea del summary
+        lines.append("\n📊 HISTORIAL:")
+        if tracker_summary:
+            summary_lines = tracker_summary.split("\n")
+            if summary_lines:
+                lines.append(f"  {summary_lines[0][:120]}")
+
+        # Trades recientes del ciclo
         if self.last_trades:
-            lines.append(f"\n🔄 *Trades recientes:*")
+            lines.append("\n🔄 Trades recientes:")
             for t in self.last_trades[-5:]:
                 lines.append(f"  {t}")
             self.last_trades.clear()
@@ -185,22 +290,23 @@ class TelegramMonitor:
 
     async def send_redeem_alert(self, amount: float, count: int,
                                   new_balance: float):
-        """Alerta cuando se cobran posiciones."""
+        """Alerta cuando se cobran posiciones resueltas."""
         msg = (
-            f"💰 *COBRO EXITOSO*\n"
+            f"💰 COBRO EXITOSO\n"
             f"━━━━━━━━━━━━━━━━━━\n"
             f"Cobradas: {count} posiciones\n"
-            f"Ganancia: +${amount:.2f}\n"
+            f"Recibido: +${amount:.2f}\n"
             f"Balance: ${new_balance:.2f}"
         )
         await self.send(msg)
 
     async def send_error_alert(self, error: str):
         """Alerta de error crítico."""
+        clean = str(error)[:200].replace("_", " ")
         msg = (
-            f"🚨 *ERROR POLYBOT*\n"
+            f"🚨 ERROR POLYBOT\n"
             f"━━━━━━━━━━━━━━━━━━\n"
-            f"{error[:200]}\n"
+            f"{clean}\n"
             f"⏰ {datetime.now().strftime('%H:%M')}"
         )
         await self.send(msg)
@@ -208,19 +314,20 @@ class TelegramMonitor:
     async def send_shutdown(self, bankroll: float, total_trades: int,
                               tracker_summary: str):
         """Notificación de apagado."""
+        clean_summary = (tracker_summary or "")[:200]
         msg = (
-            f"🛑 *PolyBot DETENIDO*\n"
+            f"🛑 POLYBOT DETENIDO\n"
             f"━━━━━━━━━━━━━━━━━━\n"
-            f"💰 Balance final: ${bankroll:.2f}\n"
+            f"💰 Balance: ${bankroll:.2f}\n"
             f"📊 Trades hoy: {total_trades}\n"
-            f"{tracker_summary[:200]}\n"
+            f"{clean_summary}\n"
             f"⏰ {datetime.now().strftime('%H:%M')}"
         )
         await self.send(msg)
 
     def log_trade(self, strategy: str, question: str, side: str,
                   amount: float):
-        """Registra trade para incluir en reporte periódico."""
+        """Registra trade para incluir en próximo reporte periódico."""
         short_q = question[:30]
         self.last_trades.append(
             f"{strategy}: {side} ${amount:.2f} | {short_q}"

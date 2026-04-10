@@ -124,9 +124,9 @@ STRICT RULES (violating any = SKIP):
 MARKET:
 - Question: {market.question}
 - Description: {market.description[:300] if market.description else 'N/A'}
-- YES price: ${market.outcome_yes_price:.3f} (market implies {market.outcome_yes_price:.1%})
-- NO price: ${market.outcome_no_price:.3f}
-- Resolves in: {market.days_until_resolution} day(s)
+- YES price: ${(market.outcome_yes_price or 0.5):.3f} (market implies {(market.outcome_yes_price or 0.5):.1%})
+- NO price: ${(market.outcome_no_price or 0.5):.3f}
+- Resolves in: {market.days_until_resolution or 0} day(s)
 - Category: {market.category}
 
 THE ONLY FORMULA THAT MATTERS:
@@ -168,25 +168,36 @@ Return JSON only (no markdown, no backticks):
 
             analysis_data = json.loads(text_content)
 
-            est_prob = float(analysis_data.get("estimated_probability", 0.5))
-            side = analysis_data.get("side", "YES").upper()
+            # Parseo robusto con guardas contra None (Claude puede devolver null)
+            _raw_prob = analysis_data.get("estimated_probability")
+            est_prob = float(_raw_prob) if _raw_prob is not None else 0.5
+            side = (analysis_data.get("side") or "YES").upper()
 
-            # Convertir confidence string → float
-            conf_raw = analysis_data.get("confidence", "medium")
-            if isinstance(conf_raw, str):
+            # Convertir confidence string → float (con guarda contra None)
+            conf_raw = analysis_data.get("confidence")
+            if conf_raw is None:
+                confidence = 0.5
+            elif isinstance(conf_raw, str):
                 conf_map = {"high": 0.85, "medium": 0.65, "low": 0.40}
                 confidence = conf_map.get(conf_raw.lower(), 0.5)
             else:
-                confidence = float(conf_raw)
+                try:
+                    confidence = float(conf_raw)
+                except (TypeError, ValueError):
+                    confidence = 0.5
+
+            # Guarda contra precios None en el mercado (Polymarket puede devolver null)
+            yes_price = market.outcome_yes_price if market.outcome_yes_price is not None else 0.5
+            no_price = market.outcome_no_price if market.outcome_no_price is not None else 0.5
 
             # Calcular EV con la fórmula correcta:
             # EV = P_true × (1 - P_market) - (1 - P_true) × P_market
             if side == "YES":
-                market_price = market.outcome_yes_price
+                market_price = yes_price
                 ev = est_prob * (1 - market_price) - (1 - est_prob) * market_price
                 edge = est_prob - market_price
             else:
-                market_price = market.outcome_no_price
+                market_price = no_price
                 true_no_prob = 1 - est_prob
                 ev = true_no_prob * (1 - market_price) - (1 - true_no_prob) * market_price
                 edge = true_no_prob - market_price
@@ -205,14 +216,14 @@ Return JSON only (no markdown, no backticks):
                 confidence=confidence,
                 market_price=market_price,
                 edge=edge,
-                reasoning=analysis_data.get("reasoning", ""),
+                reasoning=analysis_data.get("reasoning", "") or "",
                 side=side,
-                recommended_action=analysis_data.get("recommended_action", "SKIP"),
-                risk_factors=analysis_data.get("risk_factors", []),
-                key_evidence=analysis_data.get("key_evidence", [])
+                recommended_action=analysis_data.get("recommended_action", "SKIP") or "SKIP",
+                risk_factors=analysis_data.get("risk_factors") or [],
+                key_evidence=analysis_data.get("key_evidence") or []
             )
 
-        except (json.JSONDecodeError, ValueError, KeyError) as e:
+        except (json.JSONDecodeError, ValueError, KeyError, TypeError) as e:
             logger.error(f"Error parseando análisis: {e}")
             logger.debug(f"Respuesta raw: {text_content[:500]}")
             return None
