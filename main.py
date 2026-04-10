@@ -669,6 +669,22 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             logger.info("💰 AUTO-COBRO (cada ~1 hora)")
             logger.info("=" * 50)
             try:
+                # Leer balance REAL antes del redeem
+                _bal_before_redeem = STATE.current_bankroll
+                try:
+                    from web3 import Web3 as _W3br
+                    _pk_br = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
+                    _alchemy_br = os.getenv("ALCHEMY_RPC_URL", "")
+                    _rpc_br = _alchemy_br or "https://polygon-bor-rpc.publicnode.com"
+                    _w3br = _W3br(_W3br.HTTPProvider(_rpc_br, request_kwargs={'timeout': 10}))
+                    if _w3br.is_connected():
+                        _eoa_br = _w3br.eth.account.from_key(_pk_br).address
+                        _usdc_abi_br = [{"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"}]
+                        _usdc_br = _w3br.eth.contract(address=_w3br.to_checksum_address("0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"), abi=_usdc_abi_br)
+                        _bal_before_redeem = _usdc_br.functions.balanceOf(_eoa_br).call() / 1e6
+                except:
+                    pass
+
                 import subprocess
                 result = subprocess.run(
                     [sys.executable, "redeem.py"],
@@ -676,42 +692,39 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     encoding='utf-8', errors='replace'
                 )
                 output = result.stdout or ""
-                # Extraer resultado
+
+                # Leer balance REAL después del redeem
+                import time as _time_redeem
+                _time_redeem.sleep(3)
+                _bal_after_redeem = _bal_before_redeem
+                try:
+                    if _w3br.is_connected():
+                        _bal_after_redeem = _usdc_br.functions.balanceOf(_eoa_br).call() / 1e6
+                except:
+                    pass
+
+                _real_diff = round(_bal_after_redeem - _bal_before_redeem, 2)
+
+                # Log del resultado
                 for line in output.split("\n"):
-                    if "Diferencia:" in line or "Cobradas:" in line or "Balance" in line:
+                    if "Diferencia:" in line or "Cobradas:" in line:
                         logger.info(f"   {line.strip()}")
 
-                # Verificar si cobró algo
-                if "+$" in output and "Diferencia:" in output:
-                    # Extraer monto cobrado
-                    import re
-                    diff_match = re.search(r'Diferencia:\s+\$\+?([\d.]+)', output)
-                    cobradas_match = re.search(r'Cobradas:\s+(\d+)', output)
-                    if diff_match and float(diff_match.group(1)) > 0:
-                        amount = float(diff_match.group(1))
-                        count = int(cobradas_match.group(1)) if cobradas_match else 0
-                        # Actualizar bankroll
-                        try:
-                            from web3 import Web3 as _W3r
-                            _pk_r = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
-                            _w3r = _W3r(_W3r.HTTPProvider("https://polygon-bor-rpc.publicnode.com",
-                                        request_kwargs={'timeout': 10}))
-                            if _w3r.is_connected():
-                                _eoa_r = _w3r.eth.account.from_key(_pk_r).address
-                                _usdc_abi = [{"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"}]
-                                _usdc_c = _w3r.eth.contract(address=_w3r.to_checksum_address("0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"), abi=_usdc_abi)
-                                STATE.current_bankroll = _usdc_c.functions.balanceOf(_eoa_r).call() / 1e6
-                        except:
-                            STATE.current_bankroll += amount
+                logger.info(f"   Balance real: ${_bal_before_redeem:.2f} → ${_bal_after_redeem:.2f}")
 
-                        logger.info(f"   💰 Cobrado +${amount:.2f} ({count} posiciones)")
-                        logger.info(f"   💰 Balance actualizado: ${STATE.current_bankroll:.2f}")
-                        if telegram:
-                            await telegram.send_redeem_alert(amount, count, STATE.current_bankroll)
-                    else:
-                        logger.info("   Sin posiciones listas para cobrar")
+                if _real_diff > 0.10:
+                    # Cobro REAL confirmado
+                    STATE.current_bankroll = _bal_after_redeem
+                    logger.info(f"   ✅ Cobro real: +${_real_diff:.2f}")
+                    if telegram:
+                        await telegram.send_redeem_alert(_real_diff, 1, _bal_after_redeem)
+                elif _real_diff < -0.10:
+                    # Balance bajó (posible venta de posición con pérdida)
+                    STATE.current_bankroll = _bal_after_redeem
+                    logger.info(f"   📉 Balance bajó: ${_real_diff:.2f}")
                 else:
-                    logger.info("   Sin posiciones listas para cobrar")
+                    STATE.current_bankroll = _bal_after_redeem
+                    logger.info(f"   Sin cambios reales en balance")
 
                 if result.returncode != 0 and result.stderr:
                     logger.debug(f"   Redeem stderr: {result.stderr[:100]}")
