@@ -30,8 +30,34 @@ class WinRateTracker:
         try:
             with open(RESULTS_FILE, "r") as f:
                 self.trades = json.load(f)
+            self._recalculate_won_profits()
         except (FileNotFoundError, json.JSONDecodeError):
             self.trades = []
+
+    def _recalculate_won_profits(self):
+        """
+        Re-calcula profits de trades WON que pudieran tener valores
+        incorrectos por el bug de cur_value. Cada token ganador = $1.
+        """
+        fixed = 0
+        for t in self.trades:
+            if t.get("result") != "WON":
+                continue
+            amount = t.get("amount", 0) or 0
+            buy_price = t.get("price", 0) or 0
+            if amount <= 0 or buy_price <= 0:
+                continue
+            correct_tokens = amount / buy_price
+            correct_profit = round(correct_tokens - amount, 2)
+            current_profit = t.get("profit", 0) or 0
+            # Si el profit actual es mucho menor al correcto (>$0.5 diff), arreglar
+            if abs(correct_profit - current_profit) > 0.5:
+                t["profit"] = correct_profit
+                t["payout"] = round(correct_tokens, 2)
+                fixed += 1
+        if fixed > 0:
+            logger.info(f"🔧 Recalculados {fixed} profits de trades WON (bug cur_value)")
+            self._save()
 
     def _save(self):
         os.makedirs("data", exist_ok=True)
@@ -112,8 +138,11 @@ class WinRateTracker:
                     # Ganó: precio actual >= 95¢ (casi resuelto a favor)
                     elif cur_price >= 0.95:
                         trade["result"] = "WON"
-                        trade["payout"] = cur_value
-                        trade["profit"] = cur_value - trade["amount"]
+                        # Cada token ganador paga $1, no usar cur_value (puede estar parcial)
+                        buy_price = trade.get("price", 0) or 0.5
+                        tokens = trade["amount"] / buy_price if buy_price > 0 else 0
+                        trade["payout"] = round(tokens, 2)
+                        trade["profit"] = round(tokens - trade["amount"], 2)
                         updated = True
                         logger.info(f"   ✅ GANADA: {trade['question'][:40]} | +${trade['profit']:.2f}")
 
