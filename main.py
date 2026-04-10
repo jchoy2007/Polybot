@@ -31,7 +31,6 @@ from core.risk_manager import RiskManager
 from core.executor import TradeExecutor
 from core.tracker import WinRateTracker
 from modules.crypto_grinder import CryptoGrinder
-from modules.auto_seller import AutoSeller
 from modules.auto_redeem import AutoRedeemer
 from modules.no_harvester import NOHarvester
 from modules.weather_trader import WeatherTrader
@@ -267,7 +266,6 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     weather_trader: WeatherTrader,
                     stock_trader: StockTrader,
                     grinder: CryptoGrinder = None,
-                    seller: AutoSeller = None,
                     telegram: TelegramMonitor = None,
                     scan_only: bool = False):
     """Ejecuta un ciclo completo con TODAS las estrategias."""
@@ -593,23 +591,6 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
         logger.error(f"   Error en Stock Trader: {e}")
 
 
-    # ===== AUTO-SELL: Vender posiciones con take profit/stop loss =====
-    if seller and not SAFETY.dry_run:
-        try:
-            sales = await seller.run_cycle()
-            if sales:
-                for sale in sales:
-                    logger.info(f"   💰 VENTA: {sale['question'][:35]} | {sale['reason']} | +${sale['proceeds']:.2f}")
-                    if telegram:
-                        await telegram.send(
-                            f"💰 VENTA AUTOMATICA\n"
-                            f"{sale['question'][:40]}\n"
-                            f"{sale['reason']}\n"
-                            f"Recibido: ${sale['proceeds']:.2f}"
-                        )
-        except Exception as e:
-            logger.debug(f"   Error auto-sell: {e}")
-
     # ===== ACTUALIZAR P&L desde tracker =====
     if not SAFETY.dry_run:
         try:
@@ -886,8 +867,6 @@ async def main():
     weather_trader = WeatherTrader()
     stock_trader = StockTrader()
     grinder = CryptoGrinder()
-    seller = AutoSeller()
-
     telegram = TelegramMonitor()
 
     # Enviar notificación de inicio
@@ -900,7 +879,7 @@ async def main():
             # Un solo ciclo
             await run_cycle(scanner, analyzer, risk, executor,
                           redeemer, harvester, tracker,
-                          weather_trader, stock_trader, grinder, seller, telegram, args.scan_only)
+                          weather_trader, stock_trader, grinder, telegram, args.scan_only)
         else:
             # Loop continuo
             last_ia_scan = 0
@@ -942,7 +921,7 @@ async def main():
                     logger.info("=" * 50)
                     await run_cycle(scanner, analyzer, risk, executor,
                                   redeemer, harvester, tracker,
-                                  weather_trader, stock_trader, grinder, seller, telegram)
+                                  weather_trader, stock_trader, grinder, telegram)
                     last_ia_scan = now
                     logger.info(f"\n⏰ Próximo ciclo en {SAFETY.scan_interval_minutes} min")
 
@@ -966,7 +945,6 @@ async def main():
         await weather_trader.close()
         await stock_trader.close()
         await grinder.close()
-        await seller.close()
         await telegram.close()
 
         # Guardar log final

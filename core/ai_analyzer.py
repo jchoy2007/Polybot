@@ -19,7 +19,7 @@ logger = logging.getLogger("polybot.analyzer")
 CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 CLAUDE_MODEL = "claude-haiku-4-5-20251001"
 # Rate limit: wait between calls (Haiku is fast but has limits)
-RATE_LIMIT_SECONDS = 3  # 3 segundos entre análisis (Haiku es rápido)
+RATE_LIMIT_SECONDS = 5
 
 
 @dataclass
@@ -109,40 +109,36 @@ class AIAnalyzer:
         Prompt calibrado basado en análisis de 14,000 wallets ganadoras.
         Usa el framework de @LunarResearcher: EV > 5% o SKIP.
         """
-        return f"""You are an expert sports and esports betting analyst. Your bankroll depends on accuracy.
+        return f"""You are a calibrated prediction market analyst. Your bankroll depends on accuracy.
 
 STRICT RULES (violating any = SKIP):
-1. NEVER bet on underdogs (prob < 40%). Favorites win more often. SKIP underdogs.
-2. If unsure, SKIP. The market is usually right. Only bet with STRONG evidence.
-3. Consider team form, head-to-head records, home advantage, injuries, and recent results.
-4. Sports base rates: home teams win ~55%. Top-ranked teams win ~65% vs lower-ranked.
-5. Esports: higher-seeded teams in BO3 win ~60%. In playoffs, favorites win ~70%.
-6. Never estimate above 0.90 or below 0.10 unless one team is clearly dominant.
-7. If the market prices it correctly (within 5% of your estimate), SKIP.
-8. ONLY bet on favorites or clear mismatches. Never bet on coin-flip matches (45-55%).
-9. Spreads (handicaps): only bet if the favorite is CLEARLY stronger by that margin.
-10. Over/Under totals: SKIP unless you have strong evidence about scoring patterns.
+1. NEVER bet on underdogs (prob < 40%). They almost always lose. SKIP.
+2. If unsure, SKIP. The market is usually right. Only bet when you have STRONG evidence.
+3. Penalize extreme confidence. If you say 70%, ~7/10 such calls must resolve YES.
+4. Consider base rates. Most events DON'T happen. Most underdogs DON'T win.
+5. Sports: home teams have ~55% base rate. Don't overestimate visitors or underdogs.
+6. Never estimate above 0.90 or below 0.10 unless resolution is imminent and certain.
+7. If the market already prices it correctly (within 5%), SKIP.
+8. Prefer the FAVORITE side (higher probability) - it wins more often.
 
 MARKET:
 - Question: {market.question}
 - Description: {market.description[:300] if market.description else 'N/A'}
-- YES price: ${market.outcome_yes_price:.3f} (market implies {market.outcome_yes_price:.1%})
-- NO price: ${market.outcome_no_price:.3f}
-- Resolves in: {market.days_until_resolution} day(s)
+- YES price: ${(market.outcome_yes_price or 0.5):.3f} (market implies {(market.outcome_yes_price or 0.5):.1%})
+- NO price: ${(market.outcome_no_price or 0.5):.3f}
+- Resolves in: {market.days_until_resolution or 0} day(s)
 - Category: {market.category}
 
-FORMULA:
+THE ONLY FORMULA THAT MATTERS:
 EV = P_true * (1 - P_market) - (1 - P_true) * P_market
-If EV < 0.03 → SKIP.
+If EV < 0.05 → SKIP. No exceptions.
 
 DECISION PROCESS:
-1. Estimate TRUE probability based on team strength, form, rankings, head-to-head
-2. Calculate EV. If < 3% → SKIP
-3. Which side has edge? Bet on the side where YOUR estimate > market price by 3%+
-4. BE AGGRESSIVE on clear favorites. If a top team plays a bottom team, BET.
-5. Spreads: if the favorite is clearly stronger, bet the spread.
-6. SKIP only when it's truly a coin flip (both teams equally matched).
-7. You should find a BET in roughly 3-4 out of 10 markets analyzed.
+1. Estimate TRUE probability based on evidence you're confident about
+2. Calculate EV. If < 5% → SKIP immediately
+3. Which side has edge? Only bet on the side where YOUR estimate > market price
+4. If your estimate is within 5% of market → SKIP (market is efficient)
+5. Default to SKIP when uncertain. 8 out of 10 markets should be SKIP.
 
 Return JSON only (no markdown, no backticks):
 {{
@@ -172,25 +168,36 @@ Return JSON only (no markdown, no backticks):
 
             analysis_data = json.loads(text_content)
 
-            est_prob = float(analysis_data.get("estimated_probability", 0.5))
-            side = analysis_data.get("side", "YES").upper()
+            # Parseo robusto con guardas contra None (Claude puede devolver null)
+            _raw_prob = analysis_data.get("estimated_probability")
+            est_prob = float(_raw_prob) if _raw_prob is not None else 0.5
+            side = (analysis_data.get("side") or "YES").upper()
 
-            # Convertir confidence string → float
-            conf_raw = analysis_data.get("confidence", "medium")
-            if isinstance(conf_raw, str):
+            # Convertir confidence string → float (con guarda contra None)
+            conf_raw = analysis_data.get("confidence")
+            if conf_raw is None:
+                confidence = 0.5
+            elif isinstance(conf_raw, str):
                 conf_map = {"high": 0.85, "medium": 0.65, "low": 0.40}
                 confidence = conf_map.get(conf_raw.lower(), 0.5)
             else:
-                confidence = float(conf_raw)
+                try:
+                    confidence = float(conf_raw)
+                except (TypeError, ValueError):
+                    confidence = 0.5
+
+            # Guarda contra precios None en el mercado (Polymarket puede devolver null)
+            yes_price = market.outcome_yes_price if market.outcome_yes_price is not None else 0.5
+            no_price = market.outcome_no_price if market.outcome_no_price is not None else 0.5
 
             # Calcular EV con la fórmula correcta:
             # EV = P_true × (1 - P_market) - (1 - P_true) × P_market
             if side == "YES":
-                market_price = market.outcome_yes_price
+                market_price = yes_price
                 ev = est_prob * (1 - market_price) - (1 - est_prob) * market_price
                 edge = est_prob - market_price
             else:
-                market_price = market.outcome_no_price
+                market_price = no_price
                 true_no_prob = 1 - est_prob
                 ev = true_no_prob * (1 - market_price) - (1 - true_no_prob) * market_price
                 edge = true_no_prob - market_price
@@ -209,14 +216,14 @@ Return JSON only (no markdown, no backticks):
                 confidence=confidence,
                 market_price=market_price,
                 edge=edge,
-                reasoning=analysis_data.get("reasoning", ""),
+                reasoning=analysis_data.get("reasoning", "") or "",
                 side=side,
-                recommended_action=analysis_data.get("recommended_action", "SKIP"),
-                risk_factors=analysis_data.get("risk_factors", []),
-                key_evidence=analysis_data.get("key_evidence", [])
+                recommended_action=analysis_data.get("recommended_action", "SKIP") or "SKIP",
+                risk_factors=analysis_data.get("risk_factors") or [],
+                key_evidence=analysis_data.get("key_evidence") or []
             )
 
-        except (json.JSONDecodeError, ValueError, KeyError) as e:
+        except (json.JSONDecodeError, ValueError, KeyError, TypeError) as e:
             logger.error(f"Error parseando análisis: {e}")
             logger.debug(f"Respuesta raw: {text_content[:500]}")
             return None
