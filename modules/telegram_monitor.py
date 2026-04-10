@@ -19,7 +19,7 @@ SETUP:
 import os
 import logging
 import aiohttp
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, List
 
 logger = logging.getLogger("polybot.telegram")
@@ -89,18 +89,44 @@ class TelegramMonitor:
 
     async def send_trade_alert(self, strategy: str, question: str,
                                 side: str, amount: float, price: float,
-                                edge: float):
+                                edge: float, end_date: str = ""):
         """Alerta inmediata de trade ejecutado."""
         emoji = {"IA": "🧠", "CRYPTO": "₿", "HARVEST": "🌾",
-                 "WEATHER": "⛅", "STOCKS": "📈", "FLASH_CRASH": "⚡"
+                 "WEATHER": "⛅", "STOCKS": "📈", "FLASH_CRASH": "⚡",
+                 "SPORTS": "⚽", "ESPORTS": "🎮"
                  }.get(strategy, "🎯")
+
+        # Calcular info de resolución
+        resolve_line = ""
+        if end_date:
+            try:
+                if end_date.endswith("Z"):
+                    end_dt = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
+                elif "+" in end_date[-6:]:
+                    end_dt = datetime.fromisoformat(end_date)
+                else:
+                    end_dt = datetime.fromisoformat(end_date).replace(tzinfo=timezone.utc)
+                diff = (end_dt - datetime.now(timezone.utc)).total_seconds()
+                if diff <= 0:
+                    resolve_line = "🏁 Resuelve: ya por cobrar\n"
+                elif diff < 3600:
+                    resolve_line = f"🏁 Resuelve en: {diff/60:.0f} min\n"
+                elif diff < 86400:
+                    local_hm = end_dt.astimezone().strftime("%H:%M")
+                    resolve_line = f"🏁 Resuelve en: {diff/3600:.1f}h (aprox {local_hm})\n"
+                else:
+                    local_dm = end_dt.astimezone().strftime("%d/%m %H:%M")
+                    resolve_line = f"🏁 Resuelve en: {diff/86400:.1f}d (aprox {local_dm})\n"
+            except Exception:
+                resolve_line = ""
 
         msg = (
             f"{emoji} *TRADE EJECUTADO*\n"
             f"📋 {question[:50]}\n"
             f"📍 {side} ${amount:.2f} @ {price:.2f}\n"
             f"📊 Edge: {edge:.1%}\n"
-            f"⏰ {datetime.now().strftime('%H:%M')}"
+            f"{resolve_line}"
+            f"📤 Apostada: {datetime.now().strftime('%H:%M')}"
         )
         await self.send(msg)
 
