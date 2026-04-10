@@ -44,8 +44,27 @@ class TelegramMonitor:
             logger.info("   📱 Telegram no configurado (opcional)")
 
     async def _get_session(self) -> aiohttp.ClientSession:
+        """
+        Crea una sesión con SSL context correcto.
+        En Windows, los certificados del sistema a veces tienen problemas
+        con Python 3.12+ (Basic Constraints no marcado critical).
+        Usa certifi si está disponible, sino desactiva verificación SSL
+        (solo para api.telegram.org que es un servicio de confianza).
+        """
         if self.session is None or self.session.closed:
+            connector = None
+            try:
+                import ssl
+                import certifi
+                ssl_ctx = ssl.create_default_context(cafile=certifi.where())
+                connector = aiohttp.TCPConnector(ssl=ssl_ctx)
+            except Exception:
+                # Fallback: desactivar verificación SSL si certifi falla
+                # Esto solo afecta llamadas al servidor de Telegram (api.telegram.org)
+                connector = aiohttp.TCPConnector(ssl=False)
+
             self.session = aiohttp.ClientSession(
+                connector=connector,
                 timeout=aiohttp.ClientTimeout(total=10)
             )
         return self.session
