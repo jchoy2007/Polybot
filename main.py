@@ -12,6 +12,7 @@ USO:
 """
 
 import os
+import re
 import sys
 import json
 import time
@@ -63,6 +64,84 @@ def _get_resolve_time(end_date_str: str) -> str:
         return f"{diff/86400:.0f} días"
     except:
         return ""
+
+
+# ============================================================
+# HELPER: Extraer nombres de equipos de una pregunta de mercado
+# ============================================================
+
+def _extract_teams(question: str) -> set:
+    """
+    Extrae nombres de equipos de la pregunta de un mercado.
+    Se usa para prevenir apuestas correlacionadas en el mismo partido
+    (ej. bet en "Real Madrid vs Girona O/U" + "Spread: Real Madrid").
+
+    Maneja patrones comunes de Polymarket:
+    - "Team A vs. Team B"
+    - "Team A vs. Team B: O/U X"
+    - "Spread: Team A (-X.X)"
+    - "Will Team A win on ..."
+    - "Game Handicap: Team A (-X.X) vs Team B (+X.X)"
+    - "LoL: Team A vs Team B (BO3) - LCK ..."
+
+    Retorna un set de nombres normalizados (lowercase, trimmed).
+    Set vacío si no se puede extraer.
+    """
+    teams = set()
+    if not question:
+        return teams
+    q = question.strip()
+
+    def _clean(name: str) -> str:
+        """Limpia un nombre de equipo: remueve paréntesis, dashes y BO#."""
+        if not name:
+            return ""
+        # Remover todo después del primer "(" o " -" (handicap, BO3, etc.)
+        name = re.sub(r'\s*[\(].*$', '', name)
+        name = re.sub(r'\s*-\s*(?:Game|Map|BO|LCK|LEC|LCS|VCT|Rounds|Group|Regular).*$',
+                      '', name, flags=re.IGNORECASE)
+        return name.strip().lower()
+
+    # Patrón 3 (específico, antes del genérico): "Handicap: X (-N) vs Y (+N)"
+    m = re.search(
+        r'handicap:\s*(.+?)\s*[\(\-\+].*?vs\.?\s+(.+?)\s*[\(\-\+]',
+        q, re.IGNORECASE
+    )
+    if m:
+        t1, t2 = _clean(m.group(1)), _clean(m.group(2))
+        if t1:
+            teams.add(t1)
+        if t2:
+            teams.add(t2)
+        return teams
+
+    # Patrón 1: "X vs. Y" o "X vs Y"
+    m = re.search(r'(?:^|:\s*)([A-Z][^:]+?)\s+vs\.?\s+([A-Z][^:]+?)(?::|$)', q)
+    if m:
+        t1, t2 = _clean(m.group(1)), _clean(m.group(2))
+        if t1:
+            teams.add(t1)
+        if t2:
+            teams.add(t2)
+        return teams
+
+    # Patrón 2: "Spread: X (-N)" o "Spread: X (+N)"
+    m = re.search(r'spread:\s*(.+?)\s*[\(\-\+]', q, re.IGNORECASE)
+    if m:
+        t = _clean(m.group(1))
+        if t:
+            teams.add(t)
+        return teams
+
+    # Patrón 4: "Will X win on..."
+    m = re.search(r'will\s+(.+?)\s+win\s+on', q, re.IGNORECASE)
+    if m:
+        t = _clean(m.group(1))
+        if t:
+            teams.add(t)
+        return teams
+
+    return teams
 
 
 # ============================================================
@@ -431,6 +510,13 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
         STATE.daily_spend_date = today
     STATE.cycle_bets = 0
 
+    # Tracking de equipos apostados HOY para prevenir apuestas correlacionadas
+    # (ej. O/U + Spread del mismo partido = riesgo duplicado).
+    # Persiste entre ciclos del mismo día usando un atributo de la función.
+    if not hasattr(run_cycle, '_daily_teams') or run_cycle._daily_teams.get("date") != today:
+        run_cycle._daily_teams = {"date": today, "teams": set()}
+    teams_bet_today = run_cycle._daily_teams["teams"]
+
     # ===== ESTRATEGIA 1: IA Deportes + Esports =====
     # Stocks: 100% WR (+$19.82) — mejor estrategia
     # Esports: 100% WR (+$16.80) — segunda mejor
@@ -486,7 +572,10 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             exclude_kw = ["temperature", "weather", "temp", "°f", "°c",
                           "bitcoin", "btc", "ethereum", "eth", "solana", "sol",
                           "price of", "ipo", "valuation", "gdp", "inflation",
-                          "election", "president", "congress", "tweet", "musk"]
+                          "election", "president", "congress", "tweet", "musk",
+                          # Bloquear mercados de empate (IA los miscalibra,
+                          # ligas sudamericanas tienen ~25% draw rate)
+                          "end in a draw", "draw?"]
 
             sports_markets = []
             for m in markets:
@@ -509,6 +598,29 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                         logger.info(f"   ⏭️ {analysis.question[:40]}: SKIP")
                         continue
                     if hasattr(analysis, 'side') and analysis.side.upper() == "SKIP":
+                        continue
+
+                    # Bloquear underdogs: si el mercado paga el lado que
+                    # compramos a menos de 40¢, es un underdog riesgoso.
+                    # Los underdogs pierden con más frecuencia que su
+                    # probabilidad implícita en mercados ilíquidos.
+                    if analysis.market_price < 0.40:
+                        logger.info(
+                            f"   ❌ {analysis.question[:40]}: Underdog "
+                            f"(mercado {analysis.market_price:.1%} < 40%)"
+                        )
+                        continue
+
+                    # Prevenir apuestas correlacionadas en el mismo partido
+                    # (ej. hoy apostamos O/U + Spread de Real Madrid, ambas
+                    # perdieron = riesgo correlacionado).
+                    analysis_teams = _extract_teams(analysis.question)
+                    if analysis_teams and analysis_teams & teams_bet_today:
+                        conflict = analysis_teams & teams_bet_today
+                        logger.info(
+                            f"   ⏭️ Skip: ya apostamos en partido de "
+                            f"{list(conflict)[0]}"
+                        )
                         continue
 
                     if STATE.cycle_bets >= SAFETY.max_bets_per_cycle:
@@ -539,6 +651,8 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                             )
                             STATE.cycle_bets += 1
                             STATE.daily_spend += amount
+                            # Registrar equipos para evitar apuestas correlacionadas
+                            teams_bet_today.update(analysis_teams)
                             if telegram and status == "EXECUTED":
                                 _rt = _get_resolve_time(mkt.end_date if mkt else "")
                                 await telegram.send_trade_alert(
