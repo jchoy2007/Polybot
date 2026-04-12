@@ -594,9 +594,25 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 analyses = await analyzer.analyze_markets_batch(esports_markets, max_to_analyze=8)
 
                 for analysis in analyses:
-                    if hasattr(analysis, 'recommended_action') and analysis.recommended_action.upper() == "SKIP":
-                        logger.info(f"   ⏭️ {analysis.question[:40]}: SKIP")
-                        continue
+                    # Override: si la IA dice SKIP pero el edge es > 10%
+                    # y la probabilidad es >= 55%, forzar BET.
+                    # Esto evita que la IA sea demasiado conservadora en
+                    # oportunidades claras (ej. Sevilla 38% edge → SKIP absurdo).
+                    ia_says_skip = (
+                        hasattr(analysis, 'recommended_action') and
+                        analysis.recommended_action.upper() == "SKIP"
+                    )
+                    if ia_says_skip:
+                        if (analysis.edge > 0.10 and
+                                analysis.estimated_probability >= 0.55):
+                            logger.info(
+                                f"   🔥 Override: {analysis.question[:35]} | "
+                                f"Edge {analysis.edge:.1%} > 10% + Prob "
+                                f"{analysis.estimated_probability:.0%} >= 55% → BET"
+                            )
+                        else:
+                            logger.info(f"   ⏭️ {analysis.question[:40]}: SKIP")
+                            continue
                     if hasattr(analysis, 'side') and analysis.side.upper() == "SKIP":
                         continue
 

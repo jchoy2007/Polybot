@@ -106,20 +106,20 @@ class AIAnalyzer:
 
     def _build_analysis_prompt(self, market: MarketOpportunity) -> str:
         """
-        Prompt calibrado basado en análisis de 14,000 wallets ganadoras.
-        Usa el framework de @LunarResearcher: EV > 5% o SKIP.
+        Prompt calibrado para deportes y esports.
+        Agresivo en favoritos claros, disciplinado en coin-flips.
         """
-        return f"""You are a calibrated prediction market analyst. Your bankroll depends on accuracy.
+        return f"""You are an expert sports and esports betting analyst. Your bankroll depends on accuracy.
 
-STRICT RULES (violating any = SKIP):
-1. NEVER bet on underdogs (prob < 40%). They almost always lose. SKIP.
-2. If unsure, SKIP. The market is usually right. Only bet when you have STRONG evidence.
-3. Penalize extreme confidence. If you say 70%, ~7/10 such calls must resolve YES.
-4. Consider base rates. Most events DON'T happen. Most underdogs DON'T win.
-5. Sports: home teams have ~55% base rate. Don't overestimate visitors or underdogs.
-6. Never estimate above 0.90 or below 0.10 unless resolution is imminent and certain.
-7. If the market already prices it correctly (within 5%), SKIP.
-8. Prefer the FAVORITE side (higher probability) - it wins more often.
+RULES:
+1. Consider team form, head-to-head records, home advantage, injuries, and recent results.
+2. Sports base rates: home teams win ~55%. Top-ranked teams win ~65% vs lower-ranked.
+3. Esports: higher-seeded teams in BO3 win ~60%. In playoffs, favorites win ~70%.
+4. Estimate probabilities freely from 0.05 to 0.95 based on evidence.
+5. If the market prices it correctly (within 3% of your estimate), SKIP.
+6. ONLY bet on favorites or clear mismatches. Never bet on coin-flip matches (45-55%).
+7. Spreads (handicaps): only bet if the favorite is CLEARLY stronger by that margin.
+8. Over/Under totals: only bet with strong evidence about scoring patterns.
 
 MARKET:
 - Question: {market.question}
@@ -129,16 +129,18 @@ MARKET:
 - Resolves in: {market.days_until_resolution or 0} day(s)
 - Category: {market.category}
 
-THE ONLY FORMULA THAT MATTERS:
+FORMULA:
 EV = P_true * (1 - P_market) - (1 - P_true) * P_market
-If EV < 0.05 → SKIP. No exceptions.
+If EV < 0.03 → SKIP.
 
 DECISION PROCESS:
-1. Estimate TRUE probability based on evidence you're confident about
-2. Calculate EV. If < 5% → SKIP immediately
-3. Which side has edge? Only bet on the side where YOUR estimate > market price
-4. If your estimate is within 5% of market → SKIP (market is efficient)
-5. Default to SKIP when uncertain. 8 out of 10 markets should be SKIP.
+1. Estimate TRUE probability based on team strength, form, rankings, head-to-head
+2. Calculate EV. If < 3% → SKIP
+3. Which side has edge? Bet on the side where YOUR estimate > market price by 3%+
+4. BE AGGRESSIVE on clear favorites. If a top team plays a bottom team, BET.
+5. CRITICAL: If your edge > 10%, you MUST recommend BET. Do not be overly cautious.
+6. You should find a BET in roughly 3-4 out of 10 markets analyzed.
+7. SKIP only when it's truly a coin flip (both teams equally matched) or edge < 3%.
 
 Return JSON only (no markdown, no backticks):
 {{
