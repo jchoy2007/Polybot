@@ -32,6 +32,7 @@ from core.risk_manager import RiskManager
 from core.executor import TradeExecutor
 from core.tracker import WinRateTracker
 from modules.crypto_grinder import CryptoGrinder
+from modules.crypto_daily import CryptoDailyStrategy
 from modules.auto_redeem import AutoRedeemer
 from modules.no_harvester import NOHarvester
 from modules.weather_trader import WeatherTrader
@@ -345,6 +346,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     weather_trader: WeatherTrader,
                     stock_trader: StockTrader,
                     grinder: CryptoGrinder = None,
+                    crypto_daily: CryptoDailyStrategy = None,
                     telegram: TelegramMonitor = None,
                     scan_only: bool = False):
     """Ejecuta un ciclo completo con TODAS las estrategias."""
@@ -639,6 +641,36 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                         )
                         continue
 
+                    # Timing inteligente: saltar si el mercado resuelve muy
+                    # lejos en el tiempo (>24h) o muy pronto (<30 min).
+                    # Lejos: info puede cambiar. Pronto: poco margen de acción.
+                    mkt_preview = {m.market_id: m for m in esports_markets}.get(analysis.market_id)
+                    if mkt_preview and hasattr(mkt_preview, 'end_date') and mkt_preview.end_date:
+                        try:
+                            from datetime import timezone as _tz
+                            _ed = mkt_preview.end_date
+                            if _ed.endswith("Z"):
+                                _edt = datetime.fromisoformat(_ed.replace("Z", "+00:00"))
+                            elif "+" in _ed[-6:]:
+                                _edt = datetime.fromisoformat(_ed)
+                            else:
+                                _edt = datetime.fromisoformat(_ed).replace(tzinfo=_tz.utc)
+                            _hours = (_edt - datetime.now(_tz.utc)).total_seconds() / 3600
+                            if _hours > 24:
+                                logger.info(
+                                    f"   ⏱️ {analysis.question[:35]}: resuelve en "
+                                    f"{_hours:.0f}h (>24h, esperar)"
+                                )
+                                continue
+                            if 0 < _hours < 0.5:
+                                logger.info(
+                                    f"   ⏱️ {analysis.question[:35]}: resuelve en "
+                                    f"{_hours*60:.0f}min (<30min, muy tarde)"
+                                )
+                                continue
+                        except Exception:
+                            pass
+
                     if STATE.cycle_bets >= SAFETY.max_bets_per_cycle:
                         break
                     if STATE.daily_spend >= SAFETY.max_daily_spend:
@@ -650,7 +682,8 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                         market_price=analysis.market_price,
                         market_liquidity=mkt.liquidity if mkt else 50000,
                         market_volume=mkt.volume if mkt else 50000,
-                        category="esports"
+                        category="esports",
+                        strategy="SPORTS"
                     )
 
                     # Reducir bet size a 50% en mercados de alta varianza
@@ -759,6 +792,86 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
         if telegram:
             await telegram.send_error_alert(f"Error Stock Trader: {str(e)[:100]}")
 
+    # ===== ESTRATEGIA 6: Crypto Daily (BTC/ETH/SOL/XRP) =====
+    if crypto_daily:
+        logger.info("\n" + "=" * 50)
+        logger.info("₿ ESTRATEGIA 6: Crypto Daily (BTC/ETH/SOL/XRP)")
+        logger.info("=" * 50)
+        try:
+            signals = await crypto_daily.run_cycle()
+            for signal in signals:
+                if STATE.cycle_bets >= SAFETY.max_bets_per_cycle:
+                    break
+                if STATE.daily_spend >= SAFETY.max_daily_spend:
+                    break
+
+                # Bloquear si la prob es muy baja (< 55%)
+                if signal["prob"] < 0.55:
+                    logger.info(
+                        f"   ⏭️ {signal['question'][:40]}: prob {signal['prob']:.0%} < 55%"
+                    )
+                    continue
+
+                if signal["amount"] < SAFETY.min_bet_size:
+                    logger.info(
+                        f"   ⏭️ Monto muy bajo: ${signal['amount']:.2f}"
+                    )
+                    continue
+
+                # Construir analysis object minimal para executor
+                from core.ai_analyzer import MarketAnalysis
+                analysis = MarketAnalysis(
+                    market_id=signal["market_id"],
+                    question=signal["question"],
+                    estimated_probability=signal["prob"],
+                    confidence=0.7,
+                    market_price=signal["price"],
+                    edge=signal["edge"],
+                    reasoning=signal["reason"],
+                    side=signal["side"],
+                    recommended_action="BET",
+                    risk_factors=[],
+                    key_evidence=[signal["reason"]],
+                )
+
+                result = await executor.execute_bet(analysis, signal["amount"])
+                status = result.get('status', 'UNKNOWN')
+                if status in ("EXECUTED", "SIMULATED"):
+                    tracker.add_trade(
+                        market_id=signal["market_id"],
+                        question=signal["question"],
+                        side=signal["side"],
+                        amount=signal["amount"],
+                        price=signal["price"],
+                        strategy="CRYPTO"
+                    )
+                    STATE.cycle_bets += 1
+                    STATE.daily_spend += signal["amount"]
+                    crypto_daily.last_bet_time[signal["crypto"]] = time.time()
+                    crypto_daily._save_bet(signal["market_id"], signal["question"])
+                    logger.info(
+                        f"   ✅ Crypto: {signal['crypto']} "
+                        f"${signal['amount']:.2f} {signal['side']}"
+                    )
+                    if telegram and status == "EXECUTED":
+                        await telegram.send_trade_alert(
+                            "CRYPTO", signal["question"], signal["side"],
+                            signal["amount"], signal["price"],
+                            signal["edge"], signal.get("end_date", "")
+                        )
+                        telegram.log_trade(
+                            "CRYPTO", signal["question"],
+                            signal["side"], signal["amount"]
+                        )
+                elif telegram and status not in ("EXECUTED", "SIMULATED"):
+                    _err = result.get('error', status)
+                    await telegram.send_error_alert(
+                        f"Crypto orden falló: {str(_err)[:100]}"
+                    )
+        except Exception as e:
+            logger.error(f"   Error en Crypto Daily: {e}")
+            if telegram:
+                await telegram.send_error_alert(f"Error Crypto Daily: {str(e)[:100]}")
 
     # ===== ACTUALIZAR P&L desde tracker =====
     if not SAFETY.dry_run:
@@ -1064,6 +1177,7 @@ async def main():
     weather_trader = WeatherTrader()
     stock_trader = StockTrader()
     grinder = CryptoGrinder()
+    crypto_daily = CryptoDailyStrategy()
     telegram = TelegramMonitor()
 
     # Enviar notificación de inicio
@@ -1076,7 +1190,8 @@ async def main():
             # Un solo ciclo
             await run_cycle(scanner, analyzer, risk, executor,
                           redeemer, harvester, tracker,
-                          weather_trader, stock_trader, grinder, telegram, args.scan_only)
+                          weather_trader, stock_trader, grinder,
+                          crypto_daily, telegram, args.scan_only)
         else:
             # Loop continuo
             last_ia_scan = 0
@@ -1118,7 +1233,8 @@ async def main():
                     logger.info("=" * 50)
                     await run_cycle(scanner, analyzer, risk, executor,
                                   redeemer, harvester, tracker,
-                                  weather_trader, stock_trader, grinder, telegram)
+                                  weather_trader, stock_trader, grinder,
+                                  crypto_daily, telegram)
                     last_ia_scan = now
                     logger.info(f"\n⏰ Próximo ciclo en {SAFETY.scan_interval_minutes} min")
 
@@ -1142,6 +1258,7 @@ async def main():
         await weather_trader.close()
         await stock_trader.close()
         await grinder.close()
+        await crypto_daily.close()
         await telegram.close()
 
         # Guardar log final

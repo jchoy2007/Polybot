@@ -23,16 +23,65 @@ class RiskManager:
         self.daily_trades = []
 
     # =================================================================
+    # KELLY DINÁMICO por estrategia
+    # =================================================================
+
+    def _dynamic_kelly_fraction(self, strategy: str) -> float:
+        """
+        Ajusta la fracción de Kelly según el win rate histórico de
+        cada estrategia. Apostamos más fuerte en lo que gana más.
+
+        - Estrategias ganadoras (WR >= 65%) → Kelly 0.35 (más agresivo)
+        - Estrategias OK (WR 50-65%) → Kelly 0.25 (default)
+        - Estrategias perdedoras (WR < 50%) → Kelly 0.15 (conservador)
+        - Estrategia sin historial (< 5 trades) → Kelly 0.20
+        """
+        default = SAFETY.kelly_fraction  # 0.25
+        if not strategy:
+            return default
+
+        try:
+            import json
+            with open("data/trade_results.json", "r") as f:
+                trades = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError, Exception):
+            return default
+
+        # Filtrar trades resueltos de esta estrategia
+        strat_trades = [
+            t for t in trades
+            if t.get("strategy") == strategy
+            and t.get("result") in ("WON", "LOST")
+        ]
+
+        if len(strat_trades) < 5:
+            return 0.20  # Poco historial, conservador
+
+        wins = sum(1 for t in strat_trades if t["result"] == "WON")
+        wr = wins / len(strat_trades)
+
+        if wr >= 0.65:
+            return 0.35  # Estrategia ganadora: apostar más
+        if wr >= 0.50:
+            return 0.25  # Neutra
+        if wr < 0.50:
+            return 0.15  # Perdedora: apostar menos
+
+        return default
+
+    # =================================================================
     # CRITERIO DE KELLY
     # =================================================================
 
-    def kelly_criterion(self, prob_win: float, odds: float) -> float:
+    def kelly_criterion(self, prob_win: float, odds: float,
+                        strategy: str = "") -> float:
         """
         Calcula el tamaño óptimo de apuesta usando el Criterio de Kelly.
 
         En Polymarket:
         - prob_win: tu probabilidad estimada de que el resultado sea 'Yes'
         - odds: lo que pagas por el share (ej: 0.52 = pagas $0.52, ganas $1)
+        - strategy: nombre de la estrategia (para Kelly dinámico)
 
         Retorna: fracción del bankroll a apostar (0 a 1)
         """
@@ -53,8 +102,10 @@ class RiskManager:
         if kelly <= 0:
             return 0.0  # No hay edge, no apostar
 
-        # Aplicar fracción de Kelly (más conservador)
-        fractional_kelly = kelly * SAFETY.kelly_fraction
+        # Kelly dinámico según rendimiento histórico de la estrategia.
+        # Apostamos MÁS en lo que gana, MENOS en lo que pierde.
+        dyn_frac = self._dynamic_kelly_fraction(strategy)
+        fractional_kelly = kelly * dyn_frac
 
         return max(0, min(fractional_kelly, 1.0))
 
@@ -77,7 +128,7 @@ class RiskManager:
 
     def should_bet(self, estimated_prob: float, market_price: float,
                    market_liquidity: float, market_volume: float,
-                   category: str) -> Tuple[bool, str, float]:
+                   category: str, strategy: str = "") -> Tuple[bool, str, float]:
         """
         Decide si el bot debe apostar y cuánto.
 
@@ -142,7 +193,7 @@ class RiskManager:
             return False, f"Prob de ganar muy baja ({estimated_prob:.0%} < {SAFETY.min_win_probability:.0%})", 0.0
 
         # --- Calcular tamaño de apuesta con Kelly + límites de settings ---
-        kelly_pct = self.kelly_criterion(estimated_prob, market_price)
+        kelly_pct = self.kelly_criterion(estimated_prob, market_price, strategy)
         bet_amount = STATE.current_bankroll * kelly_pct
 
         bankroll = STATE.current_bankroll
