@@ -968,10 +968,30 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
 
                 _real_diff = round(_bal_after_redeem - _bal_before_redeem, 2)
 
-                # Log del resultado
+                # Log del resultado y extraer qué mercados se cobraron
+                _redeemed_markets = []  # Lista de mercados con ganancia
                 for line in output.split("\n"):
+                    line = line.strip()
                     if "Diferencia:" in line or "Cobradas:" in line:
-                        logger.info(f"   {line.strip()}")
+                        logger.info(f"   {line}")
+                    # Detectar mercados cobrados con ganancia
+                    # Ejemplos:
+                    #   "+$9.34 WIN | Games Total: O/U 2.5"
+                    #   "+$3.92 VENDIDO en mercado | Real Madrid CF vs..."
+                    if ("WIN" in line or "VENDIDO" in line) and "|" in line and "$" in line:
+                        try:
+                            # Extraer título después del "|"
+                            parts = line.split("|", 1)
+                            if len(parts) > 1:
+                                _title = parts[1].strip()[:60]
+                                # Extraer cantidad
+                                import re as _re
+                                _amt_match = _re.search(r'\+?\$(\d+\.?\d*)', parts[0])
+                                _amt_val = float(_amt_match.group(1)) if _amt_match else 0
+                                if _title and _amt_val > 0:
+                                    _redeemed_markets.append(f"{_title} (+${_amt_val:.2f})")
+                        except Exception:
+                            pass
 
                 logger.info(f"   Balance real: ${_bal_before_redeem:.2f} → ${_bal_after_redeem:.2f}")
 
@@ -980,7 +1000,11 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     STATE.current_bankroll = _bal_after_redeem
                     logger.info(f"   ✅ Cobro real: +${_real_diff:.2f}")
                     if telegram:
-                        await telegram.send_redeem_alert(_real_diff, 1, _bal_after_redeem)
+                        _count = len(_redeemed_markets) or 1
+                        await telegram.send_redeem_alert(
+                            _real_diff, _count, _bal_after_redeem,
+                            markets=_redeemed_markets
+                        )
                 elif _real_diff < -0.10:
                     # Balance bajó (posible venta de posición con pérdida)
                     STATE.current_bankroll = _bal_after_redeem

@@ -308,16 +308,31 @@ class TelegramMonitor:
         await self.send("\n".join(lines))
 
     async def send_redeem_alert(self, amount: float, count: int,
-                                  new_balance: float):
-        """Alerta cuando se cobran posiciones resueltas."""
-        msg = (
-            f"💰 COBRO EXITOSO\n"
-            f"━━━━━━━━━━━━━━━━━━\n"
-            f"Cobradas: {count} posiciones\n"
-            f"Recibido: +${amount:.2f}\n"
-            f"Balance: ${new_balance:.2f}"
-        )
-        await self.send(msg)
+                                  new_balance: float,
+                                  markets: Optional[List[str]] = None):
+        """
+        Alerta cuando se cobran posiciones resueltas.
+        Si se proveen `markets` (lista de strings con títulos), se
+        incluyen en el mensaje para que el usuario sepa QUÉ se cobró.
+        """
+        lines = [
+            "💰 COBRO EXITOSO",
+            "━━━━━━━━━━━━━━━━━━",
+            f"Cobradas: {count} posiciones",
+            f"Recibido: +${amount:.2f}",
+            f"Balance: ${new_balance:.2f}",
+        ]
+
+        if markets:
+            lines.append("")
+            lines.append("📋 Mercados cobrados:")
+            # Mostrar hasta 8 mercados (para no exceder límite Telegram)
+            for m in markets[:8]:
+                lines.append(f"  • {m}")
+            if len(markets) > 8:
+                lines.append(f"  ... y {len(markets) - 8} más")
+
+        await self.send("\n".join(lines))
 
     async def send_error_alert(self, error: str):
         """Alerta de error crítico."""
