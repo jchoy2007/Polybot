@@ -653,6 +653,21 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                         category="esports"
                     )
 
+                    # Reducir bet size a 50% en mercados de alta varianza
+                    # (spreads, handicaps, O/U). Estos son más coin-flip que
+                    # moneyline y hoy perdimos en NAVI, MOUZ, OG (-$21 total).
+                    _q_lower = (analysis.question or "").lower()
+                    _is_risky = any(kw in _q_lower for kw in [
+                        "spread:", "handicap", "o/u", "over/under",
+                        "total:", "map handicap", "game handicap"
+                    ])
+                    if should_bet and _is_risky:
+                        amount = round(amount * 0.50, 2)
+                        logger.info(
+                            f"   📉 Bet reducido 50% por alta varianza "
+                            f"(spread/handicap/O/U): ${amount:.2f}"
+                        )
+
                     if should_bet:
                         result = await executor.execute_bet(analysis, amount)
                         status = result.get('status', 'UNKNOWN')

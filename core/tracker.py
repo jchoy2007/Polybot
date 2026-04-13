@@ -194,7 +194,20 @@ class WinRateTracker:
                                                             updated = True
                                                             logger.info(f"   ❌ COBRADA/PERDIDA: {trade['question'][:40]} | -${trade['amount']:.2f}")
                                                     elif hours_ago > 48:
-                                                        # Más de 48h sin posición = probablemente perdida
+                                                        # Más de 48h sin posición = posible pérdida,
+                                                        # pero no podemos estar seguros.
+                                                        # Antes marcábamos automáticamente como LOST,
+                                                        # pero eso causaba falsos negativos (trades que
+                                                        # GANARON y fueron cobrados quedaban marcados
+                                                        # como LOST). Mejor dejar como PENDING y avisar.
+                                                        logger.warning(
+                                                            f"   ⚠️ AMBIGUO: {trade['question'][:40]} "
+                                                            f"({hours_ago:.0f}h sin posición) — "
+                                                            f"verificar manualmente en Polymarket"
+                                                        )
+                                                        continue
+                                                    # Rama vieja mantenida solo para el flujo existente:
+                                                    if False:
                                                         trade["result"] = "LOST"
                                                         trade["payout"] = 0
                                                         trade["profit"] = -trade["amount"]

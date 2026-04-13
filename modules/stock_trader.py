@@ -21,7 +21,7 @@ logger = logging.getLogger("polybot.stocks")
 
 GAMMA_API_URL = "https://gamma-api.polymarket.com"
 
-# Índices bursátiles
+# Índices bursátiles + acciones individuales con mercados diarios en Polymarket
 INDICES = {
     "sp500":   {"symbol": "^GSPC", "futures": "ES=F",
                 "aliases": ["s&p", "s&p 500", "sp500", "s&p500", "spy", "spx"],
@@ -35,6 +35,31 @@ INDICES = {
     "russell": {"symbol": "^RUT",  "futures": "RTY=F",
                 "aliases": ["russell", "russell 2000", "iwm"],
                 "name": "Russell 2000"},
+    # Acciones individuales (mercados Up/Down diarios en Polymarket)
+    "nvda":    {"symbol": "NVDA",  "futures": "NVDA",
+                "aliases": ["nvidia", "nvda"],
+                "name": "NVIDIA"},
+    "googl":   {"symbol": "GOOGL", "futures": "GOOGL",
+                "aliases": ["google", "googl", "alphabet"],
+                "name": "Google"},
+    "aapl":    {"symbol": "AAPL",  "futures": "AAPL",
+                "aliases": ["apple", "aapl"],
+                "name": "Apple"},
+    "tsla":    {"symbol": "TSLA",  "futures": "TSLA",
+                "aliases": ["tesla", "tsla"],
+                "name": "Tesla"},
+    "meta":    {"symbol": "META",  "futures": "META",
+                "aliases": ["meta", "facebook"],
+                "name": "Meta"},
+    "amzn":    {"symbol": "AMZN",  "futures": "AMZN",
+                "aliases": ["amazon", "amzn"],
+                "name": "Amazon"},
+    "msft":    {"symbol": "MSFT",  "futures": "MSFT",
+                "aliases": ["microsoft", "msft"],
+                "name": "Microsoft"},
+    "nflx":    {"symbol": "NFLX",  "futures": "NFLX",
+                "aliases": ["netflix", "nflx"],
+                "name": "Netflix"},
 }
 
 MIN_EDGE = 0.08  # 8% (data más confiable que weather)
