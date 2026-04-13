@@ -878,6 +878,34 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 f"Total trades: {STATE.total_trades}")
     logger.info("=" * 60)
 
+    # ===== ALERTA: Bot sin apostar por mucho tiempo =====
+    # Si pasan 8 ciclos (~2 horas) sin una sola apuesta, alertar UNA vez.
+    if not hasattr(run_cycle, '_no_bet_counter'):
+        run_cycle._no_bet_counter = 0
+        run_cycle._no_bet_alerted = False
+
+    if STATE.cycle_bets == 0:
+        run_cycle._no_bet_counter += 1
+    else:
+        run_cycle._no_bet_counter = 0
+        run_cycle._no_bet_alerted = False
+
+    if run_cycle._no_bet_counter >= 8 and not run_cycle._no_bet_alerted:
+        _hours_idle = run_cycle._no_bet_counter * SAFETY.scan_interval_minutes / 60
+        logger.warning(f"⚠️ Bot lleva {_hours_idle:.1f}h sin apostar ({run_cycle._no_bet_counter} ciclos)")
+        if telegram:
+            await telegram.send(
+                f"⚠️ SIN APUESTAS\n"
+                f"━━━━━━━━━━━━━━━━━━\n"
+                f"El bot lleva {_hours_idle:.1f} horas sin encontrar oportunidades.\n"
+                f"Ciclos revisados: {run_cycle._no_bet_counter}\n"
+                f"Balance: ${STATE.current_bankroll:.2f}\n"
+                f"Esto puede ser normal en horarios sin deportes,\n"
+                f"o puede indicar un problema de filtros/IA.\n"
+                f"Revisa los logs si persiste."
+            )
+        run_cycle._no_bet_alerted = True
+
     # Notificar por Telegram (reporte periódico)
     if telegram:
         try:
