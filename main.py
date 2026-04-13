@@ -676,6 +676,22 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                                     amount, analysis.market_price, analysis.edge, _rt)
                                 telegram.log_trade("ESPORTS", analysis.question, analysis.side, amount)
                             logger.info(f"   ✅ Esports: {analysis.question[:40]} | ${amount:.2f} {analysis.side}")
+                        elif telegram and status not in ("EXECUTED", "SIMULATED"):
+                            # Notificar errores de ejecución por Telegram
+                            _err_msg = result.get('error', status)
+                            _err_clean = str(_err_msg)[:150]
+                            # Detectar geoblock (error crítico)
+                            if "restricted" in _err_clean.lower() or "403" in _err_clean:
+                                await telegram.send_error_alert(
+                                    f"GEOBLOCK: No se puede operar desde esta IP.\n"
+                                    f"Mercado: {analysis.question[:40]}\n"
+                                    f"Cambiar servidor a otra region."
+                                )
+                            else:
+                                await telegram.send_error_alert(
+                                    f"Orden falló: {_err_clean}\n"
+                                    f"Mercado: {analysis.question[:40]}"
+                                )
                     else:
                         logger.info(f"   ❌ {analysis.question[:35]}: {reason[:40]}")
             else:
@@ -715,10 +731,18 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 logger.info(f"   🏃 Stock simulado: ${stock_trade['amount']:.2f} {stock_trade.get('side', '')}")
             elif status == "FAILED":
                 logger.info(f"   ❌ Stock trade falló")
+                if telegram:
+                    _err = stock_trade.get('error', 'FAILED')
+                    await telegram.send_error_alert(
+                        f"Stock trade falló: {str(_err)[:100]}\n"
+                        f"Mercado: {stock_trade.get('question', '?')[:40]}"
+                    )
             else:
                 logger.info(f"   ℹ️ Stocks: {status}")
     except Exception as e:
         logger.error(f"   Error en Stock Trader: {e}")
+        if telegram:
+            await telegram.send_error_alert(f"Error Stock Trader: {str(e)[:100]}")
 
 
     # ===== ACTUALIZAR P&L desde tracker =====
