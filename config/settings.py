@@ -67,8 +67,8 @@ class SafetyRules:
     # --- Diversificación ---
     max_open_positions: int = 15          # Máximo 15 posiciones abiertas
     max_exposure_per_category: float = 0.30  # Máximo 30% en un solo tema
-    min_market_liquidity: float = 5000    # Mercados con >$5k liquidez
-    min_market_volume: float = 2000       # Mercados con >$2k volumen
+    min_market_liquidity: float = 3000    # Mercados con >$3k liquidez (bajado de 5k para permitir LatAm + mercados de menor escala)
+    min_market_volume: float = 1000       # Mercados con >$1k volumen (bajado de 2k)
 
     # --- Operación ---
     scan_interval_minutes: int = 15       # Escanear cada 15 min (trading corto plazo)

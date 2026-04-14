@@ -721,8 +721,10 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                         continue
 
                     # Timing inteligente: saltar si el mercado resuelve muy
-                    # lejos en el tiempo (>24h) o muy pronto (<30 min).
+                    # lejos en el tiempo (>40h) o muy pronto (<30 min).
                     # Lejos: info puede cambiar. Pronto: poco margen de acción.
+                    # Subido de 24h a 40h: se alinea con max_resolution_days=2
+                    # del scanner y permite analizar partidos de mañana noche.
                     mkt_preview = {m.market_id: m for m in esports_markets}.get(analysis.market_id)
                     if mkt_preview and hasattr(mkt_preview, 'end_date') and mkt_preview.end_date:
                         try:
@@ -735,10 +737,10 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                             else:
                                 _edt = datetime.fromisoformat(_ed).replace(tzinfo=_tz.utc)
                             _hours = (_edt - datetime.now(_tz.utc)).total_seconds() / 3600
-                            if _hours > 24:
+                            if _hours > 40:
                                 logger.info(
                                     f"   ⏱️ {analysis.question[:35]}: resuelve en "
-                                    f"{_hours:.0f}h (>24h, esperar)"
+                                    f"{_hours:.0f}h (>40h, esperar)"
                                 )
                                 continue
                             if 0 < _hours < 0.5:
