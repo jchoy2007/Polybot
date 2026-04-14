@@ -75,7 +75,44 @@ class StockTrader:
         self.last_run = 0
         self.min_interval = 180  # 3 min entre escaneos
         self.traded_markets = set()
+        # Tickers apostados HOY con su dirección para evitar
+        # correlación negativa (apostar UP y DOWN del mismo activo
+        # el mismo día = garantizado perder uno).
+        # Formato: {"date": "YYYY-MM-DD", "data": {"amzn": {"UP"}, ...}}
+        self._today_directions: Dict = {"date": "", "data": {}}
         self._load_traded()
+
+    def _register_bet_direction(self, index_key: str, direction: str):
+        """Registra la dirección apostada para un ticker en el día."""
+        today = datetime.now().strftime("%Y-%m-%d")
+        if self._today_directions["date"] != today:
+            self._today_directions = {"date": today, "data": {}}
+        if index_key not in self._today_directions["data"]:
+            self._today_directions["data"][index_key] = set()
+        self._today_directions["data"][index_key].add(direction.upper())
+
+    def _is_opposite_bet(self, index_key: str, direction: str) -> bool:
+        """
+        ¿Ya apostamos la dirección CONTRARIA de este ticker HOY?
+
+        Protege contra el patrón observado el 14-Apr:
+        bot apostó Google Up + Google Down el mismo día → Down perdió
+        garantizado, Up perdió también por movimiento lateral.
+        Apostar ambos lados en stocks correlacionados es matemática-
+        mente -EV salvo en escenarios muy específicos.
+
+        Nota: permitimos múltiples apuestas en la MISMA dirección
+        (ej: Amazon Up + Amazon close above $245 ambos bull) porque
+        ganan juntas. Solo bloqueamos direcciones opuestas.
+        """
+        today = datetime.now().strftime("%Y-%m-%d")
+        if self._today_directions["date"] != today:
+            return False
+        existing = self._today_directions["data"].get(index_key, set())
+        if not existing:
+            return False
+        opposite = "DOWN" if direction.upper() == "UP" else "UP"
+        return opposite in existing
 
     async def _get_session(self) -> aiohttp.ClientSession:
         if self.session is None or self.session.closed:
@@ -301,6 +338,26 @@ class StockTrader:
             logger.info(f"      Edge YES={edge_yes:+.1%}, NO={edge_no:+.1%} → insuficiente")
             return None
 
+        # Determinar la dirección EFECTIVA que estamos apostando:
+        # - Mercado "Up or Down" con YES → bet UP (direction ya es UP)
+        # - Mercado "Up or Down" con NO → bet DOWN (opuesto a direction)
+        # - Mercado "close above $X" con YES → bet UP
+        # - Mercado "close above $X" con NO → bet DOWN
+        effective_direction = direction.upper()
+        if side == "NO":
+            effective_direction = "DOWN" if effective_direction == "UP" else "UP"
+
+        # Bloquear si ya apostamos en dirección OPUESTA hoy.
+        # Evita casos como Google Up + Google Down el mismo día
+        # (pérdida garantizada en uno de los dos).
+        if self._is_opposite_bet(index_key, effective_direction):
+            existing = self._today_directions["data"].get(index_key, set())
+            logger.info(
+                f"      ⛔ Skip: {INDICES[index_key]['name']} ya "
+                f"apostado HOY en {existing} (correlación negativa)"
+            )
+            return None
+
         logger.info(f"      🎯 EDGE {side}: {edge:.1%}")
 
         # 5. Sizing — ESTRATEGIA PRINCIPAL, apuesta más grande
@@ -342,6 +399,9 @@ class StockTrader:
                     STATE.current_bankroll -= bet_amount
                     self.traded_markets.add(market_id)
                     self._save_bet(market_id, question)
+                    # Registrar la dirección efectiva para bloquear la
+                    # opuesta en próximos ciclos del mismo día.
+                    self._register_bet_direction(index_key, effective_direction)
                     STATE.total_trades += 1
                     STATE.open_positions += 1
                     logger.info(f"      ✅ Stock trade ejecutado! Capital: ${STATE.current_bankroll:.2f}")
