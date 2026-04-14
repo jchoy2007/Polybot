@@ -534,40 +534,119 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 "lol:", "league of legends", "counter-strike", "cs2", "cs:",
                 "valorant", "dota", "esport", "BO3", "bo3", "BO5", "bo5",
                 "game 1", "game 2", "game 3", "LEC", "LCS", "LCK", "VCT",
-                "BLAST", "ESL", "IEM", "Major",
-                # Fútbol
+                "BLAST", "ESL", "IEM", "Major", "rainbow six", "r6s",
+                "fortnite", "overwatch", "starcraft", "rocket league",
+                # Fútbol europeo
                 "FC", "vs.", "win on", "premier league", "la liga", "serie a",
                 "bundesliga", "ligue 1", "champions league", "europa league",
-                "copa", "libertadores", "world cup",
+                "copa", "libertadores", "sudamericana", "world cup",
+                "euro", "eurocopa", "nations league", "fa cup", "copa del rey",
+                # Fútbol europeo equipos
+                "barcelona", "real madrid", "manchester", "liverpool", "arsenal",
+                "chelsea", "juventus", "bayern", "psg", "inter", "milan",
+                "atletico", "dortmund", "sporting", "benfica", "porto",
+                "tottenham", "west ham", "newcastle", "everton", "leeds",
+                "villarreal", "sevilla", "valencia", "real sociedad", "napoli",
+                "roma", "lazio", "atalanta", "fiorentina", "ajax", "psv",
+                # Fútbol latinoamericano — Liga MX
+                "liga mx", "cruz azul", "america", "chivas", "tigres",
+                "monterrey", "pumas", "león", "leon", "toluca", "pachuca",
+                "santos laguna", "mazatlán", "querétaro", "necaxa", "fc juárez",
+                # Fútbol latinoamericano — Brasil
+                "brasileirão", "brasileirao", "serie a brasil",
+                "flamengo", "palmeiras", "corinthians", "são paulo", "sao paulo",
+                "santos", "fluminense", "vasco", "grêmio", "gremio",
+                "internacional", "atlético mineiro", "botafogo", "bahia",
+                # Fútbol latinoamericano — Argentina
+                "liga argentina", "boca", "river plate", "racing club",
+                "independiente", "san lorenzo", "estudiantes", "vélez",
+                "velez", "lanús", "lanus", "newell", "rosario central",
+                # Fútbol latinoamericano — Colombia
+                "millonarios", "nacional", "junior", "tolima", "cali",
+                "santa fe", "medellín", "medellin", "pereira", "once caldas",
+                "bucaramanga", "pasto", "envigado",
+                # Fútbol latinoamericano — otros
+                "universitario", "alianza lima", "sporting cristal", "colo colo",
+                "peñarol", "nacional uruguay", "olimpia", "cerro porteño",
+                "lcdf", "liga pro", "barcelona sc", "emelec",
+                # MLS
+                "mls", "inter miami", "la galaxy", "lafc", "atlanta united",
+                "seattle sounders", "nycfc", "new york red bulls",
+                "columbus crew", "austin fc", "st. louis city",
+                "portland timbers", "orlando city", "dc united",
                 # NBA / Basketball
                 "nba", "celtics", "lakers", "warriors", "nuggets", "76ers",
                 "bucks", "heat", "knicks", "nets", "pacers", "cavaliers",
                 "thunder", "suns", "rockets", "hornets", "pistons", "magic",
                 "hawks", "grizzlies", "bulls", "clippers", "spurs", "kings",
                 "blazers", "jazz", "pelicans", "raptors", "wizards", "timberwolves",
+                "mavericks", "wolves",
+                # NCAA Basketball / College
+                "ncaab", "ncaa", "college basketball", "duke", "kentucky",
+                "kansas", "uconn", "north carolina", "gonzaga", "michigan state",
+                "march madness", "final four",
+                # EuroLeague basketball
+                "euroleague", "real madrid basket", "panathinaikos", "olympiacos",
+                "cska moscow", "fenerbahçe", "fenerbahce", "baskonia", "asvel",
+                "virtus bologna", "partizan", "crvena zvezda", "crvena zvesda",
                 # NFL / Football americano
                 "nfl", "chiefs", "eagles", "49ers", "cowboys", "ravens",
                 "bills", "bengals", "dolphins", "lions", "packers",
                 "super bowl", "touchdown", "quarterback",
+                # NCAA Football
+                "cfp", "college football", "ohio state", "alabama", "georgia",
+                "michigan", "notre dame", "texas", "oregon",
                 # MLB / Baseball
                 "mlb", "yankees", "dodgers", "astros", "braves", "mets",
                 "phillies", "padres", "cubs", "red sox", "giants",
-                "world series", "home run",
+                "world series", "home run", "rangers", "mariners", "blue jays",
+                "rays", "orioles", "white sox", "guardians", "twins", "royals",
+                "tigers", "angels", "athletics", "pirates", "marlins",
+                "nationals", "brewers", "reds", "cardinals", "diamondbacks",
+                "rockies",
                 # NHL / Hockey
                 "nhl", "stanley cup", "maple leafs", "bruins", "oilers",
                 "panthers", "rangers", "avalanche", "hurricanes", "stars",
+                "devils", "flyers", "lightning", "kraken", "golden knights",
+                "jets", "flames", "canucks", "sharks", "senators", "blackhawks",
+                "blues", "predators", "capitals", "penguins", "islanders",
+                "wild", "kings", "sabres", "red wings", "coyotes", "ducks",
                 # MMA / Boxing
-                "ufc", "mma", "fight", "knockout", "round",
+                "ufc", "mma", "fight", "knockout", "round", "bellator", "pfl",
+                "boxing", "heavyweight", "middleweight", "welterweight",
+                "lightweight", "featherweight", "bantamweight",
                 # Tennis
                 "atp", "wta", "grand slam", "wimbledon", "us open",
                 "french open", "australian open", "roland garros",
-                # Fútbol equipos
-                "barcelona", "real madrid", "manchester", "liverpool", "arsenal",
-                "chelsea", "juventus", "bayern", "psg", "inter", "milan",
-                "atletico", "dortmund", "sporting", "benfica", "porto",
+                "masters 1000", "djokovic", "alcaraz", "sinner", "medvedev",
+                "zverev", "swiatek", "sabalenka", "rybakina",
+                # Cricket
+                "cricket", "ipl", "indian premier league", "bbl", "big bash",
+                "t20", "odi", "test match", "icc", "champions trophy",
+                "mumbai indians", "chennai super kings", "royal challengers",
+                "kolkata knight riders", "delhi capitals", "rajasthan royals",
+                # Rugby
+                "rugby", "six nations", "rugby world cup", "super rugby",
+                "all blacks", "springboks", "wallabies",
+                # Golf
+                "pga", "masters tournament", "us open golf", "the open",
+                "pga championship", "ryder cup", "president cup",
+                # Fórmula 1
+                "formula 1", "f1", "grand prix", "verstappen", "hamilton",
+                "leclerc", "norris", "piastri", "russell", "sainz",
+                # Chess (ajedrez)
+                "chess", "magnus carlsen", "hikaru nakamura", "fide",
+                "world chess championship", "candidates",
+                # Boxeo específico
+                "canelo", "usyk", "tyson fury", "crawford", "inoue",
+                # Pickleball
+                "pickleball", "pro tour",
+                # Table Tennis
+                "table tennis", "ittf",
                 # General deportes
                 "spread:", "o/u", "over/under", "handicap", "total points",
-                "game total", "moneyline",
+                "game total", "moneyline", "map handicap", "game handicap",
+                "race winner", "pole position", "podium",
             ]
 
             # Excluir mercados que NO son deportes
