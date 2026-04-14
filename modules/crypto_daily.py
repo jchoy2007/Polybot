@@ -187,11 +187,42 @@ class CryptoDailyStrategy:
                     "between", "reach"
                 ])
 
-                if has_crypto and is_directional:
-                    # Skip si ya apostamos
-                    if str(m.get("id", "")) in self.traded_markets:
+                if not (has_crypto and is_directional):
+                    continue
+
+                # Skip si ya apostamos
+                if str(m.get("id", "")) in self.traded_markets:
+                    continue
+
+                # FILTRO CRÍTICO: solo mercados que resuelven en menos de 48h
+                # (respeta SAFETY.max_resolution_days = 2). Antes podía apostar
+                # en "Will XRP reach $1.40 in April?" que resuelve semanas
+                # después — mucho puede pasar en ese tiempo.
+                end_date_str = m.get("endDate", "")
+                if end_date_str:
+                    try:
+                        if end_date_str.endswith("Z"):
+                            end_dt = datetime.fromisoformat(
+                                end_date_str.replace("Z", "+00:00"))
+                        elif "+" in end_date_str[-6:]:
+                            end_dt = datetime.fromisoformat(end_date_str)
+                        else:
+                            end_dt = datetime.fromisoformat(
+                                end_date_str).replace(tzinfo=timezone.utc)
+                        hours_to_resolve = (
+                            end_dt - datetime.now(timezone.utc)
+                        ).total_seconds() / 3600
+                        # Máximo 48 horas de resolución
+                        if hours_to_resolve > 48:
+                            continue
+                        # Mínimo 15 min (muy pronto = muy tarde para apostar)
+                        if hours_to_resolve < 0.25:
+                            continue
+                    except Exception:
+                        # Si no se puede parsear fecha, mejor saltar
                         continue
-                    crypto_markets.append(m)
+
+                crypto_markets.append(m)
 
             return crypto_markets
 
