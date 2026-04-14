@@ -1077,7 +1077,10 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 _real_diff = round(_bal_after_redeem - _bal_before_redeem, 2)
 
                 # Log del resultado y extraer qué mercados se cobraron
-                _redeemed_markets = []  # Lista de mercados con ganancia
+                # Guardamos estructurado (title + amount) para:
+                #   1) Telegram (mensaje del cobro)
+                #   2) tracker.mark_redeemed_by_title() (actualizar win rate)
+                _redeemed_markets_data = []
                 for line in output.split("\n"):
                     line = line.strip()
                     if "Diferencia:" in line or "Cobradas:" in line:
@@ -1097,9 +1100,17 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                                 _amt_match = _re.search(r'\+?\$(\d+\.?\d*)', parts[0])
                                 _amt_val = float(_amt_match.group(1)) if _amt_match else 0
                                 if _title and _amt_val > 0:
-                                    _redeemed_markets.append(f"{_title} (+${_amt_val:.2f})")
+                                    _redeemed_markets_data.append({
+                                        "title": _title,
+                                        "amount": _amt_val,
+                                    })
                         except Exception:
                             pass
+                # Formato string para el alerta de Telegram (compatibilidad)
+                _redeemed_markets = [
+                    f"{m['title']} (+${m['amount']:.2f})"
+                    for m in _redeemed_markets_data
+                ]
 
                 logger.info(f"   Balance real: ${_bal_before_redeem:.2f} → ${_bal_after_redeem:.2f}")
 
@@ -1107,6 +1118,20 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     # Cobro REAL confirmado
                     STATE.current_bankroll = _bal_after_redeem
                     logger.info(f"   ✅ Cobro real: +${_real_diff:.2f}")
+
+                    # Notificar al tracker que estos trades ganaron.
+                    # Sin este paso el win rate quedaba desactualizado:
+                    # el trade cobrado seguía como PENDING porque
+                    # check_results() no podía detectarlo (posición ya
+                    # desaparecida + Gamma API sin winningOutcome aún).
+                    for _m in _redeemed_markets_data:
+                        try:
+                            tracker.mark_redeemed_by_title(
+                                _m["title"], _m["amount"]
+                            )
+                        except Exception as _e:
+                            logger.debug(f"   tracker.mark_redeemed error: {_e}")
+
                     if telegram:
                         _count = len(_redeemed_markets) or 1
                         await telegram.send_redeem_alert(

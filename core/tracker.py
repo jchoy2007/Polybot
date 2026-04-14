@@ -301,6 +301,47 @@ class WinRateTracker:
                 return True
         return False
 
+    def mark_redeemed_by_title(self, title_fragment: str, gained: float) -> bool:
+        """
+        Marca un trade PENDING como WON cuando se cobró vía auto_redeem.
+
+        Razón: cuando auto_redeem cobra tokens con éxito, la posición
+        desaparece de Data API antes de que Gamma API actualice el
+        winningOutcome. check_results() no puede determinar si ganó,
+        así que los cobros exitosos quedaban PENDING para siempre
+        (desfase entre balance real y win rate mostrado).
+
+        Este método es llamado desde main.py inmediatamente después
+        de un cobro exitoso con el monto real recibido en USDC.e.
+
+        Args:
+            title_fragment: fragmento del título del mercado cobrado
+            gained: USDC.e realmente recibido del redeem
+
+        Returns:
+            True si encontró y marcó el trade, False si no hubo match
+        """
+        frag = title_fragment.lower().strip()
+        if not frag:
+            return False
+        for t in self.trades:
+            if t["result"] != "PENDING":
+                continue
+            tq = (t.get("question", "") or "").lower()
+            # Match bidireccional: el fragmento puede estar truncado
+            # en el título del trade o viceversa
+            if frag in tq or tq[:30] in frag:
+                t["result"] = "WON"
+                t["payout"] = round(gained, 2)
+                t["profit"] = round(gained - t["amount"], 2)
+                self._save()
+                logger.info(
+                    f"   ✅ COBRADO: {t['question'][:40]} | "
+                    f"+${t['profit']:.2f} (payout ${gained:.2f})"
+                )
+                return True
+        return False
+
     def mark_lost(self, question_fragment: str):
         """Marca manualmente un trade como perdido."""
         for t in self.trades:
