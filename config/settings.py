@@ -65,7 +65,7 @@ class SafetyRules:
     consecutive_loss_pause_minutes: int = 30  # Minutos de pausa tras pérdidas seguidas
 
     # --- Diversificación ---
-    max_open_positions: int = 15          # Máximo 15 posiciones abiertas
+    max_open_positions: int = 20          # Máximo 20 posiciones abiertas (subido de 15 el 14-Apr: bloqueaba BETs rentables con stocks pending)
     max_exposure_per_category: float = 0.30  # Máximo 30% en un solo tema
     min_market_liquidity: float = 3000    # Mercados con >$3k liquidez (bajado de 5k para permitir LatAm + mercados de menor escala)
     min_market_volume: float = 1000       # Mercados con >$1k volumen (bajado de 2k)
