@@ -834,44 +834,71 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
     logger.info("\n" + "=" * 50)
     logger.info("📈 ESTRATEGIA 5: Stock Market Trader (S&P/NASDAQ/Dow)")
     logger.info("=" * 50)
-    try:
-        stock_trade = await stock_trader.run_cycle()
-        if stock_trade:
-            status = stock_trade.get("status", "UNKNOWN")
-            if status == "EXECUTED":
-                logger.info(f"   ✅ Stock trade ejecutado: ${stock_trade['amount']:.2f} "
-                           f"{stock_trade.get('side', '')} | Edge: {stock_trade.get('edge', 0):.1%}")
-                tracker.add_trade(
-                    market_id=stock_trade.get("market_id", ""),
-                    question=stock_trade.get("question", ""),
-                    side=stock_trade.get("side", ""),
-                    amount=stock_trade["amount"],
-                    price=stock_trade.get("price", 0.50),
-                    strategy="STOCKS"
-                )
-                if telegram:
-                    await telegram.send_trade_alert(
-                        "STOCKS", stock_trade.get("question", ""),
-                        stock_trade.get("side", ""), stock_trade["amount"],
-                        stock_trade.get("price", 0.50), stock_trade.get("edge", 0), "cierre de hoy")
-                    telegram.log_trade("STOCKS", stock_trade.get("question", ""), stock_trade.get("side", ""), stock_trade["amount"])
-                    logger.info(f"   ⏳ Resuelve en: cierre de hoy")
-            elif status == "SIMULATED":
-                logger.info(f"   🏃 Stock simulado: ${stock_trade['amount']:.2f} {stock_trade.get('side', '')}")
-            elif status == "FAILED":
-                logger.info(f"   ❌ Stock trade falló")
-                if telegram:
-                    _err = stock_trade.get('error', 'FAILED')
-                    await telegram.send_error_alert(
-                        f"Stock trade falló: {str(_err)[:100]}\n"
-                        f"Mercado: {stock_trade.get('question', '?')[:40]}"
+    # Guardas de límite global ANTES de invocar al stock trader.
+    # Stock trader no revisa estos límites internamente, así que los
+    # aplicamos aquí para prevenir gastar más allá del presupuesto diario
+    # o del máximo de apuestas por ciclo.
+    if STATE.cycle_bets >= SAFETY.max_bets_per_cycle:
+        logger.info(f"   ⏭️ Max apuestas/ciclo alcanzado ({SAFETY.max_bets_per_cycle})")
+    elif STATE.daily_spend >= SAFETY.max_daily_spend:
+        logger.info(f"   ⏭️ Max gasto diario alcanzado (${SAFETY.max_daily_spend:.0f})")
+    else:
+        try:
+            stock_trade = await stock_trader.run_cycle()
+            if stock_trade:
+                status = stock_trade.get("status", "UNKNOWN")
+                if status == "EXECUTED":
+                    logger.info(f"   ✅ Stock trade ejecutado: ${stock_trade['amount']:.2f} "
+                               f"{stock_trade.get('side', '')} | Edge: {stock_trade.get('edge', 0):.1%}")
+                    tracker.add_trade(
+                        market_id=stock_trade.get("market_id", ""),
+                        question=stock_trade.get("question", ""),
+                        side=stock_trade.get("side", ""),
+                        amount=stock_trade["amount"],
+                        price=stock_trade.get("price", 0.50),
+                        strategy="STOCKS"
                     )
-            else:
-                logger.info(f"   ℹ️ Stocks: {status}")
-    except Exception as e:
-        logger.error(f"   Error en Stock Trader: {e}")
-        if telegram:
-            await telegram.send_error_alert(f"Error Stock Trader: {str(e)[:100]}")
+                    # Contabilizar el stock trade en los contadores globales.
+                    # stock_trader usa su propio py-clob-client (no pasa por
+                    # executor.execute_bet), así que si no hacemos esto:
+                    # - el summary dice "No se ejecutaron órdenes" (falso)
+                    # - max_daily_spend no limita stocks (riesgo real)
+                    # - max_bets_per_cycle no limita stocks
+                    # - la alerta "2h sin apostar" dispara aunque sí apostamos
+                    STATE.cycle_bets += 1
+                    STATE.daily_spend += stock_trade["amount"]
+                    executor.executed_orders.append({
+                        "mode": "LIVE",
+                        "side": stock_trade.get("side", ""),
+                        "amount_usd": stock_trade["amount"],
+                        "question": stock_trade.get("question", "")[:60],
+                        "price": stock_trade.get("price", 0.50),
+                        "edge": stock_trade.get("edge", 0),
+                        "status": "EXECUTED",
+                    })
+                    if telegram:
+                        await telegram.send_trade_alert(
+                            "STOCKS", stock_trade.get("question", ""),
+                            stock_trade.get("side", ""), stock_trade["amount"],
+                            stock_trade.get("price", 0.50), stock_trade.get("edge", 0), "cierre de hoy")
+                        telegram.log_trade("STOCKS", stock_trade.get("question", ""), stock_trade.get("side", ""), stock_trade["amount"])
+                        logger.info(f"   ⏳ Resuelve en: cierre de hoy")
+                elif status == "SIMULATED":
+                    logger.info(f"   🏃 Stock simulado: ${stock_trade['amount']:.2f} {stock_trade.get('side', '')}")
+                elif status == "FAILED":
+                    logger.info(f"   ❌ Stock trade falló")
+                    if telegram:
+                        _err = stock_trade.get('error', 'FAILED')
+                        await telegram.send_error_alert(
+                            f"Stock trade falló: {str(_err)[:100]}\n"
+                            f"Mercado: {stock_trade.get('question', '?')[:40]}"
+                        )
+                else:
+                    logger.info(f"   ℹ️ Stocks: {status}")
+        except Exception as e:
+            logger.error(f"   Error en Stock Trader: {e}")
+            if telegram:
+                await telegram.send_error_alert(f"Error Stock Trader: {str(e)[:100]}")
 
     # ===== ESTRATEGIA 6: Crypto Daily (BTC/ETH/SOL/XRP) =====
     if crypto_daily:
