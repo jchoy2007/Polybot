@@ -222,6 +222,16 @@ class StockTrader:
         crypto_exclude = ["btc", "bitcoin", "eth", "ethereum", "sol", "solana",
                           "bnb", "xrp", "doge", "crypto", "token", "coin"]
 
+        # Exigir keyword direccional (agregado 14-Apr): evita que mercados
+        # como "Will Netflix beat quarterly earnings?" pasen el filtro de
+        # stock_keywords (hacía matchear por "netflix") y consuman llamadas
+        # a Yahoo Finance para nada.
+        directional_req = [
+            "up or down", "up/down", "opens up", "opens down",
+            "close above", "close below", "close up", "close down",
+            "close green", "close red", "trading day", "above $", "below $",
+        ]
+
         markets = []
         for offset in [0, 100, 200, 300, 400]:
             try:
@@ -242,6 +252,10 @@ class StockTrader:
 
                             # Excluir mercados crypto
                             if any(kw in q for kw in crypto_exclude):
+                                continue
+
+                            # Exigir keyword direccional además de ticker
+                            if not any(kw in q for kw in directional_req):
                                 continue
 
                             if any(kw in q for kw in stock_keywords):
