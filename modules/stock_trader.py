@@ -158,15 +158,28 @@ class StockTrader:
         """Busca mercados de índices bursátiles activos."""
         session = await self._get_session()
 
-        # Keywords EXCLUSIVOS de bolsa — ampliados para encontrar más mercados
-        stock_keywords = ["s&p", "s&p 500", "sp500", "spx", "spy",
-                          "nasdaq", "ndx", "qqq",
-                          "dow jones", "djia", "dia",
-                          "russell 2000", "rut", "iwm",
-                          "stock market",
-                          "close up", "close down", "close green", "close red",
-                          "opens up", "opens down",
-                          "trading day", "hit (high)", "hit (low)"]
+        # Keywords EXCLUSIVOS de bolsa — índices + acciones individuales
+        stock_keywords = [
+            # Índices
+            "s&p", "s&p 500", "sp500", "spx", "spy",
+            "nasdaq", "ndx", "qqq",
+            "dow jones", "djia", "dia",
+            "russell 2000", "rut", "iwm",
+            "stock market",
+            # Acciones individuales (Mag 7 + populares)
+            "nvidia", "nvda",
+            "google", "googl", "alphabet",
+            "apple", "aapl",
+            "tesla", "tsla",
+            "meta", "facebook",
+            "amazon", "amzn",
+            "microsoft", "msft",
+            "netflix", "nflx",
+            # Frases comunes de mercado
+            "close up", "close down", "close green", "close red",
+            "opens up", "opens down",
+            "trading day", "hit (high)", "hit (low)"
+        ]
 
         # Excluir crypto para evitar falsos positivos
         crypto_exclude = ["btc", "bitcoin", "eth", "ethereum", "sol", "solana",

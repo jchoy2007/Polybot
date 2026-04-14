@@ -116,38 +116,66 @@ class WinRateTracker:
             if trade["result"] != "PENDING":
                 continue
 
-            # Buscar en posiciones actuales por título
+            # Buscar en posiciones actuales por título Y LADO correcto
+            # Bug anterior: matcheaba solo por título, entonces si YES y NO
+            # del mismo mercado aparecían, agarraba el primero (podía ser
+            # el lado perdedor) y marcaba nuestro trade como LOST
+            # incorrectamente.
             found = False
+            trade_side_upper = (trade.get("side", "") or "").upper()
+
             for cid, pos in current_positions.items():
                 title = pos.get("title") or pos.get("question") or ""
-                if trade["question"][:30].lower() in title.lower():
-                    cur_value = float(pos.get("currentValue") or 0)
-                    size = float(pos.get("size") or 0)
-                    cur_price = float(pos.get("curPrice") or 0)
+                pos_side = (pos.get("outcome") or pos.get("side") or "").upper()
 
-                    if size <= 0:
-                        continue
+                if trade["question"][:30].lower() not in title.lower():
+                    continue
 
-                    # Perdió: valor actual casi 0
-                    if cur_value <= 0.01 and size > 0:
-                        trade["result"] = "LOST"
-                        trade["payout"] = 0
-                        trade["profit"] = -trade["amount"]
-                        updated = True
-                        logger.info(f"   ❌ PERDIDA: {trade['question'][:40]} | -${trade['amount']:.2f}")
-                    # Ganó: precio actual >= 95¢ (casi resuelto a favor)
-                    elif cur_price >= 0.95:
-                        trade["result"] = "WON"
-                        # Cada token ganador paga $1, no usar cur_value (puede estar parcial)
-                        buy_price = trade.get("price", 0) or 0.5
-                        tokens = trade["amount"] / buy_price if buy_price > 0 else 0
-                        trade["payout"] = round(tokens, 2)
-                        trade["profit"] = round(tokens - trade["amount"], 2)
-                        updated = True
-                        logger.info(f"   ✅ GANADA: {trade['question'][:40]} | +${trade['profit']:.2f}")
+                # CRÍTICO: verificar que sea el MISMO lado que compramos.
+                # Polymarket puede devolver posiciones de YES y NO del mismo
+                # mercado. Solo nos interesa el lado donde apostamos.
+                if trade_side_upper and pos_side:
+                    # Para markets YES/NO estándar
+                    yes_no_match = (
+                        (trade_side_upper in ("YES", "NO") and
+                         pos_side in ("YES", "NO") and
+                         trade_side_upper == pos_side)
+                    )
+                    # Para markets con outcomes específicos (Over/Under,
+                    # nombres de equipos), matchea exacto o por sustring
+                    specific_match = (
+                        trade_side_upper in pos_side or
+                        pos_side in trade_side_upper
+                    )
+                    if not (yes_no_match or specific_match):
+                        continue  # Es el lado contrario, ignorar
 
-                    found = True
-                    break
+                cur_value = float(pos.get("currentValue") or 0)
+                size = float(pos.get("size") or 0)
+                cur_price = float(pos.get("curPrice") or 0)
+
+                if size <= 0:
+                    continue
+
+                # Perdió: valor actual casi 0 (en NUESTRO lado)
+                if cur_value <= 0.01 and size > 0:
+                    trade["result"] = "LOST"
+                    trade["payout"] = 0
+                    trade["profit"] = -trade["amount"]
+                    updated = True
+                    logger.info(f"   ❌ PERDIDA: {trade['question'][:40]} | -${trade['amount']:.2f}")
+                # Ganó: precio actual >= 95¢ (casi resuelto a favor)
+                elif cur_price >= 0.95:
+                    trade["result"] = "WON"
+                    buy_price = trade.get("price", 0) or 0.5
+                    tokens = trade["amount"] / buy_price if buy_price > 0 else 0
+                    trade["payout"] = round(tokens, 2)
+                    trade["profit"] = round(tokens - trade["amount"], 2)
+                    updated = True
+                    logger.info(f"   ✅ GANADA: {trade['question'][:40]} | +${trade['profit']:.2f}")
+
+                found = True
+                break
 
             # Posición desapareció = ya fue cobrada (redeem)
             if not found:

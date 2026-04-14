@@ -241,13 +241,15 @@ class CryptoDailyStrategy:
         except Exception:
             return None
 
-        # Lógica: "above $X" / "close above" → precio actual vs target
+        # Lógica: "above $X" / "close above" / "reach" → precio actual vs target
         if "above" in question or "close above" in question or "reach" in question:
             gap_pct = ((current_price - target_price) / target_price) * 100
 
             # Ya está claramente por encima → YES probable
-            if gap_pct > 0.5:  # más de 0.5% por encima
-                our_prob = min(0.92, 0.60 + gap_pct * 0.02 + change_24h * 0.01)
+            # Threshold bajado de 0.5% a 0.15% (crypto se mueve rápido)
+            if gap_pct > 0.15:
+                # Probabilidad escalada por distancia + momentum 24h
+                our_prob = min(0.92, 0.58 + gap_pct * 0.03 + change_24h * 0.015)
                 edge = our_prob - yes_price
                 if (edge >= self.MIN_EDGE and
                         self.MIN_PRICE <= yes_price <= self.MAX_PRICE):
@@ -260,8 +262,8 @@ class CryptoDailyStrategy:
                     }
 
             # Ya está claramente por debajo → NO probable
-            elif gap_pct < -0.5:
-                our_prob = min(0.92, 0.60 + abs(gap_pct) * 0.02 - change_24h * 0.01)
+            elif gap_pct < -0.15:
+                our_prob = min(0.92, 0.58 + abs(gap_pct) * 0.03 - change_24h * 0.015)
                 edge = our_prob - no_price
                 if (edge >= self.MIN_EDGE and
                         self.MIN_PRICE <= no_price <= self.MAX_PRICE):
@@ -278,8 +280,9 @@ class CryptoDailyStrategy:
             gap_pct = ((current_price - target_price) / target_price) * 100
 
             # Lejos del target = improbable que llegue → NO
-            if gap_pct > 2:  # más de 2% por encima del dip target
-                our_prob = min(0.90, 0.65 + (gap_pct * 0.015))
+            # Threshold bajado de 2% a 1% (más realista)
+            if gap_pct > 1:
+                our_prob = min(0.90, 0.62 + (gap_pct * 0.02))
                 edge = our_prob - no_price
                 if (edge >= self.MIN_EDGE and
                         self.MIN_PRICE <= no_price <= self.MAX_PRICE):
