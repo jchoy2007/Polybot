@@ -658,6 +658,19 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                           # ligas sudamericanas tienen ~25% draw rate)
                           "end in a draw", "draw?"]
 
+            # Bloqueo de derivados esports (agregado 14-Apr): los 3 trades
+            # en banda 0.40-0.50 que perdieron -$23.45 fueron todos Games
+            # Total O/U y Map Handicap en esports (alta varianza, IA mal
+            # calibrada). Moneyline de esports sigue pasando.
+            esports_kw = [
+                "lol:", "league of legends", "counter-strike", "cs2", "cs:",
+                "valorant", "dota", "starcraft", "rocket league", "fortnite",
+                "overwatch", "rainbow six", "r6s",
+            ]
+            esports_derivative_kw = [
+                "games total", "map handicap", "game handicap",
+            ]
+
             sports_markets = []
             for m in markets:
                 q = (m.question or "").lower()
@@ -665,6 +678,11 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 has_sport = any(kw.lower() in q for kw in sports_kw)
                 # NO tiene keywords de exclusión?
                 has_exclude = any(kw in q for kw in exclude_kw)
+                # Bloquear derivados de esports específicamente
+                is_esports = any(kw in q for kw in esports_kw)
+                is_derivative = any(kw in q for kw in esports_derivative_kw)
+                if is_esports and is_derivative:
+                    continue
                 if has_sport and not has_exclude:
                     sports_markets.append(m)
 
