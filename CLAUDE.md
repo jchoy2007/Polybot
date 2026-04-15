@@ -9,9 +9,13 @@
 
 ### Bankroll
 - **Depósito inicial**: $200 USDC.e (Polygon)
-- **Balance actual**: ~$137 (USDC.e líquido + posiciones)
-- **P&L desde inicio**: -$63 (-31%)
+- **Balance actual**: $45.13 líquido + ~$121 en 24 posiciones abiertas ≈ **$166 total** (15-Abr 20:00 UTC)
+- **P&L desde inicio**: -$34 (-17%) — mejora vs -$63 de ayer
 - **Meta revisada**: $250-300 al 30 abril 2026 (meta original $500 descartada por no realista)
+- **Win rate actual**: 16/25 (64%) | Neto **+$19.28**
+  - SPORTS: 6/12 (50%) | −$27.93 | 9 pendientes
+  - STOCKS: 9/10 (90%) | +$52.75 | 14 pendientes ← estrella dominante
+  - CRYPTO: 1/3 (33%) | −$5.54 | 1 pendiente
 
 ### Infraestructura
 - **VPS**: Hetzner Cloud CPX22 — Helsinki, Finland ($10.99/mes)
@@ -122,7 +126,7 @@ min_market_volume = 1000     # Relajado de 2k el 14-Apr
 
 ---
 
-## 🐛 Bugs arreglados hoy (14 abril 2026)
+## 🐛 Bugs arreglados el 14 abril 2026
 
 | Commit | Fix | Por qué |
 |--------|-----|---------|
@@ -131,6 +135,16 @@ min_market_volume = 1000     # Relajado de 2k el 14-Apr
 | `94f94bc` | Stock trades cuentan en `cycle_bets`/`daily_spend` | max_daily_spend no limitaba stocks |
 | `955955e` | Tracker registra wins cobrados automáticamente | Win rate quedaba desactualizado |
 | `5dd5635` | Bloquear direcciones opuestas mismo ticker mismo día | Google Up + Down garantizaban pérdida |
+| `63c1983` | max_open_positions 15→20 | Cap muy bajo, bot frenaba con oportunidades válidas |
+| `dee7016` | Bloquear derivados esports (Games Total, Map Handicap) | 3/3 LOST −$23.45 en banda 0.40-0.50 |
+| `53f6585` | Stock markets requieren keyword direccional | "Netflix earnings" pasaba el filtro de stocks |
+| `52dab9e` | Log edge+prob en cada trade | Audit no podía correlacionar edge con profit |
+
+## 🐛 Bugs arreglados el 15 abril 2026
+
+| Commit | Fix | Por qué |
+|--------|-----|---------|
+| `ba6162c` | Bloqueo **universal** de derivados (fix regresión `dee7016`) | El filtro anterior requería `is_esports AND is_derivative`, pero markets con `question="Games Total: O/U 2.5"` no traen prefijo del juego y pasaban. Hoy 19:33 UTC un Games Total se ejecutó por este bug. |
 
 ## 🐛 Bugs pendientes identificados (no arreglados aún)
 
@@ -165,6 +179,39 @@ min_market_volume = 1000     # Relajado de 2k el 14-Apr
 5. **Metas irreales**: +16% diario no es alcanzable. Meta realista: +1.5-3% diario
    con el bot bien configurado.
 
+6. **Derivados de esports (Games Total, Map Handicap, Game Handicap)**: alta
+   varianza y la IA los mal calibra. **4 de las 5 peores pérdidas históricas**
+   son de esa categoría. Bloqueados universalmente desde `ba6162c` (15-Abr).
+
+---
+
+## 💎 Insights de data (15 abril 2026)
+
+Auditoría de los primeros 25 trades resueltos:
+
+1. **STOCKS es la estrategia dominante** (9/10 WR = 90%, +$52.75 neto).
+   AMZN invicto 3/3 (+$34.15). Tanto `Up/Down` como `close above/below` funcionan.
+   **NO aumentar sizing hasta tener 20+ trades con edge data** (edge solo se
+   empezó a registrar el 15-Abr, todavía muestra chica).
+
+2. **SPORTS pesado hacia el rojo** (6/12, −$27.93) pero el −$21.55 de ese total
+   viene exclusivamente de esports derivatives. Sin ellos: 2/4 neutral. Hay que
+   esperar más data post-filtro para juzgar la estrategia real.
+
+3. **CRYPTO muy chica para concluir** (1/3). Decisión: evaluar cuando llegue
+   a n=4 (1 pendiente en curso).
+
+---
+
+## 📋 Decisiones pendientes
+
+- **CRYPTO**: evaluar desactivar cuando llegue a n=4 trades resueltos (ahora n=3).
+- **STOCKS sizing**: re-evaluar en 2-3 semanas cuando haya 20+ trades con campo
+  `edge` poblado. Mientras tanto no subir `max_bet_pct` ni `kelly_fraction`.
+- **Cobro pendiente**: 11 posiciones marcadas RESOLVIDO por Polymarket siguen
+  como PENDING en el tracker (entre ellas 1 WIN sin cobrar, Bayern +$3.76).
+  Verificar que `auto_redeem` / `redeem.py` está corriendo.
+
 ---
 
 ## 🔧 Comandos útiles (ejecutar en el VPS)
@@ -184,6 +231,9 @@ systemctl status polybot
 
 # Cobrar manualmente
 cd /root/Polybot && ./venv/bin/python redeem.py
+
+# Auditoría diaria completa (balance + WR + trades 24h + posiciones abiertas)
+cd /root/Polybot && ./venv/bin/python scripts/daily_audit.py
 
 # Auditoría del tracker
 cd /root/Polybot && ./venv/bin/python -c "
@@ -290,4 +340,4 @@ cd /root/Polybot && git pull origin main && systemctl restart polybot
 
 ---
 
-**Última actualización**: 14 abril 2026, 16:30 ET (post-correlation fix)
+**Última actualización**: 15 abril 2026, 20:00 UTC (post-fix `ba6162c` — bloqueo universal de derivados + audit script)
