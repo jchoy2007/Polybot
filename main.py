@@ -794,10 +794,10 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                         "total:", "map handicap", "game handicap"
                     ])
                     if should_bet and _is_risky:
-                        amount = round(amount * 0.50, 2)
+                        amount = max(round(amount * 0.50, 2), 1.00)
                         logger.info(
                             f"   📉 Bet reducido 50% por alta varianza "
-                            f"(spread/handicap/O/U): ${amount:.2f}"
+                            f"(spread/handicap/O/U), piso $1 Polymarket: ${amount:.2f}"
                         )
 
                     if should_bet:
@@ -810,7 +810,9 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                                 side=analysis.side,
                                 amount=amount,
                                 price=analysis.market_price,
-                                strategy="SPORTS"
+                                strategy="SPORTS",
+                                edge=getattr(analysis, "edge", None),
+                                prob=getattr(analysis, "estimated_probability", None),
                             )
                             STATE.cycle_bets += 1
                             STATE.daily_spend += amount
@@ -874,7 +876,9 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                         side=stock_trade.get("side", ""),
                         amount=stock_trade["amount"],
                         price=stock_trade.get("price", 0.50),
-                        strategy="STOCKS"
+                        strategy="STOCKS",
+                        edge=stock_trade.get("edge"),
+                        prob=stock_trade.get("prob"),
                     )
                     # Contabilizar el stock trade en los contadores globales.
                     # stock_trader usa su propio py-clob-client (no pasa por
@@ -969,7 +973,9 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                         side=signal["side"],
                         amount=signal["amount"],
                         price=signal["price"],
-                        strategy="CRYPTO"
+                        strategy="CRYPTO",
+                        edge=signal.get("edge"),
+                        prob=signal.get("prob"),
                     )
                     STATE.cycle_bets += 1
                     STATE.daily_spend += signal["amount"]

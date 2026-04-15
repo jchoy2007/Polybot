@@ -65,8 +65,14 @@ class WinRateTracker:
             json.dump(self.trades, f, indent=2)
 
     def add_trade(self, market_id: str, question: str, side: str,
-                  amount: float, price: float, strategy: str = "IA"):
-        """Registra un trade nuevo (pendiente de resultado)."""
+                  amount: float, price: float, strategy: str = "IA",
+                  edge: Optional[float] = None, prob: Optional[float] = None):
+        """Registra un trade nuevo (pendiente de resultado).
+
+        edge/prob se guardan para análisis posterior (position sizing
+        dinámico, WR por banda de edge, etc.). Opcionales para no
+        romper llamadas existentes.
+        """
         # No duplicar
         for t in self.trades:
             if t.get("market_id") == market_id and t.get("strategy") == strategy:
@@ -83,6 +89,8 @@ class WinRateTracker:
             "result": "PENDING",  # PENDING, WON, LOST
             "payout": 0.0,
             "profit": 0.0,
+            "edge": edge,
+            "prob": prob,
         }
         self.trades.append(trade)
         self._save()
