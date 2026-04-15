@@ -667,7 +667,13 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 "valorant", "dota", "starcraft", "rocket league", "fortnite",
                 "overwatch", "rainbow six", "r6s",
             ]
-            esports_derivative_kw = [
+            # Derivados (Games Total, Map Handicap, Game Handicap) suelen
+            # llegar con question = "Games Total: O/U 2.5" SIN prefijo del
+            # juego, así que el filtro previo (is_esports AND is_derivative)
+            # los dejaba pasar. Ahora bloqueamos por keyword de derivado
+            # sin exigir match de esports_kw. Si en el futuro queremos
+            # permitir handicap en fútbol etc., se agrega excepción manual.
+            derivative_kw = [
                 "games total", "map handicap", "game handicap",
             ]
 
@@ -678,10 +684,9 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 has_sport = any(kw.lower() in q for kw in sports_kw)
                 # NO tiene keywords de exclusión?
                 has_exclude = any(kw in q for kw in exclude_kw)
-                # Bloquear derivados de esports específicamente
-                is_esports = any(kw in q for kw in esports_kw)
-                is_derivative = any(kw in q for kw in esports_derivative_kw)
-                if is_esports and is_derivative:
+                # Bloquear SIEMPRE derivados (alta varianza, IA mal calibrada)
+                is_derivative = any(kw in q for kw in derivative_kw)
+                if is_derivative:
                     continue
                 if has_sport and not has_exclude:
                     sports_markets.append(m)
