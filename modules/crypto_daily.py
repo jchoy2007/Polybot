@@ -413,6 +413,10 @@ class CryptoDailyStrategy:
                 "end_date": m.get("endDate", ""),
             }
             signals.append(signal_info)
+            logger.warning(
+                "⚠️ CRYPTO strat bajo observación (1/3 WR). "
+                "Evaluación a n=4 para decidir mantener/desactivar."
+            )
             logger.info(
                 f"   🎯 {crypto} SEÑAL {signal['side']} | "
                 f"Edge: {signal['edge']:.1%} | "

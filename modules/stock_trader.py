@@ -352,6 +352,14 @@ class StockTrader:
             logger.info(f"      Edge YES={edge_yes:+.1%}, NO={edge_no:+.1%} → insuficiente")
             return None
 
+        # Colas largas (precio < 10¢ o > 90¢) tienen alta varianza y
+        # poco upside realista. El único STOCKS LOST histórico fue
+        # SPX Up/Down @ $0.060 → −$7.50 (14-Abr). Más estricto que
+        # el filtro 0.02/0.98 que ya existe arriba.
+        if price < 0.10 or price > 0.90:
+            logger.info(f"      Cola larga @ {price:.3f}: skip")
+            return None
+
         # Determinar la dirección EFECTIVA que estamos apostando:
         # - Mercado "Up or Down" con YES → bet UP (direction ya es UP)
         # - Mercado "Up or Down" con NO → bet DOWN (opuesto a direction)
