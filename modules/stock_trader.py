@@ -307,6 +307,23 @@ class StockTrader:
             logger.info(f"      No se pudo obtener datos de {INDICES[index_key]['name']}")
             return None
 
+        # Gap filter (17-Abr): "close above $X" / "close below $X" con target
+        # lejano pierden 3/3 esta semana (AAPL >$255, AMZN >$250, NVDA >$200).
+        # Up/Down simples mantienen 90% WR.
+        import re as _re
+        target_match = _re.search(r'\$(\d+(?:,\d{3})*(?:\.\d+)?)', question)
+        if target_match and ("close above" in question.lower() or "close below" in question.lower()):
+            try:
+                target_price = float(target_match.group(1).replace(",", ""))
+                current_price = mkt_data.get("price", 0)
+                if current_price > 0:
+                    gap_pct = abs(target_price - current_price) / current_price
+                    if gap_pct > 0.03:
+                        logger.info(f"      Gap {gap_pct:.1%} > 3% para target ${target_price:.0f} vs actual ${current_price:.0f}: skip")
+                        return None
+            except (ValueError, AttributeError):
+                pass
+
         change = mkt_data.get("change_pct", 0)
         logger.info(f"      {INDICES[index_key]['name']}: ${mkt_data['price']:,.0f} | "
                      f"Cambio: {change:+.2%} | Estado: {mkt_data.get('state', '?')}")

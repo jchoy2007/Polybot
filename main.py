@@ -352,7 +352,21 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
     """Ejecuta un ciclo completo con TODAS las estrategias."""
 
     cycle_start = datetime.now()
-    
+
+    # Modo fin de semana (17-Abr): sin STOCKS sáb/dom → SPORTS flojo = pérdida.
+    # Capturamos defaults en la primera llamada y restauramos al final del
+    # ciclo (idempotente) para que overrides no se filtren entre ciclos.
+    if not hasattr(run_cycle, '_safety_defaults'):
+        run_cycle._safety_defaults = {
+            'max_bets_per_cycle': SAFETY.max_bets_per_cycle,
+            'min_edge_required': SAFETY.min_edge_required,
+        }
+    _weekend = datetime.now().weekday() >= 5  # sáb=5, dom=6
+    if _weekend:
+        logger.info("   🏖️ MODO FIN DE SEMANA: límites más estrictos (max_bets=2, min_edge=8%)")
+        SAFETY.max_bets_per_cycle = 2
+        SAFETY.min_edge_required = 0.08
+
     # === AUTO-SCALING: Ajustar apuestas según capital ===
     # Sube con el capital, pero NUNCA baja de $4 (piso para recuperarse)
     bankroll = STATE.current_bankroll
@@ -780,6 +794,17 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     if STATE.daily_spend >= SAFETY.max_daily_spend:
                         break
 
+                    # Filtros estrictos nuevos (17-Abr): SPORTS modo conservador
+                    if analysis.market_price < 0.50 or analysis.market_price > 0.80:
+                        logger.info(f"   ⏭️ SPORTS market_price {analysis.market_price:.1%} fuera rango 50-80%")
+                        continue
+                    if analysis.edge < 0.06:
+                        logger.info(f"   ⏭️ SPORTS edge {analysis.edge:.1%} < 6%")
+                        continue
+                    if analysis.estimated_probability < 0.60:
+                        logger.info(f"   ⏭️ SPORTS prob {analysis.estimated_probability:.1%} < 60%")
+                        continue
+
                     mkt = {m.market_id: m for m in esports_markets}.get(analysis.market_id)
                     should_bet, reason, amount = risk.should_bet(
                         estimated_prob=analysis.estimated_probability,
@@ -928,7 +953,11 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 await telegram.send_error_alert(f"Error Stock Trader: {str(e)[:100]}")
 
     # ===== ESTRATEGIA 6: Crypto Daily (BTC/ETH/SOL/XRP) =====
-    if crypto_daily:
+    # DESACTIVADA 17-Abr: n=7, WR 43%, -$9.09 neto. Data suficiente para decidir.
+    crypto_enabled = False
+    if crypto_daily and not crypto_enabled:
+        logger.info("   ⏭️ Crypto strat desactivada (3/7 WR, -$9)")
+    if crypto_daily and crypto_enabled:
         logger.info("\n" + "=" * 50)
         logger.info("₿ ESTRATEGIA 6: Crypto Daily (BTC/ETH/SOL/XRP)")
         logger.info("=" * 50)
@@ -1256,6 +1285,11 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             )
         except Exception as _e_tg:
             logger.debug(f"Error reporte Telegram: {_e_tg}")
+
+    # Restaurar SAFETY defaults (idempotente) — weekend overrides no deben
+    # filtrarse a lunes si el ciclo terminó por excepción.
+    SAFETY.max_bets_per_cycle = run_cycle._safety_defaults['max_bets_per_cycle']
+    SAFETY.min_edge_required = run_cycle._safety_defaults['min_edge_required']
 
 
 # ============================================================
