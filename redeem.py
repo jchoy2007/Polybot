@@ -20,6 +20,12 @@ NEG_RISK_ADAPTER = "0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296"
 USDC_E_ADDRESS = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
 WCOL_ADDRESS = "0x3A3BD7bb9528E159577F7C2e685CC81A765002E2"  # WrappedCollateral
 DATA_API_URL = "https://data-api.polymarket.com"
+GAMMA_API_URL = "https://gamma-api.polymarket.com"
+
+UMA_ADAPTER_ABI = [{
+    "inputs":[{"name":"questionID","type":"bytes32"}],
+    "name":"resolve","outputs":[],"stateMutability":"nonpayable","type":"function"
+}]
 
 CTF_ABI = [
     {"inputs":[{"name":"collateralToken","type":"address"},{"name":"parentCollectionId","type":"bytes32"},{"name":"conditionId","type":"bytes32"},{"name":"indexSets","type":"uint256[]"}],"name":"redeemPositions","outputs":[],"type":"function"},
@@ -61,6 +67,54 @@ def connect_polygon():
         except:
             continue
     return None
+
+async def get_market_resolver(condition_id):
+    """Fetch (questionID, resolvedBy adapter) for a condition_id from Gamma API.
+    Returns (None, None) if not found or on error."""
+    url = f"{GAMMA_API_URL}/markets?condition_ids={condition_id}"
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+            async with session.get(url) as resp:
+                if resp.status != 200:
+                    return None, None
+                data = await resp.json()
+                if not data or not isinstance(data, list) or len(data) == 0:
+                    return None, None
+                m = data[0]
+                return m.get("questionID"), m.get("resolvedBy")
+    except Exception:
+        return None, None
+
+def try_uma_resolve(w3, eoa, pk, question_id, adapter_addr, title_short):
+    """Call resolve(questionID) on the UMA adapter to unstick a decided market.
+    Simulates first to avoid burning gas on a guaranteed revert. Returns True on success."""
+    try:
+        adapter = w3.eth.contract(
+            address=w3.to_checksum_address(adapter_addr),
+            abi=UMA_ADAPTER_ABI,
+        )
+        qid_bytes = bytes.fromhex(question_id[2:] if question_id.startswith("0x") else question_id)
+        try:
+            adapter.functions.resolve(qid_bytes).call({"from": eoa})
+        except Exception as e:
+            print(f"  resolve() sim fallo: {str(e)[:60]} | {title_short}")
+            return False
+        nonce = w3.eth.get_transaction_count(eoa, "pending")
+        txn = adapter.functions.resolve(qid_bytes).build_transaction({
+            "from": eoa, "nonce": nonce, "gas": 600000,
+            "gasPrice": int(w3.eth.gas_price * 1.2), "chainId": 137,
+        })
+        signed = w3.eth.account.sign_transaction(txn, pk)
+        tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
+        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+        if receipt.status == 1:
+            print(f"  resolve() OK gas={receipt.gasUsed} | {title_short}")
+            return True
+        print(f"  resolve() tx status=0 | {title_short}")
+        return False
+    except Exception as e:
+        print(f"  resolve() error: {str(e)[:80]} | {title_short}")
+        return False
 
 async def find_all_positions(address):
     funder = os.getenv("POLYMARKET_FUNDER_ADDRESS", "")
@@ -133,6 +187,21 @@ async def redeem_all():
         try:
             cid_bytes = bytes.fromhex(condition_id[2:] if condition_id.startswith("0x") else condition_id)
             payout_denom = ctf.functions.payoutDenominator(cid_bytes).call()
+
+            # Auto-resolve: si el mercado esta claramente decidido (>=95%) pero
+            # el oraculo no ha reportado, intentar llamar resolve() en el adapter
+            # para desbloquearlo antes de marcarlo como pending.
+            if payout_denom == 0 and cur_price >= 0.95:
+                q_id, adapter_addr = await get_market_resolver(condition_id)
+                if q_id and adapter_addr:
+                    print(f"  auto-resolve() | {str(title)[:45]}")
+                    if try_uma_resolve(w3, eoa, pk, q_id, adapter_addr, str(title)[:45]):
+                        time.sleep(10)
+                        try:
+                            payout_denom = ctf.functions.payoutDenominator(cid_bytes).call()
+                        except:
+                            pass
+
             if payout_denom == 0:
                 pending.append(f"  ... {str(title)[:45]} | {side} | ${cur_value:.2f} ({cur_price:.0%})")
                 # Guardar datos para venta fallback
