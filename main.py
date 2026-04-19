@@ -1277,11 +1277,20 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 except:
                     pass
 
+            # Reset diario: si _daily_stock_count es de un día anterior,
+            # se considera 0 para el reporte de hoy.
+            _today_str = datetime.now().strftime("%Y-%m-%d")
+            _stock_info = getattr(stock_trader, "_daily_stock_count", {}) or {}
+            _stock_count = int(_stock_info.get("count", 0)) \
+                if _stock_info.get("date") == _today_str else 0
+
             await telegram.send_periodic_report(
                 bankroll=STATE.current_bankroll,
                 pnl_total=STATE.total_pnl,
                 positions=_positions_tg or [],
-                tracker_summary=tracker.get_summary()
+                tracker_summary=tracker.get_summary(exclude_strategies=["CRYPTO"]),
+                stock_daily_count=_stock_count,
+                stock_daily_limit=5,
             )
         except Exception as _e_tg:
             logger.debug(f"Error reporte Telegram: {_e_tg}")

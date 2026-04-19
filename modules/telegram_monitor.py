@@ -202,7 +202,9 @@ class TelegramMonitor:
 
     async def send_periodic_report(self, bankroll: float, pnl_total: float,
                                      positions: List[Dict],
-                                     tracker_summary: str):
+                                     tracker_summary: str,
+                                     stock_daily_count: Optional[int] = None,
+                                     stock_daily_limit: int = 5):
         """
         Reporte periódico completo (~cada hora).
         Formato rico con Balance libre / En posiciones / Total estimado
@@ -248,6 +250,13 @@ class TelegramMonitor:
             f"{pnl_emoji} P/L: ${pnl_real:+.2f} ({real_roi:+.1f}%)",
             f"🕐 {datetime.now().strftime('%H:%M %d/%m')}",
         ]
+
+        if stock_daily_count is not None:
+            remaining = max(0, stock_daily_limit - stock_daily_count)
+            lines.append(
+                f"📊 STOCKS: {stock_daily_count}/{stock_daily_limit} "
+                f"bets hoy ({remaining} disponibles)"
+            )
 
         if active:
             # Clasificar posiciones por curPrice

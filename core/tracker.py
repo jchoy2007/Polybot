@@ -257,11 +257,20 @@ class WinRateTracker:
         if updated:
             self._save()
 
-    def get_summary(self) -> str:
-        """Retorna resumen de win rate para mostrar en el ciclo."""
-        won = [t for t in self.trades if t["result"] == "WON"]
-        lost = [t for t in self.trades if t["result"] == "LOST"]
-        pending = [t for t in self.trades if t["result"] == "PENDING"]
+    def get_summary(self, exclude_strategies: Optional[List[str]] = None) -> str:
+        """Retorna resumen de win rate para mostrar en el ciclo.
+
+        exclude_strategies: lista de estrategias a omitir del desglose
+        por estrategia (y del overall). Útil para ocultar estrategias
+        desactivadas cuyo historial ya no aporta señal (p.ej. CRYPTO).
+        """
+        excluded = {s.upper() for s in (exclude_strategies or [])}
+        visible = [t for t in self.trades
+                   if (t.get("strategy", "IA") or "IA").upper() not in excluded]
+
+        won = [t for t in visible if t["result"] == "WON"]
+        lost = [t for t in visible if t["result"] == "LOST"]
+        pending = [t for t in visible if t["result"] == "PENDING"]
 
         total_resolved = len(won) + len(lost)
         win_rate = len(won) / total_resolved * 100 if total_resolved > 0 else 0
@@ -272,7 +281,7 @@ class WinRateTracker:
 
         # Por estrategia
         strategies = {}
-        for t in self.trades:
+        for t in visible:
             s = t.get("strategy", "IA")
             if s not in strategies:
                 strategies[s] = {"won": 0, "lost": 0, "pending": 0, "profit": 0}
