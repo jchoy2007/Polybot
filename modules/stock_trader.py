@@ -80,6 +80,10 @@ class StockTrader:
         # el mismo día = garantizado perder uno).
         # Formato: {"date": "YYYY-MM-DD", "data": {"amzn": {"UP"}, ...}}
         self._today_directions: Dict = {"date": "", "data": {}}
+        # Tope diario de apuestas de stocks para limitar riesgo de
+        # correlación de mercado (17-Abr: 5 stocks Up el mismo día,
+        # todos perdieron −$42.84 cuando la bolsa bajó).
+        self._daily_stock_count: Dict = {"date": "", "count": 0}
         self._load_traded()
 
     def _register_bet_direction(self, index_key: str, direction: str):
@@ -288,6 +292,15 @@ class StockTrader:
 
     async def _analyze_and_trade(self, market: Dict) -> Optional[Dict]:
         """Analiza mercado de bolsa y ejecuta si hay edge."""
+        # Tope de 3 stock bets/día: si la bolsa baja, todos los Up
+        # pierden juntos (17-Abr: 5 Up → −$42.84).
+        today = datetime.now().strftime("%Y-%m-%d")
+        if self._daily_stock_count["date"] != today:
+            self._daily_stock_count = {"date": today, "count": 0}
+        if self._daily_stock_count["count"] >= 3:
+            logger.info(f"      ⛔ Max 3 stock bets/día alcanzado")
+            return None
+
         question = market.get("question", "")
         market_id = str(market.get("id", ""))
 
@@ -441,6 +454,7 @@ class StockTrader:
                     # Registrar la dirección efectiva para bloquear la
                     # opuesta en próximos ciclos del mismo día.
                     self._register_bet_direction(index_key, effective_direction)
+                    self._daily_stock_count["count"] += 1
                     STATE.total_trades += 1
                     STATE.open_positions += 1
                     logger.info(f"      ✅ Stock trade ejecutado! Capital: ${STATE.current_bankroll:.2f}")
