@@ -213,13 +213,22 @@ class TelegramMonitor:
             return
         self.cycle_count = 0
 
-        # Filtrar posiciones activas (valor > 1¢) y calcular totales
+        # Filtrar posiciones activas (valor > 1¢) y calcular totales.
+        # Calculamos value = size * curPrice en vez de confiar en
+        # currentValue del API. Razón: vimos casos (MSFT 15-Abr) en
+        # que currentValue mostraba ~$21 mientras Polymarket UI decía
+        # $0.12. La fórmula size*curPrice replica lo que Polymarket
+        # muestra en su frontend y elimina dependencia de cualquier
+        # campo cacheado/derivado del API.
         active = []
         total_val = 0.0
         if positions:
             for p in positions:
-                val = float(p.get("currentValue") or 0)
+                size = float(p.get("size") or 0)
+                cur_price = float(p.get("curPrice") or 0)
+                val = size * cur_price
                 if val > 0.01:
+                    p["_value"] = val  # cache para reusar abajo
                     active.append(p)
                     total_val += val
 
@@ -257,9 +266,9 @@ class TelegramMonitor:
             # GANADORAS
             if winning:
                 lines.append(f"\n✅ GANANDO ({len(winning)}):")
-                for p in sorted(winning, key=lambda x: float(x.get("currentValue") or 0), reverse=True)[:8]:
+                for p in sorted(winning, key=lambda x: x.get("_value", 0), reverse=True)[:8]:
                     title = (p.get("title") or p.get("question") or "?")[:28]
-                    value = float(p.get("currentValue") or 0)
+                    value = p.get("_value", 0)
                     cur_price = float(p.get("curPrice") or 0)
                     side = p.get("outcome") or "?"
                     resolve = self._calc_resolve_time(p.get("endDate") or "")
@@ -270,9 +279,9 @@ class TelegramMonitor:
             # EN JUEGO
             if pending:
                 lines.append(f"\n⏳ EN JUEGO ({len(pending)}):")
-                for p in sorted(pending, key=lambda x: float(x.get("currentValue") or 0), reverse=True)[:6]:
+                for p in sorted(pending, key=lambda x: x.get("_value", 0), reverse=True)[:6]:
                     title = (p.get("title") or p.get("question") or "?")[:28]
-                    value = float(p.get("currentValue") or 0)
+                    value = p.get("_value", 0)
                     cur_price = float(p.get("curPrice") or 0)
                     side = p.get("outcome") or "?"
                     pnl = float(p.get("cashPnl") or 0)
@@ -282,21 +291,31 @@ class TelegramMonitor:
                 if len(pending) > 6:
                     lines.append(f"  ... y {len(pending)-6} más")
 
-            # PERDIENDO
+            # PERDIENDO — mostrar curPrice + cashPnl recalculado para
+            # evitar discrepancias con Polymarket UI (bug MSFT 15-Abr).
             if losing:
                 lines.append(f"\n❌ PERDIENDO ({len(losing)}):")
-                for p in losing[:4]:
+                for p in sorted(losing, key=lambda x: x.get("_value", 0), reverse=True)[:4]:
                     title = (p.get("title") or p.get("question") or "?")[:28]
-                    value = float(p.get("currentValue") or 0)
-                    pnl = float(p.get("cashPnl") or 0)
-                    lines.append(f"  {title} | ${value:.2f} (P/L: -${abs(pnl):.2f})")
+                    value = p.get("_value", 0)
+                    cur_price = float(p.get("curPrice") or 0)
+                    initial = float(p.get("initialValue") or 0)
+                    # Recalcular pnl desde value canónico (size*curPrice)
+                    # en lugar de confiar en cashPnl del API
+                    pnl = value - initial
+                    side = p.get("outcome") or "?"
+                    pnl_str = f"-${abs(pnl):.2f}" if pnl < 0 else f"+${pnl:.2f}"
+                    lines.append(f"  {title} | {side} ${value:.2f} ({cur_price:.0%}) {pnl_str}")
 
-        # Historial (win rate del tracker) — primera línea del summary
+        # Historial completo del tracker (overall + por estrategia).
+        # Antes solo se mostraba la primera línea, ocultando el
+        # desglose SPORTS/STOCKS/CRYPTO que es información clave.
         lines.append("\n📊 HISTORIAL:")
         if tracker_summary:
-            summary_lines = tracker_summary.split("\n")
-            if summary_lines:
-                lines.append(f"  {summary_lines[0][:120]}")
+            for sl in tracker_summary.split("\n"):
+                sl = sl.strip()
+                if sl:
+                    lines.append(f"  {sl[:140]}")
 
         # Trades recientes del ciclo
         if self.last_trades:

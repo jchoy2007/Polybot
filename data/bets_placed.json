@@ -63,7 +63,81 @@
     "0x1be9b9481c7a52e658d40fe0f8bba59a582f28b727e6382b1e0c1ac7aec56ed8",
     "0x754f75fa0ddbf0744e6bb16433d9e3c590965ec94c3ffd2dc5a7e08f9da0ad5e",
     "0x26f770d5c64e47656020352d81360932ea3b4233c1a4c847f13f4345a093977c",
-    "0xfb00ff35de120017fabe413f445c7260fcbbe3c17b11d69108f953ab573b7c92"
+    "0xfb00ff35de120017fabe413f445c7260fcbbe3c17b11d69108f953ab573b7c92",
+    "1975709",
+    "1832860",
+    "1979929",
+    "1979990",
+    "0x28e24eae304147e39058356ea4b5ae571f25dc4b534289df67453c2e4fa2eb35",
+    "0x1f989df21e2cded20702d6e68c298a4ca8f0565d086daec8f2d91de1b8b6143e",
+    "0xf1abec0d7ff65b451b488ebbd1662f6efc970161dfec9dba8932550447971f36",
+    "1979846",
+    "1980008",
+    "1984610",
+    "1979852",
+    "1980009",
+    "1984581",
+    "1979985",
+    "1988310",
+    "1979984",
+    "1651775",
+    "1979917",
+    "0xa6bb1a700ed01e8da3f3907d24b1a23097b710fa342b55269e720d0f7443e8ad",
+    "0x88d9505006ae4d9f35c6da75cf61cb97d068c4fc0a3d489905d7e6d891f23809",
+    "0x0aa0633cc7b74d2e5160eedeac2982d32cde2a3db49b4bcc3af449021660fdea",
+    "0x2c72897f14f240f96044f231539cfe15a35ee191293ed1b69a1c6fbf120cf458",
+    "0x9dbee3928e92bfabd856560679ff96cefebe1cfa9ab794b4df3365744d871638",
+    "0x875a82b2bac93809b287e42bd7d68b3abb1a2e4bd46f64006308d6e8dc845277",
+    "0x5acb2a6ed81655e5bc9db476543bf44f0a8f5b2d8468dbdaeac8505de7c2261c",
+    "0xd38c74ee94a237313b403664ca8ef065026a34a2c233c792f0bdaf36757cdc41",
+    "0x74ab2fba97231234d55902e87625e85990012754e8cbcadcc5dc0fe6033261d3",
+    "0xa68a591e02c04cf9a119aa01027ce0765fcbed1c9a2abd34840d16d615fa4206",
+    "1941007",
+    "0x0142865e8300ebb1931fb292cb84e9dd48aa92901f68f9fe3a5ea98179ae81f2",
+    "1991169",
+    "1991083",
+    "1991204",
+    "1991203",
+    "1962583",
+    "1962710",
+    "1848024",
+    "1991177",
+    "1999253",
+    "1991161",
+    "1938211",
+    "1991152",
+    "1938158",
+    "1937264",
+    "1840341",
+    "1998672",
+    "1998543",
+    "1998625",
+    "2003574",
+    "1998676",
+    "1998544",
+    "1998655",
+    "1998638",
+    "2002696",
+    "1947738",
+    "2001429",
+    "1941083",
+    "0x3d0a5bbc59bb380463362d6e88e900773902e4043064b2dac5c4ddf71a7484c5",
+    "0x167862d88aba2d1928c4c44a0feeee66e1e29b6f3d5792e551e3e0d6c2da9a6f",
+    "0xff17fdcf3b4c0dad6c07a6ea241103f1d448b9dffbb12e42ab4cfe962fa79831",
+    "0x18e0f81024b3b5430ae235c9a17921299e3e61d4a408ca016a1b12e2412cbdad",
+    "0x1a3c9031586bef356e66f507a7b8bac6acc6292879f168b6ff5cf493ee94597f",
+    "0x795178afa431d13f53ccf05732b4a2f26b72006da225929e1417c90ee1398af0",
+    "0x6930e1f825759849d39cd627214bcd1735aa640a84ee84030f3933de507880d8",
+    "0x01cde1a8833d5095b44aeda4ecf3d3ec0ed13092a3ffba82cd1b1af078a7d0d8",
+    "0xb7a7aa2b1128f6c3caeb792e9ded992920ef835013487ccb377dbbddd09fe905",
+    "0x763b73dbb1cbe43ec1e96cdd4c30e2d1ea63618c6c8a227d30ed8bdd7c53516a",
+    "0xd7feddd2d22a2de179d157e7ca86cea7c7c6ec708950a3239c992872c1d50ba8",
+    "2002697",
+    "2005887",
+    "1887262",
+    "0xdd11223d4aa602cd46f26a93eecb89b58338441be41068eaa967dd48653f2d80",
+    "0x1e688e3b217f932d30c51aefaf79d7ef463ae8c2810635b6f1ffb905d55dcdd6",
+    "0xd6d70644329aed74d42920036f958a158642b579b15623347c5792865b17c3d7"
   ],
   "history": [
     {
@@ -429,6 +503,430 @@
       "market_id": "0xfb00ff35de120017fabe413f445c7260fcbbe3c17b11d69108f953ab573b7c92",
       "question": "Will the price of Bitcoin be above $74,000 on April 15?",
       "timestamp": "2026-04-14T22:12:11.273203",
+      "source": "sync"
+    },
+    {
+      "market_id": "1975709",
+      "question": "Counter-Strike: MOUZ vs Aurora Gaming - Map 2 Winner",
+      "timestamp": "2026-04-14T22:47:47.298618"
+    },
+    {
+      "market_id": "1832860",
+      "question": "Arsenal FC vs. Sporting CP: Both Teams to Score",
+      "timestamp": "2026-04-14T23:17:43.338363"
+    },
+    {
+      "market_id": "1979929",
+      "question": "Google (GOOGL) Up or Down on April 15?",
+      "timestamp": "2026-04-15T02:02:20.725871",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1979990",
+      "question": "Will NVIDIA (NVDA) close above $200 on April 15?",
+      "timestamp": "2026-04-15T03:32:37.742629",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "0x28e24eae304147e39058356ea4b5ae571f25dc4b534289df67453c2e4fa2eb35",
+      "question": "Will NVIDIA (NVDA) close above $200 on April 15?",
+      "timestamp": "2026-04-15T04:59:56.178050",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x1f989df21e2cded20702d6e68c298a4ca8f0565d086daec8f2d91de1b8b6143e",
+      "question": "Google (GOOGL) Up or Down on April 15?",
+      "timestamp": "2026-04-15T04:59:56.178202",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xf1abec0d7ff65b451b488ebbd1662f6efc970161dfec9dba8932550447971f36",
+      "question": "Arsenal FC vs. Sporting CP: Both Teams to Score",
+      "timestamp": "2026-04-15T04:59:56.178338",
+      "source": "sync"
+    },
+    {
+      "market_id": "1979846",
+      "question": "S&P 500 (SPX) Opens Up or Down on April 15?",
+      "timestamp": "2026-04-15T06:00:53.395554",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1980008",
+      "question": "QQQ (QQQ) Up or Down on April 15?",
+      "timestamp": "2026-04-15T10:45:45.213868",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1984610",
+      "question": "Counter-Strike: Vitality vs Team Falcons (BO3) - IEM Rio Group A",
+      "timestamp": "2026-04-15T11:01:29.739894"
+    },
+    {
+      "market_id": "1979852",
+      "question": "Will Apple (AAPL) close above $255 on April 15?",
+      "timestamp": "2026-04-15T12:01:39.488814",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1980009",
+      "question": "SPY (SPY) Up or Down on April 15?",
+      "timestamp": "2026-04-15T12:16:12.473892",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1984581",
+      "question": "Games Total: O/U 2.5",
+      "timestamp": "2026-04-15T13:46:26.277070"
+    },
+    {
+      "market_id": "1979985",
+      "question": "Russell 2000 (RUT) Up or Down on April 15?",
+      "timestamp": "2026-04-15T13:46:31.291049",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1988310",
+      "question": "Will Ethereum reach $2,350 on April 15?",
+      "timestamp": "2026-04-15T14:31:46.843826"
+    },
+    {
+      "market_id": "1979984",
+      "question": "NVIDIA (NVDA) Up or Down on April 15?",
+      "timestamp": "2026-04-15T18:02:28.091550",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1651775",
+      "question": "Red Wings vs. Panthers: O/U 6.5",
+      "timestamp": "2026-04-15T18:47:29.389804"
+    },
+    {
+      "market_id": "1979917",
+      "question": "Will Amazon (AMZN) close above $250 on April 15?",
+      "timestamp": "2026-04-15T19:32:59.113631",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "0xa6bb1a700ed01e8da3f3907d24b1a23097b710fa342b55269e720d0f7443e8ad",
+      "question": "Will Amazon (AMZN) close above $250 on April 15?",
+      "timestamp": "2026-04-15T19:45:01.563436",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x88d9505006ae4d9f35c6da75cf61cb97d068c4fc0a3d489905d7e6d891f23809",
+      "question": "Will Apple (AAPL) close above $255 on April 15?",
+      "timestamp": "2026-04-15T19:45:01.563649",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x0aa0633cc7b74d2e5160eedeac2982d32cde2a3db49b4bcc3af449021660fdea",
+      "question": "Will Ethereum reach $2,350 on April 15?",
+      "timestamp": "2026-04-15T19:45:01.563782",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x2c72897f14f240f96044f231539cfe15a35ee191293ed1b69a1c6fbf120cf458",
+      "question": "QQQ (QQQ) Up or Down on April 15?",
+      "timestamp": "2026-04-15T19:45:01.564141",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x9dbee3928e92bfabd856560679ff96cefebe1cfa9ab794b4df3365744d871638",
+      "question": "S&P 500 (SPX) Opens Up or Down on April 15?",
+      "timestamp": "2026-04-15T19:45:01.564270",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x875a82b2bac93809b287e42bd7d68b3abb1a2e4bd46f64006308d6e8dc845277",
+      "question": "SPY (SPY) Up or Down on April 15?",
+      "timestamp": "2026-04-15T19:45:01.564497",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x5acb2a6ed81655e5bc9db476543bf44f0a8f5b2d8468dbdaeac8505de7c2261c",
+      "question": "Russell 2000 (RUT) Up or Down on April 15?",
+      "timestamp": "2026-04-15T19:45:01.564612",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xd38c74ee94a237313b403664ca8ef065026a34a2c233c792f0bdaf36757cdc41",
+      "question": "NVIDIA (NVDA) Up or Down on April 15?",
+      "timestamp": "2026-04-15T19:45:01.564725",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x74ab2fba97231234d55902e87625e85990012754e8cbcadcc5dc0fe6033261d3",
+      "question": "Counter-Strike: Vitality vs Team Falcons (BO3) - IEM Rio Group A",
+      "timestamp": "2026-04-15T19:45:01.565815",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xa68a591e02c04cf9a119aa01027ce0765fcbed1c9a2abd34840d16d615fa4206",
+      "question": "Red Wings vs. Panthers: O/U 6.5",
+      "timestamp": "2026-04-15T19:45:01.566008",
+      "source": "sync"
+    },
+    {
+      "market_id": "1941007",
+      "question": "Will Meta (META) finish week of April 13 above $660?",
+      "timestamp": "2026-04-15T20:00:09.574280",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "0x0142865e8300ebb1931fb292cb84e9dd48aa92901f68f9fe3a5ea98179ae81f2",
+      "question": "Will Meta (META) finish week of April 13 above $660?",
+      "timestamp": "2026-04-15T20:07:37.070286",
+      "source": "sync"
+    },
+    {
+      "market_id": "1991169",
+      "question": "Meta (META) Up or Down on April 16?",
+      "timestamp": "2026-04-15T22:08:24.833245",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1991083",
+      "question": "S&P 500 (SPX) Opens Up or Down on April 16?",
+      "timestamp": "2026-04-16T06:24:29.350009",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1991204",
+      "question": "SPY (SPY) Up or Down on April 16?",
+      "timestamp": "2026-04-16T09:10:08.362136",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1991203",
+      "question": "QQQ (QQQ) Up or Down on April 16?",
+      "timestamp": "2026-04-16T10:55:31.170880",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1962583",
+      "question": "Valorant: EDward Gaming vs XLG Gaming (BO3) - VCT China Group Omega",
+      "timestamp": "2026-04-16T12:56:05.537460"
+    },
+    {
+      "market_id": "1962710",
+      "question": "MegaETH FDV above $1.2B one day after launch?",
+      "timestamp": "2026-04-16T14:10:54.347872"
+    },
+    {
+      "market_id": "1848024",
+      "question": "Aston Villa FC vs. Bologna FC 1909: Both Teams to Score",
+      "timestamp": "2026-04-16T14:41:08.256486"
+    },
+    {
+      "market_id": "1991177",
+      "question": "Tesla (TSLA) Up or Down on April 16?",
+      "timestamp": "2026-04-16T15:41:50.607539",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1999253",
+      "question": "Warriors vs. Suns",
+      "timestamp": "2026-04-16T16:56:55.549230"
+    },
+    {
+      "market_id": "1991161",
+      "question": "Google (GOOGL) Up or Down on April 16?",
+      "timestamp": "2026-04-16T16:56:57.291213",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1938211",
+      "question": "Will the price of XRP be above $1.40 on April 17?",
+      "timestamp": "2026-04-16T16:57:00.532160"
+    },
+    {
+      "market_id": "1991152",
+      "question": "Amazon (AMZN) Up or Down on April 16?",
+      "timestamp": "2026-04-16T17:26:51.485862",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1938158",
+      "question": "Will the price of Bitcoin be above $74,000 on April 17?",
+      "timestamp": "2026-04-16T17:26:54.650115"
+    },
+    {
+      "market_id": "1937264",
+      "question": "Real Madrid vs. KK Crvena Zvezda",
+      "timestamp": "2026-04-16T17:41:46.486229"
+    },
+    {
+      "market_id": "1840341",
+      "question": "AEK vs. Rayo Vallecano de Madrid: O/U 2.5",
+      "timestamp": "2026-04-16T17:56:55.518660"
+    },
+    {
+      "market_id": "1998672",
+      "question": "Netflix (NFLX) Up or Down on April 17?",
+      "timestamp": "2026-04-17T00:28:05.347644",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1998543",
+      "question": "S&P 500 (SPX) Opens Up or Down on April 17?",
+      "timestamp": "2026-04-17T04:59:17.429520",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1998625",
+      "question": "Will Amazon (AMZN) close above $240 on April 17?",
+      "timestamp": "2026-04-17T05:13:42.731211",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2003574",
+      "question": "Will Bitcoin reach $76,000 on April 17?",
+      "timestamp": "2026-04-17T07:29:06.650798"
+    },
+    {
+      "market_id": "1998676",
+      "question": "Will NVIDIA (NVDA) close above $195 on April 17?",
+      "timestamp": "2026-04-17T07:43:58.339013",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1998544",
+      "question": "Apple (AAPL) Up or Down on April 17?",
+      "timestamp": "2026-04-17T09:14:10.948540",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1998655",
+      "question": "Tesla (TSLA) Up or Down on April 17?",
+      "timestamp": "2026-04-17T09:29:37.325070",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1998638",
+      "question": "Google (GOOGL) Up or Down on April 17?",
+      "timestamp": "2026-04-17T09:44:17.553296",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2002696",
+      "question": "US x Iran diplomatic meeting by April 19, 2026?",
+      "timestamp": "2026-04-17T12:45:07.418092"
+    },
+    {
+      "market_id": "1947738",
+      "question": "Will the price of Ethereum be above $2,400 on April 18?",
+      "timestamp": "2026-04-17T13:15:11.343771"
+    },
+    {
+      "market_id": "2001429",
+      "question": "Dota 2: Team Liquid vs GamerLegion (BO3) - PGL Wallachia Group Stage",
+      "timestamp": "2026-04-17T15:15:14.713521"
+    },
+    {
+      "market_id": "1941083",
+      "question": "Will NVIDIA (NVDA) finish week of April 13 above $200?",
+      "timestamp": "2026-04-17T15:30:34.413809",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "0x3d0a5bbc59bb380463362d6e88e900773902e4043064b2dac5c4ddf71a7484c5",
+      "question": "Netflix (NFLX) Up or Down on April 17?",
+      "timestamp": "2026-04-18T00:00:38.236357",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x167862d88aba2d1928c4c44a0feeee66e1e29b6f3d5792e551e3e0d6c2da9a6f",
+      "question": "S&P 500 (SPX) Opens Up or Down on April 17?",
+      "timestamp": "2026-04-18T00:00:38.236475",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xff17fdcf3b4c0dad6c07a6ea241103f1d448b9dffbb12e42ab4cfe962fa79831",
+      "question": "Apple (AAPL) Up or Down on April 17?",
+      "timestamp": "2026-04-18T00:00:38.236561",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x18e0f81024b3b5430ae235c9a17921299e3e61d4a408ca016a1b12e2412cbdad",
+      "question": "MegaETH FDV above $1.2B one day after launch?",
+      "timestamp": "2026-04-18T00:00:38.236580",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x1a3c9031586bef356e66f507a7b8bac6acc6292879f168b6ff5cf493ee94597f",
+      "question": "Tesla (TSLA) Up or Down on April 17?",
+      "timestamp": "2026-04-18T00:00:38.236756",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x795178afa431d13f53ccf05732b4a2f26b72006da225929e1417c90ee1398af0",
+      "question": "Google (GOOGL) Up or Down on April 17?",
+      "timestamp": "2026-04-18T00:00:38.236826",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x6930e1f825759849d39cd627214bcd1735aa640a84ee84030f3933de507880d8",
+      "question": "Warriors vs. Suns",
+      "timestamp": "2026-04-18T00:00:38.236894",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x01cde1a8833d5095b44aeda4ecf3d3ec0ed13092a3ffba82cd1b1af078a7d0d8",
+      "question": "US x Iran diplomatic meeting by April 19, 2026?",
+      "timestamp": "2026-04-18T00:00:38.236963",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xb7a7aa2b1128f6c3caeb792e9ded992920ef835013487ccb377dbbddd09fe905",
+      "question": "Will NVIDIA (NVDA) finish week of April 13 above $200?",
+      "timestamp": "2026-04-18T00:00:38.237032",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x763b73dbb1cbe43ec1e96cdd4c30e2d1ea63618c6c8a227d30ed8bdd7c53516a",
+      "question": "Will the price of Ethereum be above $2,400 on April 18?",
+      "timestamp": "2026-04-18T00:00:38.237158",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xd7feddd2d22a2de179d157e7ca86cea7c7c6ec708950a3239c992872c1d50ba8",
+      "question": "Dota 2: Team Liquid vs GamerLegion (BO3) - PGL Wallachia Group Stage",
+      "timestamp": "2026-04-18T00:00:38.237223",
+      "source": "sync"
+    },
+    {
+      "market_id": "2002697",
+      "question": "US x Iran diplomatic meeting by April 20, 2026?",
+      "timestamp": "2026-04-18T10:48:08.422027"
+    },
+    {
+      "market_id": "2005887",
+      "question": "Will Meta (META) close above $700 on April 20?",
+      "timestamp": "2026-04-18T20:04:58.850806",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "1887262",
+      "question": "Manchester City FC vs. Arsenal FC: Both Teams to Score",
+      "timestamp": "2026-04-19T11:52:37.629890"
+    },
+    {
+      "market_id": "0xdd11223d4aa602cd46f26a93eecb89b58338441be41068eaa967dd48653f2d80",
+      "question": "Will Meta (META) close above $700 on April 20?",
+      "timestamp": "2026-04-19T18:12:52.591433",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x1e688e3b217f932d30c51aefaf79d7ef463ae8c2810635b6f1ffb905d55dcdd6",
+      "question": "US x Iran diplomatic meeting by April 20, 2026?",
+      "timestamp": "2026-04-19T18:12:52.591634",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xd6d70644329aed74d42920036f958a158642b579b15623347c5792865b17c3d7",
+      "question": "Manchester City FC vs. Arsenal FC: Both Teams to Score",
+      "timestamp": "2026-04-19T18:12:52.591781",
       "source": "sync"
     }
   ]
