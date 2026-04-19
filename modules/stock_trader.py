@@ -84,6 +84,7 @@ class StockTrader:
         # correlación de mercado (17-Abr: 5 stocks Up el mismo día,
         # todos perdieron −$42.84 cuando la bolsa bajó).
         self._daily_stock_count: Dict = {"date": "", "count": 0}
+        self._daily_limit_reached = False
         self._load_traded()
 
     def _register_bet_direction(self, index_key: str, direction: str):
@@ -297,9 +298,17 @@ class StockTrader:
         today = datetime.now().strftime("%Y-%m-%d")
         if self._daily_stock_count["date"] != today:
             self._daily_stock_count = {"date": today, "count": 0}
-        if self._daily_stock_count["count"] >= 3:
-            logger.info(f"      ⛔ Max 3 stock bets/día alcanzado")
-            return None
+        if self._daily_stock_count["count"] >= 5:
+            # Override: si el edge es excepcional (>25%), dejar pasar.
+            # Edges >25% son raros (1-2/semana) y casi siempre ganan.
+            # Ejemplo: AMZN >$245 con edge 72% → +$16.53
+            # El override se evalúa DESPUÉS de calcular edge (más abajo),
+            # así que aquí solo logeamos y seguimos — el check real
+            # va después de calcular edge_yes/edge_no.
+            logger.info(f"      ⚠️ Max 5 stock bets/día alcanzado — evaluando override por edge alto...")
+            self._daily_limit_reached = True
+        else:
+            self._daily_limit_reached = False
 
         question = market.get("question", "")
         market_id = str(market.get("id", ""))
@@ -381,6 +390,14 @@ class StockTrader:
         else:
             logger.info(f"      Edge YES={edge_yes:+.1%}, NO={edge_no:+.1%} → insuficiente")
             return None
+
+        # Override check: si ya llegamos al límite diario, solo permitir
+        # si el edge es excepcional
+        if getattr(self, '_daily_limit_reached', False) and edge < 0.25:
+            logger.info(f"      ⛔ Max 5/día + edge {edge:.1%} < 25%: skip")
+            return None
+        elif getattr(self, '_daily_limit_reached', False) and edge >= 0.25:
+            logger.info(f"      🔥 OVERRIDE: edge {edge:.1%} >= 25% — apuesta a pesar del límite diario")
 
         # Colas largas (precio < 10¢ o > 90¢) tienen alta varianza y
         # poco upside realista. El único STOCKS LOST histórico fue
