@@ -661,13 +661,24 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 "spread:", "o/u", "over/under", "handicap", "total points",
                 "game total", "moneyline", "map handicap", "game handicap",
                 "race winner", "pole position", "podium",
+                # Política/Geopolítica de corto plazo (20-Abr: Iran dio +$24).
+                # El filtro de resolución <2 días del scanner bloquea
+                # naturalmente cualquier mercado político de largo plazo.
+                "diplomatic", "ceasefire", "sanctions", "summit",
+                "meeting by", "talks", "negotiations", "deal",
+                "iran", "tariff", "trade war", "embargo",
             ]
 
             # Excluir mercados que NO son deportes
+            # "election"/"congress" removidos (20-Abr) para permitir política
+            # de corto plazo (Iran diplomatic dio +$24). "president" queda
+            # bloqueado porque mercados presidenciales son a largo plazo;
+            # el filtro de resolución <2 días del scanner bloquea de todos
+            # modos cualquier mercado político de largo plazo.
             exclude_kw = ["temperature", "weather", "temp", "°f", "°c",
                           "bitcoin", "btc", "ethereum", "eth", "solana", "sol",
                           "price of", "ipo", "valuation", "gdp", "inflation",
-                          "election", "president", "congress", "tweet", "musk",
+                          "president", "tweet", "musk",
                           # Bloquear mercados de empate (IA los miscalibra,
                           # ligas sudamericanas tienen ~25% draw rate)
                           "end in a draw", "draw?"]
