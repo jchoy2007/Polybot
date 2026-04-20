@@ -310,6 +310,20 @@ class StockTrader:
         else:
             self._daily_limit_reached = False
 
+        # Solo apostar stocks durante horario de mercado US.
+        # Pre-market (antes 9:30 ET) tiene datos poco confiables:
+        # el 20-Abr apostó 3 stocks a las 8:44 UTC y SPX Opens Up
+        # abrió DOWN → −$8.69 inmediato.
+        # Mercado US: 9:30-16:00 ET = 13:30-20:00 UTC
+        # Ventana: 14:00-20:59 UTC (30 min buffer tras open).
+        now_utc = datetime.now(timezone.utc)
+        market_hour = now_utc.hour
+        if market_hour < 14 or market_hour > 20:
+            weekday = now_utc.weekday()
+            if weekday < 5:
+                logger.info(f"      ⏰ Fuera de horario US ({now_utc.strftime('%H:%M')} UTC): skip")
+            return None
+
         question = market.get("question", "")
         market_id = str(market.get("id", ""))
 
