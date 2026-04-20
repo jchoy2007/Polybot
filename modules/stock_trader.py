@@ -299,14 +299,14 @@ class StockTrader:
         today = datetime.now().strftime("%Y-%m-%d")
         if self._daily_stock_count["date"] != today:
             self._daily_stock_count = {"date": today, "count": 0}
-        if self._daily_stock_count["count"] >= 2:
+        if self._daily_stock_count["count"] >= 4:
             # Override: si el edge es excepcional (>25%), dejar pasar.
             # Edges >25% son raros (1-2/semana) y casi siempre ganan.
             # Ejemplo: AMZN >$245 con edge 72% → +$16.53
             # El override se evalúa DESPUÉS de calcular edge (más abajo),
             # así que aquí solo logeamos y seguimos — el check real
             # va después de calcular edge_yes/edge_no.
-            logger.info(f"      ⚠️ Max 2 stock bets/día alcanzado — evaluando override por edge alto...")
+            logger.info(f"      ⚠️ Max 4 stock bets/día alcanzado — evaluando override por edge alto...")
             self._daily_limit_reached = True
         else:
             self._daily_limit_reached = False

@@ -204,7 +204,7 @@ class TelegramMonitor:
                                      positions: List[Dict],
                                      tracker_summary: str,
                                      stock_daily_count: Optional[int] = None,
-                                     stock_daily_limit: int = 2):
+                                     stock_daily_limit: int = 4):
         """
         Reporte periódico completo (~cada hora).
         Formato rico con Balance libre / En posiciones / Total estimado
