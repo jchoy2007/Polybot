@@ -1301,7 +1301,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 positions=_positions_tg or [],
                 tracker_summary=tracker.get_summary(exclude_strategies=["CRYPTO"]),
                 stock_daily_count=_stock_count,
-                stock_daily_limit=5,
+                stock_daily_limit=2,
             )
         except Exception as _e_tg:
             logger.debug(f"Error reporte Telegram: {_e_tg}")

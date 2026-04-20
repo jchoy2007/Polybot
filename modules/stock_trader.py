@@ -293,19 +293,20 @@ class StockTrader:
 
     async def _analyze_and_trade(self, market: Dict) -> Optional[Dict]:
         """Analiza mercado de bolsa y ejecuta si hay edge."""
-        # Tope de 3 stock bets/día: si la bolsa baja, todos los Up
-        # pierden juntos (17-Abr: 5 Up → −$42.84).
+        # Tope de 2 stock bets/día: con mercado bajista (20-Abr: balance
+        # cayó a $135, 5 bets Up perdieron juntas −$34). Bajado de 5→2
+        # para limitar pérdida peor caso a ~−$15.
         today = datetime.now().strftime("%Y-%m-%d")
         if self._daily_stock_count["date"] != today:
             self._daily_stock_count = {"date": today, "count": 0}
-        if self._daily_stock_count["count"] >= 5:
+        if self._daily_stock_count["count"] >= 2:
             # Override: si el edge es excepcional (>25%), dejar pasar.
             # Edges >25% son raros (1-2/semana) y casi siempre ganan.
             # Ejemplo: AMZN >$245 con edge 72% → +$16.53
             # El override se evalúa DESPUÉS de calcular edge (más abajo),
             # así que aquí solo logeamos y seguimos — el check real
             # va después de calcular edge_yes/edge_no.
-            logger.info(f"      ⚠️ Max 5 stock bets/día alcanzado — evaluando override por edge alto...")
+            logger.info(f"      ⚠️ Max 2 stock bets/día alcanzado — evaluando override por edge alto...")
             self._daily_limit_reached = True
         else:
             self._daily_limit_reached = False
@@ -336,6 +337,31 @@ class StockTrader:
         direction = parsed["direction"]
 
         logger.info(f"   📈 {question[:55]}")
+
+        # Filtro de tendencia: si el S&P está bajando fuerte hoy,
+        # NO apostar "Up" en ningún stock (correlación de mercado).
+        # 20-Abr: mercado -2%, 5 bets Up perdieron -$34.
+        try:
+            sp500_data = await self._get_market_data("sp500")
+            if sp500_data:
+                market_change = sp500_data.get("change_pct", 0)
+                # Si S&P baja >1% y vamos a apostar UP → skip
+                if market_change < -0.01 and direction.upper() == "UP":
+                    logger.info(
+                        f"      📉 Mercado bajando ({market_change:+.2%}), "
+                        f"skip bet UP en {INDICES[index_key]['name']}"
+                    )
+                    return None
+                # Si S&P sube >1% y vamos a apostar DOWN → skip
+                if market_change > 0.01 and direction.upper() == "DOWN":
+                    logger.info(
+                        f"      📈 Mercado subiendo ({market_change:+.2%}), "
+                        f"skip bet DOWN en {INDICES[index_key]['name']}"
+                    )
+                    return None
+        except Exception as e:
+            logger.debug(f"      Trend check error: {e}")
+            # Si falla el check, continuar normal
 
         # 2. Obtener datos del mercado
         mkt_data = await self._get_market_data(index_key)
