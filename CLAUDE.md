@@ -160,8 +160,44 @@ min_market_volume = 1000     # Relajado de 2k el 14-Apr
 | 20-Abr | ~$140 | Pre-market stocks perdieron -$34 (5 bets UP en mercado -2%) |
 | 21-Abr | $116 | 4/4 stocks LOSS; filtro tendencia S&P no disparaba (silent fail en `logger.debug`) |
 | 22-Abr | $102.54 cash + $14 pos ≈ $116 | Filtros reforzados: trend fail-safe + VIX + skip counter |
+| 22-Abr (PM) | $74.83 cash / ~$125 total | 11 commits hoy: VIX fix (User-Agent+Stooq) + Telegram logging + Whale monitor + Backtest |
 
 _Añadir filas cada auditoría._
+
+---
+
+## 🧰 Scripts disponibles
+
+| Script | Propósito |
+|---|---|
+| `scripts/daily_audit.py` | Reporte rápido de balance, WR, trades 24h, posiciones |
+| `scripts/daily_backup.sh` | Backup de `data/` (cron 23:00 UTC) |
+| `scripts/pre_restart_check.py` | Valida sintaxis, env vars, wallet antes de restart |
+| `scripts/whale_monitor.py` | Monitor top whales de Polymarket (cron horario) |
+| `scripts/backtest.py` | Aplica filtros actuales retroactivamente vs resultados reales |
+| `redeem.py` | Cobrar posiciones resueltas (manual o cron) |
+
+## ⏰ Cronjobs instalados
+
+```
+0 23 * * *  /root/Polybot/scripts/daily_backup.sh >> /root/Polybot/logs/backup.log 2>&1
+0 * * * *   /root/Polybot/venv/bin/python /root/Polybot/scripts/whale_monitor.py >> /root/Polybot/logs/whales.log 2>&1
+```
+
+## 📈 Resultados backtest (22-Abr)
+
+Últimos 30 días, filtros actuales aplicados retroactivamente a `data/trade_results.json`:
+
+| | Trades | Win rate | P&L |
+|---|---|---|---|
+| **Real** | 50/90 | 55.6% | +$221.15 |
+| **Con filtros** | 43/70 | 61.4% | +$266.58 |
+| **Mejora** | −20 bloqueados | +5.9pp | +$45.43 |
+
+- **SPORTS pasó de 54% → 75% WR** (el grueso de la mejora)
+- **STOCKS** ya estaba bien (60% → 61%)
+- **CRYPTO** sin cambio (edge/prob no registrados en trades viejos)
+- Top bloqueos: derivados esports (9×), SPORTS fuera rango 0.50-0.80 (5×), SPORTS edge <6% (5×)
 
 ---
 
