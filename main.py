@@ -1304,7 +1304,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 stock_daily_limit=4,
             )
         except Exception as _e_tg:
-            logger.debug(f"Error reporte Telegram: {_e_tg}")
+            logger.warning(f"⚠️ Error reporte Telegram: {_e_tg}", exc_info=True)
 
     # Restaurar SAFETY defaults (idempotente) — weekend overrides no deben
     # filtrarse a lunes si el ciclo terminó por excepción.

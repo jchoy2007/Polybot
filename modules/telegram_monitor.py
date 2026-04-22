@@ -211,9 +211,16 @@ class TelegramMonitor:
         y clasificación de posiciones en GANANDO / EN JUEGO / PERDIENDO.
         """
         self.cycle_count += 1
+        logger.info(
+            f"📤 Telegram reporte periódico: ciclo {self.cycle_count}/{self.report_interval}"
+        )
         if self.cycle_count < self.report_interval:
+            logger.info(
+                f"   ⏳ Esperando {self.report_interval - self.cycle_count} ciclos más"
+            )
             return
         self.cycle_count = 0
+        logger.info("   🚀 Generando reporte completo...")
 
         # Filtrar posiciones activas (valor > 1¢) y calcular totales.
         # Calculamos value = size * curPrice en vez de confiar en
