@@ -9,9 +9,14 @@ import aiohttp
 from datetime import datetime
 
 WHALES = {
-    "coinman2": "0x55be7aa03ecfbe37aa5460db791205f7ac9ddca3",
-    # TODO: agregar top 2-3 wallets más cuando las identifiquemos
-    # (polymarketanalytics.com, leaderboard, etc.)
+    # Top whales descubiertos por heurística portfolio-size (22-Abr-2026):
+    # cruce de wallets con trades ≥ $10k en las últimas 500 entradas del
+    # endpoint /trades contra el tamaño de portfolio actual vía /positions.
+    # NO es ranking por PnL (requiere histórico) — es proxy por capital
+    # desplegado. Reseleccionar cada 4-6 semanas.
+    "coinman2":       "0x55be7aa03ecfbe37aa5460db791205f7ac9ddca3",  # ~$58k (user-provided)
+    "Lost-Macadamia": "0x45b39e1f71e47fd4afe4b988ffad690b644735bc",  # ~$1.6M portfolio
+    "Neat-Spine":     "0x36a3f17401e395ef4cb1b7f42bcdb8ab8e15fafb",  # ~$1.3M portfolio, muy activo
 }
 
 DATA_API = "https://data-api.polymarket.com"
