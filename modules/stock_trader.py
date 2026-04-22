@@ -686,22 +686,47 @@ class StockTrader:
             return None
 
     async def _get_vix(self) -> Optional[float]:
-        """Obtiene el VIX actual. Retorna None si falla."""
+        """Obtiene el VIX actual. Retorna None si falla.
+
+        Yahoo rate-limits (HTTP 429) cuando falta User-Agent.
+        Fallback a Stooq CSV si Yahoo está caído.
+        """
+        session = await self._get_session()
+        headers = {"User-Agent": "Mozilla/5.0"}
+
         try:
-            session = await self._get_session()
             url = "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX"
-            async with session.get(url, timeout=10) as resp:
+            async with session.get(url, headers=headers, timeout=10) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    result = data.get("chart", {}).get("result", [])
+                    if result:
+                        price = result[0].get("meta", {}).get("regularMarketPrice")
+                        if price:
+                            return float(price)
+                else:
+                    logger.debug(f"VIX Yahoo status={resp.status}, probando Stooq")
+        except Exception as e:
+            logger.debug(f"VIX Yahoo error: {e}, probando Stooq")
+
+        try:
+            url = "https://stooq.com/q/l/?s=%5Evix&f=sd2t2ohlc&h&e=csv"
+            async with session.get(url, headers=headers, timeout=10) as resp:
                 if resp.status != 200:
                     return None
-                data = await resp.json()
-                result = data.get("chart", {}).get("result", [])
-                if not result:
+                text = await resp.text()
+                lines = text.strip().split("\n")
+                if len(lines) < 2:
                     return None
-                meta = result[0].get("meta", {})
-                price = meta.get("regularMarketPrice")
-                return float(price) if price else None
+                cols = lines[1].split(",")
+                if len(cols) < 7:
+                    return None
+                close = cols[6]
+                if close in ("N/D", "", "0"):
+                    return None
+                return float(close)
         except Exception as e:
-            logger.debug(f"VIX fetch error: {e}")
+            logger.debug(f"VIX Stooq error: {e}")
             return None
 
     # ═══════════════════════════════════════════════════════════════
