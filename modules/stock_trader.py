@@ -360,6 +360,11 @@ class StockTrader:
         # 20-Abr: mercado -2%, 5 bets Up perdieron -$34.
         # 21-Abr: 4 stocks perdieron sin log del filtro (silent fail en debug).
         # Fail-safe: si no se puede obtener data, skip (no apostar ciego).
+        # NOTA (22-Abr): _parse_stock_question devuelve "up"/"down" lowercase,
+        # así que direction.upper() cubre tanto "Up/Down" como "close above/below"
+        # (above → parser default "up", below matchea "close lower"/"decline"
+        # → "down"). Parser gap conocido: "closes below $X" sin verbos de caída
+        # cae en default "up"; seguimiento en TODO separado.
         try:
             sp500_data = await self._get_market_data("sp500")
             if sp500_data is None:
