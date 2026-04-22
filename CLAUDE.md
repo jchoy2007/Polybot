@@ -292,8 +292,8 @@ cd /root/Polybot && git pull origin main && systemctl restart polybot
 7. **Afinar filtros** si bot toma muy pocas apuestas o demasiadas
 
 ### Criterios de parada (kill switches)
-- Balance < $100 → pausar bot, auditar
-- Balance < $80 → parar bot, decidir si seguir
+- Balance < $80 → pausar bot, auditar
+- Balance < $60 → parar bot, decidir si seguir (kill switch automático en `settings.py`: `max_total_loss_pct = 0.70`, 22-Abr)
 - WR acumulado < 35% en 20+ trades → revisar estrategia
 - >5 pérdidas consecutivas → pausa automática 30 min (ya implementado)
 

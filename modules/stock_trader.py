@@ -341,27 +341,31 @@ class StockTrader:
         # Filtro de tendencia: si el S&P está bajando fuerte hoy,
         # NO apostar "Up" en ningún stock (correlación de mercado).
         # 20-Abr: mercado -2%, 5 bets Up perdieron -$34.
+        # 21-Abr: 4 stocks perdieron sin log del filtro (silent fail en debug).
+        # Fail-safe: si no se puede obtener data, skip (no apostar ciego).
         try:
             sp500_data = await self._get_market_data("sp500")
-            if sp500_data:
-                market_change = sp500_data.get("change_pct", 0)
-                # Si S&P baja >1% y vamos a apostar UP → skip
-                if market_change < -0.01 and direction.upper() == "UP":
-                    logger.info(
-                        f"      📉 Mercado bajando ({market_change:+.2%}), "
-                        f"skip bet UP en {INDICES[index_key]['name']}"
-                    )
-                    return None
-                # Si S&P sube >1% y vamos a apostar DOWN → skip
-                if market_change > 0.01 and direction.upper() == "DOWN":
-                    logger.info(
-                        f"      📈 Mercado subiendo ({market_change:+.2%}), "
-                        f"skip bet DOWN en {INDICES[index_key]['name']}"
-                    )
-                    return None
+            if sp500_data is None:
+                logger.warning(f"      ⚠️ No se pudo obtener S&P data — skip por precaución")
+                return None
+            market_change = sp500_data.get("change_pct", 0)
+            logger.info(f"      📊 S&P tendencia: {market_change:+.2%}")
+            # Umbral bajado de ±1% a ±0.5% tras pérdida 4/4 del 21-Abr.
+            if market_change < -0.005 and direction.upper() == "UP":
+                logger.info(
+                    f"      📉 Mercado bajando ({market_change:+.2%}), "
+                    f"skip bet UP en {INDICES[index_key]['name']}"
+                )
+                return None
+            if market_change > 0.005 and direction.upper() == "DOWN":
+                logger.info(
+                    f"      📈 Mercado subiendo ({market_change:+.2%}), "
+                    f"skip bet DOWN en {INDICES[index_key]['name']}"
+                )
+                return None
         except Exception as e:
-            logger.debug(f"      Trend check error: {e}")
-            # Si falla el check, continuar normal
+            logger.warning(f"      ⚠️ Error trend check: {e} — skip por precaución")
+            return None
 
         # 2. Obtener datos del mercado
         mkt_data = await self._get_market_data(index_key)

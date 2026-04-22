@@ -59,7 +59,7 @@ class SafetyRules:
     # --- Stop-loss automáticos (protección real de capital) ---
     max_daily_loss_pct: float = 0.20    # Parar si pierde 20% en un día
     max_weekly_loss_pct: float = 0.25   # Parar si pierde 25% en una semana
-    max_total_loss_pct: float = 0.40    # Kill switch: parar si pierde 40% del ATH
+    max_total_loss_pct: float = 0.70    # Kill switch: parar si pierde 70% del ATH ($60 con ATH $200 — bajado 22-Abr)
     cooldown_hours_after_stoploss: int = 6  # Pausa de 6 horas tras stop-loss
     max_consecutive_losses: int = 5     # Pausa 30 min después de 5 pérdidas seguidas
     consecutive_loss_pause_minutes: int = 30  # Minutos de pausa tras pérdidas seguidas
