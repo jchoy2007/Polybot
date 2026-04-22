@@ -338,6 +338,23 @@ class StockTrader:
 
         logger.info(f"   📈 {question[:55]}")
 
+        # Filtro VIX: volatilidad del mercado. VIX alto = mercado en pánico,
+        # los stocks tienden a comportamiento errático y los filtros de
+        # tendencia no calibran. 22-Abr: agregado tras 4/4 LOSS del 21-Abr.
+        vix = await self._get_vix()
+        if vix is not None:
+            logger.info(f"      📊 VIX: {vix:.1f}")
+            if vix > 30:
+                logger.warning(f"      ⚠️ VIX {vix:.1f} > 30 (pánico): skip")
+                return None
+            elif vix > 25:
+                logger.info(f"      📊 VIX {vix:.1f} > 25 (nervioso): skip")
+                return None
+            elif vix > 20:
+                logger.info(f"      ⚠️ VIX {vix:.1f} elevado pero operando")
+        else:
+            logger.warning(f"      ⚠️ VIX no disponible — continuar con precaución")
+
         # Filtro de tendencia: si el S&P está bajando fuerte hoy,
         # NO apostar "Up" en ningún stock (correlación de mercado).
         # 20-Abr: mercado -2%, 5 bets Up perdieron -$34.
@@ -642,6 +659,25 @@ class StockTrader:
                 pc = meta.get("previousClose", 1)
                 return {"price": p, "change_pct": (p - pc) / pc if pc else 0}
         except Exception:
+            return None
+
+    async def _get_vix(self) -> Optional[float]:
+        """Obtiene el VIX actual. Retorna None si falla."""
+        try:
+            session = await self._get_session()
+            url = "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX"
+            async with session.get(url, timeout=10) as resp:
+                if resp.status != 200:
+                    return None
+                data = await resp.json()
+                result = data.get("chart", {}).get("result", [])
+                if not result:
+                    return None
+                meta = result[0].get("meta", {})
+                price = meta.get("regularMarketPrice")
+                return float(price) if price else None
+        except Exception as e:
+            logger.debug(f"VIX fetch error: {e}")
             return None
 
     # ═══════════════════════════════════════════════════════════════
