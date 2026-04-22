@@ -241,7 +241,22 @@ class TelegramMonitor:
         real_roi = (pnl_real / initial) * 100 if initial > 0 else 0
         pnl_emoji = "📈" if pnl_real >= 0 else "📉"
 
+        # Goal tracking: meta $350 al 30-Abril-2026.
+        goal = 350.0
+        goal_date = datetime(2026, 4, 30)
+        days_left = max((goal_date - datetime.now()).days, 1)
+        missing = goal - total_estimated
+        if missing <= 0:
+            goal_line = f"🏆 META CUMPLIDA: ${total_estimated:.2f} ≥ ${goal:.0f}"
+        else:
+            per_day = missing / days_left
+            goal_line = (
+                f"🎯 META: ${goal:.0f} al 30-Abr | Falta: ${missing:.0f} "
+                f"({days_left}d, +${per_day:.1f}/día)"
+            )
+
         lines = [
+            goal_line,
             "📊 REPORTE POLYBOT",
             "━━━━━━━━━━━━━━━━━━",
             f"💰 Balance libre: ${bankroll:.2f}",
