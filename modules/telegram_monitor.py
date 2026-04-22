@@ -316,6 +316,24 @@ class TelegramMonitor:
                     pnl_str = f"-${abs(pnl):.2f}" if pnl < 0 else f"+${pnl:.2f}"
                     lines.append(f"  {title} | {side} ${value:.2f} ({cur_price:.0%}) {pnl_str}")
 
+        # Contador de skips de filtros hoy (grep sobre log del día).
+        # Ayuda a validar que los filtros están disparando realmente.
+        skip_counts = self._count_filter_skips_today()
+        if skip_counts:
+            lines.append("\n🛡️ FILTROS HOY:")
+            lines.append(
+                f"  Horario: {skip_counts['horario']} | "
+                f"Tendencia S&P: {skip_counts['tendencia']} | "
+                f"VIX: {skip_counts['vix']}"
+            )
+            lines.append(
+                f"  Max día: {skip_counts['max_dia']} | "
+                f"Gap: {skip_counts['gap']} | "
+                f"SPORTS estricto: {skip_counts['sports']}"
+            )
+            total = sum(skip_counts.values())
+            lines.append(f"  Total protecciones: {total}")
+
         # Historial completo del tracker (overall + por estrategia).
         # Antes solo se mostraba la primera línea, ocultando el
         # desglose SPORTS/STOCKS/CRYPTO que es información clave.
@@ -334,6 +352,34 @@ class TelegramMonitor:
             self.last_trades.clear()
 
         await self.send("\n".join(lines))
+
+    def _count_filter_skips_today(self) -> Optional[Dict[str, int]]:
+        """
+        Cuenta cuántas veces disparó cada filtro en el log del día.
+        Devuelve None si no encuentra log. Errores individuales → 0.
+        """
+        try:
+            log_path = f"logs/polybot_{datetime.now().strftime('%Y%m%d')}.log"
+            if not os.path.exists(log_path):
+                return None
+            with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+            lines_ = content.split("\n")
+            counts = {
+                "horario":   content.count("Fuera de horario"),
+                "tendencia": content.count("Mercado bajando") + content.count("Mercado subiendo"),
+                "vix":       sum(1 for ln in lines_
+                                 if "VIX" in ln and ("pánico" in ln or "nervioso" in ln)),
+                "max_dia":   content.count("Max 4 stock bets/día"),
+                "gap":       sum(1 for ln in lines_ if "Gap " in ln and "skip" in ln),
+                "sports":    (content.count("SPORTS market_price")
+                              + content.count("SPORTS edge")
+                              + content.count("SPORTS prob")),
+            }
+            return counts
+        except Exception as e:
+            logger.debug(f"filter skip count error: {e}")
+            return None
 
     async def send_redeem_alert(self, amount: float, count: int,
                                   new_balance: float,
