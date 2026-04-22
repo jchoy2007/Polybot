@@ -85,6 +85,9 @@ class StockTrader:
         # todos perdieron −$42.84 cuando la bolsa bajó).
         self._daily_stock_count: Dict = {"date": "", "count": 0}
         self._daily_limit_reached = False
+        # Daily loss limit: si perdimos $15+ hoy, pausar stocks resto
+        # del día. SPORTS sigue (baja varianza). Ref: 21-Abr -$38 stocks.
+        self._daily_loss_check: Dict = {"date": "", "start_balance": 0.0}
         self._load_traded()
 
     def _register_bet_direction(self, index_key: str, direction: str):
@@ -310,6 +313,22 @@ class StockTrader:
             self._daily_limit_reached = True
         else:
             self._daily_limit_reached = False
+
+        # Daily loss limit: si perdimos $15+ hoy, pausar stocks resto del
+        # día. SPORTS sigue operando (baja varianza). Motivación: 21-Abr
+        # stocks perdieron ~$38 consecutivos sin freno.
+        if self._daily_loss_check["date"] != today:
+            self._daily_loss_check = {
+                "date": today,
+                "start_balance": STATE.current_bankroll,
+            }
+        current_loss = self._daily_loss_check["start_balance"] - STATE.current_bankroll
+        if current_loss >= 15:
+            logger.warning(
+                f"      ⛔ Daily loss limit: perdido ${current_loss:.2f} hoy. "
+                f"Stocks pausados hasta mañana. SPORTS sigue."
+            )
+            return None
 
         # Solo apostar stocks durante horario de mercado US.
         # Pre-market (antes 9:30 ET) tiene datos poco confiables:
