@@ -119,10 +119,71 @@ max_bets_per_cycle = 5
 max_daily_spend = 120.0
 max_resolution_days = 2      # Solo mercados <2 días
 max_daily_loss_pct = 0.20    # Stop-loss 20% diario
-max_total_loss_pct = 0.40    # Kill switch 40% del ATH
+max_total_loss_pct = 0.70    # Kill switch 70% del ATH → $60 con ATH $200 (22-Abr)
 min_market_liquidity = 3000  # Relajado de 5k el 14-Apr
 min_market_volume = 1000     # Relajado de 2k el 14-Apr
 ```
+
+---
+
+## 🛡️ Filtros activos (resumen 22 abril 2026)
+
+1. **Weekend mode** — sábado/domingo muchas estrategias skip (mercado EEUU cerrado)
+2. **Max 4 stocks/día** con override si edge > 25% (`stock_trader.py:302-312`)
+3. **Horario US 14-20 UTC** — fuera de ventana, stocks skip (`stock_trader.py:320-326`)
+4. **Tendencia S&P ±0.5%** con fail-safe (`stock_trader.py:341-376`, 22-Abr)
+   - Si Yahoo falla → skip, NO apuesta ciega
+   - Log siempre: `📊 S&P tendencia: X.XX%`
+5. **VIX < 25** (`stock_trader.py:_get_vix`, 22-Abr)
+   - VIX > 30 → skip (pánico) | > 25 → skip (nervioso) | > 20 → log warning
+6. **Gap filter 3%** — `close above/below $X` con gap > 3% del precio actual → skip
+7. **Colas largas bloqueadas** — YES/NO muy asimétricos (ej. 0.02/0.98) → skip
+8. **No direcciones opuestas mismo ticker** (commit 5dd5635)
+9. **SPORTS estricto**:
+   - `market_price ∈ [0.50, 0.80]`
+   - `prob_win ≥ 0.60`
+   - `edge ≥ 0.06`
+10. **CRYPTO desactivada** temporalmente (3/8 WR, -$12)
+11. **Auto-resolve redeem** vía `redeem.py` + cron o subprocess
+12. **Política corto plazo habilitada** — aceptar mercados diplomatic/sanctions (commit 691aeb5)
+13. **Contador de skips en Telegram** (22-Abr) — el reporte periódico muestra cuántas veces disparó cada filtro en el día
+
+---
+
+## 📈 Balance histórico
+
+| Fecha | Balance | Nota |
+|---|---|---|
+| 14-Abr | $200 | Depósito inicial |
+| 15-Abr | ~$166 | +30% desde mínimo; filtros estrictos ayudaron |
+| 17-Abr | ~$166 | Estable |
+| 20-Abr | ~$140 | Pre-market stocks perdieron -$34 (5 bets UP en mercado -2%) |
+| 21-Abr | $116 | 4/4 stocks LOSS; filtro tendencia S&P no disparaba (silent fail en `logger.debug`) |
+| 22-Abr | $102.54 cash + $14 pos ≈ $116 | Filtros reforzados: trend fail-safe + VIX + skip counter |
+
+_Añadir filas cada auditoría._
+
+---
+
+## 📝 Notas para sesión futura de Claude
+
+**Contexto de subscripción del usuario** (importante para priorizar):
+- Subscripción **Max expira 30-Abr-2026** → después el usuario usa Claude Pro (uso limitado de Claude Code).
+- Bot debe operar **auto-sostenible** a partir de mayo: mínima intervención humana.
+- Rutina diaria del usuario post-Max: **~5 min/día** (audit + redeem si hay 100%).
+
+**Qué esto implica para decisiones de diseño:**
+- Preferir **fail-safe** (skip conservador) sobre fail-open (apuesta ciega) en todos los filtros nuevos.
+- **Logging verbose** en INFO (no DEBUG) para filtros críticos, así el usuario puede diagnosticar con un `grep` sin Claude.
+- **Reportes Telegram auto-contenidos**: todo lo que el usuario necesita ver debe llegarle al celular sin abrir el servidor.
+- **Scripts idempotentes** (`daily_audit.py`, `redeem.py`): que puedan correr sin supervisión y dejar output claro.
+- **Documentación en CLAUDE.md**: cualquier cambio nuevo se anota aquí, así la próxima sesión tiene el contexto completo sin depender del chat.
+
+**Cosas que NO hacer sin confirmar al usuario:**
+- Cambiar sizing (`max_bet_pct`, `kelly_fraction`, `max_bet_absolute`)
+- Reactivar auto-seller
+- Desactivar kill switches o stop-losses
+- Apuestas nuevas sin filtros (ej. crear strategy sin `min_edge`)
 
 ---
 
