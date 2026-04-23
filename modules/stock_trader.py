@@ -434,7 +434,7 @@ class StockTrader:
                 if current_price > 0:
                     gap_pct = abs(target_price - current_price) / current_price
                     is_weekly = weekly_kw and not daily_kw
-                    max_gap = 0.05 if is_weekly else 0.03
+                    max_gap = 0.03
                     if gap_pct > max_gap:
                         kind = "semanal" if is_weekly else "diario"
                         logger.info(
