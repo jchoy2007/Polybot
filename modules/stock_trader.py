@@ -417,16 +417,31 @@ class StockTrader:
         # Gap filter (17-Abr): "close above $X" / "close below $X" con target
         # lejano pierden 3/3 esta semana (AAPL >$255, AMZN >$250, NVDA >$200).
         # Up/Down simples mantienen 90% WR.
+        # Ext 23-Abr: mercados semanales ("finish week above $X") también —
+        # META $690 pasó con gap real 3.45% (-$9.22). Umbral 5% para semanal.
         import re as _re
+        q_lower = question.lower()
         target_match = _re.search(r'\$(\d+(?:,\d{3})*(?:\.\d+)?)', question)
-        if target_match and ("close above" in question.lower() or "close below" in question.lower()):
+        daily_kw = ("close above" in q_lower or "close below" in q_lower)
+        weekly_kw = any(kw in q_lower for kw in (
+            "finish week", "finish above", "finish below",
+            "end above", "end below",
+        ))
+        if target_match and (daily_kw or weekly_kw):
             try:
                 target_price = float(target_match.group(1).replace(",", ""))
                 current_price = mkt_data.get("price", 0)
                 if current_price > 0:
                     gap_pct = abs(target_price - current_price) / current_price
-                    if gap_pct > 0.03:
-                        logger.info(f"      Gap {gap_pct:.1%} > 3% para target ${target_price:.0f} vs actual ${current_price:.0f}: skip")
+                    is_weekly = weekly_kw and not daily_kw
+                    max_gap = 0.05 if is_weekly else 0.03
+                    if gap_pct > max_gap:
+                        kind = "semanal" if is_weekly else "diario"
+                        logger.info(
+                            f"      Gap {gap_pct:.1%} > {max_gap:.0%} para "
+                            f"{kind} target ${target_price:.0f} vs "
+                            f"actual ${current_price:.0f}: skip"
+                        )
                         return None
             except (ValueError, AttributeError):
                 pass
