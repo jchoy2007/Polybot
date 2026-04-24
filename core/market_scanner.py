@@ -8,7 +8,7 @@ mercados activos con suficiente liquidez y volumen.
 import logging
 import aiohttp
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Optional
 from dataclasses import dataclass
 from config.settings import GAMMA_API_URL, CLOB_API_URL, SAFETY
@@ -69,13 +69,22 @@ class MarketScanner:
         Endpoint: GET /markets?active=true&closed=false
         """
         session = await self._get_session()
+        # Filtrar server-side por fecha de resolución. Sin esto el API devuelve
+        # mercados ordenados por volumen — los primeros 500-1000 son futures
+        # long-term (elecciones 2028, Stanley Cup, "before GTA VI"), y los
+        # mercados de <48h (los únicos que podemos tradear por SAFETY.max_resolution_days)
+        # quedan enterrados más allá del offset máximo que iteramos.
+        now = datetime.now(timezone.utc)
+        window = timedelta(days=SAFETY.max_resolution_days + 1)
         params = {
             "active": "true",
             "closed": "false",
             "limit": limit,
             "offset": offset,
             "order": "volume",
-            "ascending": "false"
+            "ascending": "false",
+            "end_date_min": now.isoformat(),
+            "end_date_max": (now + window).isoformat(),
         }
 
         try:

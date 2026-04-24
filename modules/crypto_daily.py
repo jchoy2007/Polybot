@@ -23,7 +23,7 @@ import json
 import time
 import logging
 import aiohttp
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, List
 from config.settings import SAFETY, STATE, GAMMA_API_URL
 
@@ -153,6 +153,13 @@ class CryptoDailyStrategy:
         session = await self._get_session()
         all_markets = []
 
+        # Filtrar server-side por endDate: igual que stock_trader, los mercados
+        # crypto diarios están enterrados detrás de futures long-term si se
+        # paginar por volumen.
+        now = datetime.now(timezone.utc)
+        end_date_min = now.isoformat()
+        end_date_max = (now + timedelta(hours=48)).isoformat()
+
         try:
             for offset in [0, 100, 200, 300, 400]:
                 async with session.get(
@@ -160,7 +167,9 @@ class CryptoDailyStrategy:
                     params={
                         "active": "true", "closed": "false",
                         "limit": 100, "offset": str(offset),
-                        "order": "volume", "ascending": "false"
+                        "order": "volume", "ascending": "false",
+                        "end_date_min": end_date_min,
+                        "end_date_max": end_date_max,
                     }
                 ) as resp:
                     if resp.status == 200:

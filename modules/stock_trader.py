@@ -287,6 +287,14 @@ class StockTrader:
             "close green", "close red", "trading day", "above $", "below $",
         ]
 
+        # Filtrar server-side por endDate: los mercados stocks diarios
+        # (Up/Down hoy, close above $X hoy) están enterrados después de 1000+
+        # long-term si se paginar por volumen. Con end_date_min/max el API
+        # devuelve directamente los de <48h.
+        now = datetime.now(timezone.utc)
+        end_date_min = now.isoformat()
+        end_date_max = (now + timedelta(hours=48)).isoformat()
+
         markets = []
         for offset in [0, 100, 200, 300, 400]:
             try:
@@ -295,7 +303,9 @@ class StockTrader:
                     params={
                         "active": "true", "closed": "false",
                         "limit": 100, "offset": str(offset),
-                        "order": "volume", "ascending": "false"
+                        "order": "volume", "ascending": "false",
+                        "end_date_min": end_date_min,
+                        "end_date_max": end_date_max,
                     }
                 ) as resp:
                     if resp.status == 200:
