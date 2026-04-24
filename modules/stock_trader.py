@@ -60,6 +60,16 @@ INDICES = {
     "nflx":    {"symbol": "NFLX",  "futures": "NFLX",
                 "aliases": ["netflix", "nflx"],
                 "name": "Netflix"},
+    # Commodities (mercados de materias primas en Polymarket)
+    "gold":    {"symbol": "GC=F",  "futures": "GC=F",
+                "aliases": ["gold", "oro", "xau"],
+                "name": "Gold"},
+    "silver":  {"symbol": "SI=F",  "futures": "SI=F",
+                "aliases": ["silver", "plata", "xag"],
+                "name": "Silver"},
+    "oil":     {"symbol": "CL=F",  "futures": "CL=F",
+                "aliases": ["oil", "crude", "wti", "petróleo", "petroleo", "brent"],
+                "name": "Oil"},
 }
 
 MIN_EDGE = 0.08  # 8% (data más confiable que weather)
@@ -220,6 +230,9 @@ class StockTrader:
             "amazon", "amzn",
             "microsoft", "msft",
             "netflix", "nflx",
+            # Commodities
+            "gold", "oro", "xau", "silver", "plata", "xag",
+            "oil", "crude", "wti", "petróleo", "petroleo", "brent",
             # Frases comunes de mercado
             "close up", "close down", "close green", "close red",
             "opens up", "opens down",
