@@ -251,7 +251,8 @@ class CryptoDailyStrategy:
         # Extraer precio target de la pregunta (ej: $74,000)
         price_match = re.search(r'\$[\d,]+', market.get("question", ""))
         if not price_match:
-            logger.info(f"   ⏭️ {q_short}: sin precio target en question")
+            # Mercados "Up or Down" (momentum 5-min) no tienen strike — el bot no opera momentum.
+            logger.debug(f"   ⏭️ {q_short}: sin precio target en question")
             return None
         try:
             target_price = float(price_match.group(0).replace("$", "").replace(",", ""))
