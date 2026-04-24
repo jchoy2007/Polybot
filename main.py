@@ -964,21 +964,36 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 await telegram.send_error_alert(f"Error Stock Trader: {str(e)[:100]}")
 
     # ===== ESTRATEGIA 6: Crypto Daily (BTC/ETH/SOL/XRP) =====
-    # DESACTIVADA 17-Abr: n=7, WR 43%, -$9.09 neto. Data suficiente para decidir.
-    crypto_enabled = False
-    if crypto_daily and not crypto_enabled:
-        logger.info("   ⏭️ Crypto strat desactivada (3/7 WR, -$9)")
+    # Re-activada 24-Abr con filtros adicionales (max 2/día, edge 8%).
+    crypto_enabled = True
     if crypto_daily and crypto_enabled:
         logger.info("\n" + "=" * 50)
         logger.info("₿ ESTRATEGIA 6: Crypto Daily (BTC/ETH/SOL/XRP)")
         logger.info("=" * 50)
         try:
+            # Filtros adicionales para CRYPTO (re-activada 24-Abr con protecciones)
+            if not hasattr(run_cycle, '_crypto_daily_count'):
+                run_cycle._crypto_daily_count = {"date": "", "count": 0}
+            _today_crypto = datetime.now().strftime("%Y-%m-%d")
+            if run_cycle._crypto_daily_count["date"] != _today_crypto:
+                run_cycle._crypto_daily_count = {"date": _today_crypto, "count": 0}
+
             signals = await crypto_daily.run_cycle()
             for signal in signals:
                 if STATE.cycle_bets >= SAFETY.max_bets_per_cycle:
                     break
                 if STATE.daily_spend >= SAFETY.max_daily_spend:
                     break
+
+                # 1. Max 2 crypto bets por día
+                if run_cycle._crypto_daily_count["count"] >= 2:
+                    logger.info("   ⏭️ Max 2 crypto bets/día alcanzado")
+                    break
+
+                # 2. Min edge 8% para crypto (más estricto que el 5% default)
+                if signal["edge"] < 0.08:
+                    logger.info(f"   ⏭️ Crypto edge {signal['edge']:.1%} < 8%")
+                    continue
 
                 # Bloquear si la prob es muy baja (< 55%)
                 if signal["prob"] < 0.55:
@@ -1024,6 +1039,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     )
                     STATE.cycle_bets += 1
                     STATE.daily_spend += signal["amount"]
+                    run_cycle._crypto_daily_count["count"] += 1
                     crypto_daily.last_bet_time[signal["crypto"]] = time.time()
                     crypto_daily._save_bet(signal["market_id"], signal["question"])
                     logger.info(
