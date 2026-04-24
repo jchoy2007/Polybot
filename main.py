@@ -1315,7 +1315,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 bankroll=STATE.current_bankroll,
                 pnl_total=STATE.total_pnl,
                 positions=_positions_tg or [],
-                tracker_summary=tracker.get_summary(exclude_strategies=["CRYPTO"]),
+                tracker_summary=tracker.get_summary(),
                 stock_daily_count=_stock_count,
                 stock_daily_limit=4,
             )
