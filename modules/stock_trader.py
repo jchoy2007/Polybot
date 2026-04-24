@@ -99,6 +99,7 @@ class StockTrader:
         # del día. SPORTS sigue (baja varianza). Ref: 21-Abr -$38 stocks.
         self._daily_loss_check: Dict = {"date": "", "start_balance": 0.0}
         self._load_traded()
+        self._load_today_directions()
 
     def _register_bet_direction(self, index_key: str, direction: str):
         """Registra la dirección apostada para un ticker en el día."""
@@ -108,6 +109,39 @@ class StockTrader:
         if index_key not in self._today_directions["data"]:
             self._today_directions["data"][index_key] = set()
         self._today_directions["data"][index_key].add(direction.upper())
+        self._save_today_directions()
+
+    def _save_today_directions(self):
+        # Persistir a disco: sin esto, un restart borra el estado y el
+        # filtro de correlación negativa deja pasar la apuesta opuesta.
+        # Bug real 24-Abr: MSFT DOWN 14:05 → restart 14:29 → MSFT YES 14:30.
+        try:
+            os.makedirs("data", exist_ok=True)
+            serializable = {
+                "date": self._today_directions["date"],
+                "data": {
+                    k: sorted(list(v))
+                    for k, v in self._today_directions["data"].items()
+                },
+            }
+            with open("data/today_directions.json", "w") as f:
+                json.dump(serializable, f, indent=2)
+        except Exception as e:
+            logger.warning(f"No se pudo persistir today_directions: {e}")
+
+    def _load_today_directions(self):
+        try:
+            with open("data/today_directions.json", "r") as f:
+                raw = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return
+        today = datetime.now().strftime("%Y-%m-%d")
+        if raw.get("date") != today:
+            return
+        self._today_directions = {
+            "date": raw["date"],
+            "data": {k: set(v) for k, v in raw.get("data", {}).items()},
+        }
 
     def _is_opposite_bet(self, index_key: str, direction: str) -> bool:
         """
