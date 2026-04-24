@@ -244,16 +244,19 @@ class CryptoDailyStrategy:
         - "Will BTC dip to $X" + BTC price >> $X → BET NO
         """
         question = (market.get("question") or "").lower()
+        q_short = (market.get("question") or "")[:60]
         current_price = price_data["price"]
         change_24h = price_data["change_24h"]
 
         # Extraer precio target de la pregunta (ej: $74,000)
         price_match = re.search(r'\$[\d,]+', market.get("question", ""))
         if not price_match:
+            logger.info(f"   ⏭️ {q_short}: sin precio target en question")
             return None
         try:
             target_price = float(price_match.group(0).replace("$", "").replace(",", ""))
         except ValueError:
+            logger.info(f"   ⏭️ {q_short}: no parsea target price")
             return None
 
         # Obtener precios Yes/No de Polymarket
@@ -265,11 +268,13 @@ class CryptoDailyStrategy:
                 prices = outcomes
 
             if len(prices) < 2:
+                logger.info(f"   ⏭️ {q_short}: outcomePrices incompletos")
                 return None
 
             yes_price = float(prices[0])
             no_price = float(prices[1])
-        except Exception:
+        except Exception as e:
+            logger.info(f"   ⏭️ {q_short}: error parse outcomePrices ({e})")
             return None
 
         # Lógica: "above $X" / "close above" / "reach" → precio actual vs target
@@ -291,6 +296,12 @@ class CryptoDailyStrategy:
                         "prob": our_prob,
                         "reason": f"BTC ${current_price:,.0f} vs target ${target_price:,.0f} (+{gap_pct:.1f}%)"
                     }
+                logger.info(
+                    f"   ⏭️ {q_short}: gap +{gap_pct:.2f}% | "
+                    f"edge {edge:.1%} (min {self.MIN_EDGE:.0%}) | "
+                    f"prob {our_prob:.1%} | yes ${yes_price:.2f}"
+                )
+                return None
 
             # Ya está claramente por debajo → NO probable
             elif gap_pct < -0.15:
@@ -305,6 +316,18 @@ class CryptoDailyStrategy:
                         "prob": our_prob,
                         "reason": f"BTC ${current_price:,.0f} vs target ${target_price:,.0f} ({gap_pct:.1f}%)"
                     }
+                logger.info(
+                    f"   ⏭️ {q_short}: gap {gap_pct:.2f}% | "
+                    f"edge {edge:.1%} (min {self.MIN_EDGE:.0%}) | "
+                    f"prob {our_prob:.1%} | no ${no_price:.2f}"
+                )
+                return None
+
+            logger.info(
+                f"   ⏭️ {q_short}: gap {gap_pct:+.2f}% dentro de banda muerta "
+                f"(±0.15%) | precio ${current_price:,.0f} vs target ${target_price:,.0f}"
+            )
+            return None
 
         # Lógica: "dip to $X" → si precio actual >> target, NO es probable
         elif "dip" in question or "below" in question:
@@ -324,7 +347,20 @@ class CryptoDailyStrategy:
                         "prob": our_prob,
                         "reason": f"BTC ${current_price:,.0f} lejos del dip target ${target_price:,.0f}"
                     }
+                logger.info(
+                    f"   ⏭️ {q_short}: dip gap +{gap_pct:.2f}% | "
+                    f"edge {edge:.1%} (min {self.MIN_EDGE:.0%}) | "
+                    f"prob {our_prob:.1%} | no ${no_price:.2f}"
+                )
+                return None
 
+            logger.info(
+                f"   ⏭️ {q_short}: dip gap +{gap_pct:.2f}% < 1% threshold "
+                f"(precio ${current_price:,.0f} vs target ${target_price:,.0f})"
+            )
+            return None
+
+        logger.info(f"   ⏭️ {q_short}: question no matchea above/below/dip/reach")
         return None
 
     # =================================================================
