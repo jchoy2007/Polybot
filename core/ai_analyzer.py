@@ -147,6 +147,13 @@ DECISION PROCESS:
 6. You should find a BET in roughly 3-4 out of 10 markets analyzed.
 7. SKIP only when it's truly a coin flip (both teams equally matched) or edge < 3%.
 
+CRITICAL ANALYSIS REQUIREMENTS:
+8. What is the BASE RATE for this type of event? (historical frequency)
+9. What is the STRONGEST counter-argument against your estimate?
+10. What specific NEW INFORMATION would change your probability by 10+%?
+11. If you cannot identify a clear edge with high confidence, SKIP.
+12. Be MORE skeptical of markets with prices between 0.40-0.60 (true coin flips are hard to predict).
+
 Return JSON only (no markdown, no backticks):
 {{
     "estimated_probability": 0.XX,
