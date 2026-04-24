@@ -1,7 +1,12 @@
-﻿.env
+.env
 *.pyc
 __pycache__/
 private_key*
 credentials*
 *.key
 node_modules/
+logs/
+backups/
+data/summary_*.json
+venv/
+*.disabled

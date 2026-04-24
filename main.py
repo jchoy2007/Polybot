@@ -31,11 +31,8 @@ from core.ai_analyzer import AIAnalyzer
 from core.risk_manager import RiskManager
 from core.executor import TradeExecutor
 from core.tracker import WinRateTracker
-from modules.crypto_grinder import CryptoGrinder
 from modules.crypto_daily import CryptoDailyStrategy
 from modules.auto_redeem import AutoRedeemer
-from modules.no_harvester import NOHarvester
-from modules.weather_trader import WeatherTrader
 from modules.stock_trader import StockTrader
 from modules.telegram_monitor import TelegramMonitor
 
@@ -341,11 +338,8 @@ async def send_telegram_notification(message: str):
 async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     risk: RiskManager, executor: TradeExecutor,
                     redeemer: AutoRedeemer,
-                    harvester: NOHarvester,
                     tracker: WinRateTracker,
-                    weather_trader: WeatherTrader,
                     stock_trader: StockTrader,
-                    grinder: CryptoGrinder = None,
                     crypto_daily: CryptoDailyStrategy = None,
                     telegram: TelegramMonitor = None,
                     scan_only: bool = False):
@@ -1428,11 +1422,8 @@ async def main():
 
     # Inicializar componentes auxiliares
     redeemer = AutoRedeemer()
-    harvester = NOHarvester()
     tracker = WinRateTracker()
-    weather_trader = WeatherTrader()
     stock_trader = StockTrader()
-    grinder = CryptoGrinder()
     crypto_daily = CryptoDailyStrategy()
     telegram = TelegramMonitor()
 
@@ -1445,8 +1436,7 @@ async def main():
         if args.once or args.scan_only:
             # Un solo ciclo
             await run_cycle(scanner, analyzer, risk, executor,
-                          redeemer, harvester, tracker,
-                          weather_trader, stock_trader, grinder,
+                          redeemer, tracker, stock_trader,
                           crypto_daily, telegram, args.scan_only)
         else:
             # Loop continuo
@@ -1488,8 +1478,7 @@ async def main():
                     logger.info("🧠 Ciclo completo — Stocks + Deportes")
                     logger.info("=" * 50)
                     await run_cycle(scanner, analyzer, risk, executor,
-                                  redeemer, harvester, tracker,
-                                  weather_trader, stock_trader, grinder,
+                                  redeemer, tracker, stock_trader,
                                   crypto_daily, telegram)
                     last_ia_scan = now
                     logger.info(f"\n⏰ Próximo ciclo en {SAFETY.scan_interval_minutes} min")
@@ -1511,9 +1500,7 @@ async def main():
         await scanner.close()
         await analyzer.close()
         await redeemer.close()
-        await weather_trader.close()
         await stock_trader.close()
-        await grinder.close()
         await crypto_daily.close()
         await telegram.close()
 
