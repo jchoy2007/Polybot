@@ -335,13 +335,33 @@ class StockTrader:
                 "date": today,
                 "start_balance": STATE.current_bankroll,
             }
-        current_loss = self._daily_loss_check["start_balance"] - STATE.current_bankroll
-        if current_loss >= 15:
+        net_daily_pnl = STATE.current_bankroll - self._daily_loss_check["start_balance"]
+        if net_daily_pnl <= -25:
             logger.warning(
-                f"      ⛔ Daily loss limit: perdido ${current_loss:.2f} hoy. "
-                f"Stocks pausados hasta mañana. SPORTS sigue."
+                f"      ⛔ Daily loss limit NETO: P&L hoy ${net_daily_pnl:.2f} "
+                f"(límite -$25). Stocks pausados hasta mañana."
             )
+            try:
+                import os
+                from modules.telegram_monitor import TelegramMonitor
+                tg = TelegramMonitor()
+                if tg.enabled:
+                    import asyncio
+                    asyncio.ensure_future(tg.send(
+                        f"🚨 DAILY LOSS LIMIT\n"
+                        f"P&L neto hoy: ${net_daily_pnl:.2f}\n"
+                        f"Límite: -$25\n"
+                        f"Stocks PAUSADOS hasta mañana.\n"
+                        f"SPORTS sigue operando."
+                    ))
+            except Exception:
+                pass
             return None
+        elif net_daily_pnl < -15:
+            logger.info(
+                f"      ⚠️ P&L neto hoy: ${net_daily_pnl:.2f} "
+                f"(acercándose al límite -$25)"
+            )
 
         # Solo apostar stocks durante horario de mercado US.
         # Pre-market (antes 9:30 ET) tiene datos poco confiables:
