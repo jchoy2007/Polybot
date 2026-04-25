@@ -130,7 +130,8 @@ class CryptoDailyStrategy:
                     if len(klines) >= 2:
                         current = float(klines[-1][4])
                         prev = float(klines[-2][4])
-                        change_1h = ((current - prev) / prev) * 100
+                        if prev > 0:
+                            change_1h = ((current - prev) / prev) * 100
 
             return {
                 "price": price,
@@ -267,6 +268,16 @@ class CryptoDailyStrategy:
             target_price = float(price_match.group(0).replace("$", "").replace(",", ""))
         except ValueError:
             logger.info(f"   ⏭️ {q_short}: no parsea target price")
+            return None
+
+        # Guard: target_price o current_price en cero rompen las divisiones
+        # gap_pct más abajo. Mercados con "$0" en pregunta o Binance devolviendo
+        # lastPrice=0 → skip silencioso.
+        if target_price <= 0:
+            logger.info(f"   ⏭️ {q_short}: target_price <= 0")
+            return None
+        if current_price <= 0:
+            logger.info(f"   ⏭️ {q_short}: current_price <= 0 (Binance fallo)")
             return None
 
         # Obtener precios Yes/No de Polymarket
