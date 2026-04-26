@@ -128,9 +128,11 @@ min_market_volume = 1000     # Relajado de 2k el 14-Apr
 
 ## 🛡️ Filtros activos (resumen 22 abril 2026)
 
-1. **Weekend mode** — sábado/domingo muchas estrategias skip (mercado EEUU cerrado)
+1. **Weekend mode** — sábado/domingo muchas estrategias skip (mercado EEUU cerrado).
+   Stocks **bloqueados completamente** en sáb/dom desde `dbc8fda` (26-Abr).
 2. **Max 4 stocks/día** con override si edge > 25% (`stock_trader.py:302-312`)
-3. **Horario US 14-20 UTC** — fuera de ventana, stocks skip (`stock_trader.py:320-326`)
+3. **Horario US 14-20 UTC** — fuera de ventana, stocks skip (`stock_trader.py:416-428`).
+   Chequeo de weekday va PRIMERO, luego hora.
 4. **Tendencia S&P ±0.5%** con fail-safe (`stock_trader.py:341-376`, 22-Abr)
    - Si Yahoo falla → skip, NO apuesta ciega
    - Log siempre: `📊 S&P tendencia: X.XX%`
@@ -242,6 +244,12 @@ _Añadir filas cada auditoría._
 | Commit | Fix | Por qué |
 |--------|-----|---------|
 | `ba6162c` | Bloqueo **universal** de derivados (fix regresión `dee7016`) | El filtro anterior requería `is_esports AND is_derivative`, pero markets con `question="Games Total: O/U 2.5"` no traen prefijo del juego y pasaban. Hoy 19:33 UTC un Games Total se ejecutó por este bug. |
+
+## 🐛 Bugs arreglados el 26 abril 2026
+
+| Commit | Fix | Por qué |
+|--------|-----|---------|
+| `dbc8fda` | Bloquear stocks en fin de semana (`stock_trader.py:416-428`) | El check de `weekday` estaba **anidado dentro** del check de horario US: si la hora caía en 14-20 UTC, saltaba el bloque entero y nunca verificaba sáb/dom. Resultado: 5 apuestas stocks en weekend (2 sáb + 3 dom 26-Abr) usando datos de Yahoo del viernes (mercado cerrado). Total comprometido $40.50 con info stale. Fix: chequear `weekday >= 5` ANTES del horario, retornar `None` con log explícito. Weekend mode de `main.py:358-362` solo ajusta `max_bets/min_edge`, NO bloquea stocks — la defensa correcta es en `stock_trader.py`. |
 
 ## 🐛 Bugs pendientes identificados (no arreglados aún)
 
