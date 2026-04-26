@@ -259,7 +259,7 @@ class CryptoDailyStrategy:
         change_24h = price_data["change_24h"]
 
         # Extraer precio target de la pregunta (ej: $74,000)
-        price_match = re.search(r'\$[\d,]+', market.get("question", ""))
+        price_match = re.search(r'\$[\d,]+(?:\.\d+)?', market.get("question", ""))
         if not price_match:
             # Mercados "Up or Down" (momentum 5-min) no tienen strike — el bot no opera momentum.
             logger.debug(f"   ⏭️ {q_short}: sin precio target en question")
@@ -315,7 +315,7 @@ class CryptoDailyStrategy:
                         "price": yes_price,
                         "edge": edge,
                         "prob": our_prob,
-                        "reason": f"BTC ${current_price:,.0f} vs target ${target_price:,.0f} (+{gap_pct:.1f}%)"
+                        "reason": f"${current_price:,.2f} vs target ${target_price:,.2f} (+{gap_pct:.1f}%)"
                     }
                 logger.info(
                     f"   ⏭️ {q_short}: gap +{gap_pct:.2f}% | "
@@ -335,7 +335,7 @@ class CryptoDailyStrategy:
                         "price": no_price,
                         "edge": edge,
                         "prob": our_prob,
-                        "reason": f"BTC ${current_price:,.0f} vs target ${target_price:,.0f} ({gap_pct:.1f}%)"
+                        "reason": f"${current_price:,.2f} vs target ${target_price:,.2f} ({gap_pct:.1f}%)"
                     }
                 logger.info(
                     f"   ⏭️ {q_short}: gap {gap_pct:.2f}% | "
@@ -346,7 +346,7 @@ class CryptoDailyStrategy:
 
             logger.info(
                 f"   ⏭️ {q_short}: gap {gap_pct:+.2f}% dentro de banda muerta "
-                f"(±0.15%) | precio ${current_price:,.0f} vs target ${target_price:,.0f}"
+                f"(±0.15%) | precio ${current_price:,.2f} vs target ${target_price:,.2f}"
             )
             return None
 
@@ -366,7 +366,7 @@ class CryptoDailyStrategy:
                         "price": no_price,
                         "edge": edge,
                         "prob": our_prob,
-                        "reason": f"BTC ${current_price:,.0f} lejos del dip target ${target_price:,.0f}"
+                        "reason": f"${current_price:,.2f} lejos del dip target ${target_price:,.2f}"
                     }
                 logger.info(
                     f"   ⏭️ {q_short}: dip gap +{gap_pct:.2f}% | "
@@ -377,7 +377,7 @@ class CryptoDailyStrategy:
 
             logger.info(
                 f"   ⏭️ {q_short}: dip gap +{gap_pct:.2f}% < 1% threshold "
-                f"(precio ${current_price:,.0f} vs target ${target_price:,.0f})"
+                f"(precio ${current_price:,.2f} vs target ${target_price:,.2f})"
             )
             return None
 
