@@ -414,11 +414,19 @@ class StockTrader:
         # Mercado US: 9:30-16:00 ET = 13:30-20:00 UTC
         # Ventana: 14:00-20:59 UTC (30 min buffer tras open).
         now_utc = datetime.now(timezone.utc)
+        weekday = now_utc.weekday()  # 0=lunes, 5=sábado, 6=domingo
         market_hour = now_utc.hour
+
+        # Mercado US cerrado fines de semana — datos de Yahoo serían
+        # del viernes y se apostaría con info stale (bug 26-Abr: 2 stocks
+        # apostados un domingo con datos del viernes).
+        if weekday >= 5:
+            logger.info(f"      ⏰ Fin de semana (día {weekday}): stocks cerrado")
+            return None
+
+        # Mercado US solo 14:00-20:00 UTC en días hábiles
         if market_hour < 14 or market_hour > 20:
-            weekday = now_utc.weekday()
-            if weekday < 5:
-                logger.info(f"      ⏰ Fuera de horario US ({now_utc.strftime('%H:%M')} UTC): skip")
+            logger.info(f"      ⏰ Fuera de horario US ({now_utc.strftime('%H:%M')} UTC): skip")
             return None
 
         question = market.get("question", "")
