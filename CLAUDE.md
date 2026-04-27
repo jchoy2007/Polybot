@@ -7,15 +7,25 @@
 
 ## 📊 Estado actual del proyecto
 
-### Bankroll
+### Bankroll (27-Abr 22:30 UTC, post fresh-start)
 - **Depósito inicial**: $200 USDC.e (Polygon)
-- **Balance actual**: $45.13 líquido + ~$121 en 24 posiciones abiertas ≈ **$166 total** (15-Abr 20:00 UTC)
-- **P&L desde inicio**: -$34 (-17%) — mejora vs -$63 de ayer
-- **Meta revisada**: $250-300 al 30 abril 2026 (meta original $500 descartada por no realista)
-- **Win rate actual**: 16/25 (64%) | Neto **+$19.28**
-  - SPORTS: 6/12 (50%) | −$27.93 | 9 pendientes
-  - STOCKS: 9/10 (90%) | +$52.75 | 14 pendientes ← estrella dominante
-  - CRYPTO: 1/3 (33%) | −$5.54 | 1 pendiente
+- **Balance líquido**: $84.37 USDC.e (post redeem 7 posiciones)
+- **Posiciones abiertas**: ~3-4 (BJP, XRP, BTC, MegaETH) ≈ valor pendiente
+- **WR reseteado**: **0/0 desde 27-Abr 22:30 UTC** (fresh start tras refactor estratégico)
+- **Tracker viejo**: `data/trade_results_backup_27apr.json` (60/124 = 48% bajo bugs ya arreglados)
+
+### Estrategias activas (post 27-Abr)
+- ✅ **STOCKS Up/Down only** (única estrategia ejecutora)
+- 👀 **POLITICS monitoring** (loguea, no apuesta — recolectando data)
+- ⏭️ **SPORTS desactivada** (Anthropic API billing agotado)
+- ⏭️ **CRYPTO desactivada** (5/14 = 36% WR, -$29 — definitivo)
+
+### Costos mensuales (post-30 abril)
+- **VPS Hetzner CPX22**: $10.99/mes
+- **Anthropic API**: $0 (no se usa Haiku — Yahoo + RSS + keyword)
+- **Gas Polygon**: ~$2/mes (~50 trades × $0.03)
+- **Total mínimo**: **~$13/mes** (Escenario A)
+- **Con Claude Pro opcional**: ~$33/mes (Escenario B)
 
 ### Infraestructura
 - **VPS**: Hetzner Cloud CPX22 — Helsinki, Finland ($10.99/mes)
@@ -27,9 +37,8 @@
 - **Entry point**: `main.py --live` (definido en `/etc/systemd/system/polybot.service`)
 
 ### Créditos API
-- **Anthropic**: ~$12 disponibles (~$11 depositados hoy + $1 residual)
-- **Modelo**: Claude Haiku 4.5 (`claude-haiku-4-5-20251001`)
-- **Costo promedio**: $0.30/día → ~$5 hasta el 30 abril (sobra buffer)
+- **Anthropic**: agotado (-$0.01) — bot ya no depende de API
+- **Modelo previo**: Claude Haiku 4.5 (queda referenciado en código pero no se invoca con sports/crypto off)
 
 ---
 
