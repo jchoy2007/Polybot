@@ -958,9 +958,12 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 await telegram.send_error_alert(f"Error Stock Trader: {str(e)[:100]}")
 
     # ===== ESTRATEGIA 6: Crypto Daily (BTC/ETH/SOL/XRP) =====
-    # Re-activada 24-Abr con filtros adicionales (max 2/día, edge 8%).
-    crypto_enabled = True
-    if crypto_daily and crypto_enabled:
+    # Desactivada definitivamente 27-Abr: 5/14 WR 36%, -$29 neto.
+    # Código preservado por si reactivamos con otra estrategia (ej. latency arb tipo coinman2).
+    crypto_enabled = False
+    if not crypto_enabled:
+        logger.info("   ⏭️ Crypto desactivada definitivamente (5/14 WR 36%, -$29)")
+    elif crypto_daily:
         logger.info("\n" + "=" * 50)
         logger.info("₿ ESTRATEGIA 6: Crypto Daily (BTC/ETH/SOL/XRP)")
         logger.info("=" * 50)
