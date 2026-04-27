@@ -161,10 +161,7 @@ class TelegramMonitor:
                                 side: str, amount: float, price: float,
                                 edge: float, end_date: str = ""):
         """Alerta inmediata de trade ejecutado."""
-        emoji = {"IA": "🧠", "CRYPTO": "₿", "HARVEST": "🌾",
-                 "WEATHER": "⛅", "STOCKS": "📈", "FLASH_CRASH": "⚡",
-                 "SPORTS": "⚽", "ESPORTS": "🎮"
-                 }.get(strategy, "🎯")
+        emoji = {"STOCKS": "📈"}.get(strategy, "🎯")
 
         # Calcular info de resolución
         resolve_line = ""
@@ -190,11 +187,17 @@ class TelegramMonitor:
             except Exception:
                 resolve_line = ""
 
+        news = self._get_latest_news_sentiment()
+        news_line = ""
+        if news:
+            news_line = f"📰 News: {news['sentiment']} (score {news['score']:+d})\n"
+
         msg = (
             f"{emoji} TRADE EJECUTADO\n"
             f"📋 {question[:60]}\n"
             f"📍 {side} ${amount:.2f} @ {price:.2f}\n"
             f"📊 Edge: {edge:.1%}\n"
+            f"{news_line}"
             f"{resolve_line}"
             f"📤 Apostada: {datetime.now().strftime('%H:%M')}"
         )
@@ -264,7 +267,7 @@ class TelegramMonitor:
 
         lines = [
             goal_line,
-            "📊 REPORTE POLYBOT",
+            "📊 POLYBOT — Stocks Up/Down",
             "━━━━━━━━━━━━━━━━━━",
             f"💰 Balance libre: ${bankroll:.2f}",
             f"💰 En posiciones: ${total_val:.2f}",
@@ -278,6 +281,12 @@ class TelegramMonitor:
             lines.append(
                 f"📊 STOCKS: {stock_daily_count}/{stock_daily_limit} "
                 f"bets hoy ({remaining} disponibles)"
+            )
+
+        news = self._get_latest_news_sentiment()
+        if news:
+            lines.append(
+                f"📰 News: {news['sentiment']} (score {news['score']:+d})"
             )
 
         if active:
@@ -345,26 +354,27 @@ class TelegramMonitor:
             lines.append("\n🛡️ FILTROS HOY:")
             lines.append(
                 f"  Horario: {skip_counts['horario']} | "
-                f"Tendencia S&P: {skip_counts['tendencia']} | "
+                f"S&P: {skip_counts['tendencia']} | "
                 f"VIX: {skip_counts['vix']}"
             )
             lines.append(
-                f"  Max día: {skip_counts['max_dia']} | "
-                f"Gap: {skip_counts['gap']} | "
-                f"SPORTS estricto: {skip_counts['sports']}"
+                f"  News: {skip_counts['news']} | "
+                f"Max día: {skip_counts['max_dia']} | "
+                f"Weekend: {skip_counts['weekend']}"
             )
             total = sum(skip_counts.values())
             lines.append(f"  Total protecciones: {total}")
 
-        # Historial completo del tracker (overall + por estrategia).
-        # Antes solo se mostraba la primera línea, ocultando el
-        # desglose SPORTS/STOCKS/CRYPTO que es información clave.
-        lines.append("\n📊 HISTORIAL:")
+        # Historial — solo el total (única estrategia activa: STOCKS Up/Down).
+        lines.append("\n📊 HISTORIAL (desde 27-Abr):")
         if tracker_summary:
-            for sl in tracker_summary.split("\n"):
-                sl = sl.strip()
-                if sl:
-                    lines.append(f"  {sl[:140]}")
+            first = tracker_summary.split("\n", 1)[0].strip()
+            if first:
+                lines.append(f"  {first[:140]}")
+
+        politics_count = self._get_politics_count_today()
+        if politics_count is not None:
+            lines.append(f"\n🏛️ Política: {politics_count} mercados detectados")
 
         # Trades recientes del ciclo
         if self.last_trades:
@@ -393,14 +403,54 @@ class TelegramMonitor:
                 "vix":       sum(1 for ln in lines_
                                  if "VIX" in ln and ("pánico" in ln or "nervioso" in ln)),
                 "max_dia":   content.count("Max 4 stock bets/día"),
-                "gap":       sum(1 for ln in lines_ if "Gap " in ln and "skip" in ln),
-                "sports":    (content.count("SPORTS market_price")
-                              + content.count("SPORTS edge")
-                              + content.count("SPORTS prob")),
+                "news":      content.count("Noticias bearish") + content.count("Noticias bullish"),
+                "weekend":   content.count("Fin de semana"),
             }
             return counts
         except Exception as e:
             logger.debug(f"filter skip count error: {e}")
+            return None
+
+    def _get_latest_news_sentiment(self) -> Optional[Dict]:
+        """Lee el último '📰 News: X (bull:.. bear:.. score:+N)' del log del día."""
+        try:
+            import re as _re
+            log_path = f"logs/polybot_{datetime.now().strftime('%Y%m%d')}.log"
+            if not os.path.exists(log_path):
+                return None
+            pat = _re.compile(r"📰 News: (BULLISH|BEARISH|NEUTRAL).*?score:([+-]?\d+)")
+            sentiment = None
+            score = 0
+            with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+                for ln in f:
+                    m = pat.search(ln)
+                    if m:
+                        sentiment = m.group(1)
+                        score = int(m.group(2))
+            if sentiment is None:
+                return None
+            return {"sentiment": sentiment, "score": score}
+        except Exception as e:
+            logger.debug(f"news sentiment lookup error: {e}")
+            return None
+
+    def _get_politics_count_today(self) -> Optional[int]:
+        """Lee el último conteo de mercados políticos detectados en el log del día."""
+        try:
+            import re as _re
+            log_path = f"logs/polybot_{datetime.now().strftime('%Y%m%d')}.log"
+            if not os.path.exists(log_path):
+                return None
+            pat = _re.compile(r"🏛️\s*(\d+)\s+mercados políticos encontrados")
+            last = None
+            with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+                for ln in f:
+                    m = pat.search(ln)
+                    if m:
+                        last = int(m.group(1))
+            return last
+        except Exception as e:
+            logger.debug(f"politics count error: {e}")
             return None
 
     async def send_redeem_alert(self, amount: float, count: int,
