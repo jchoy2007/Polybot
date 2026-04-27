@@ -98,6 +98,8 @@ class StockTrader:
         # Daily loss limit: si perdimos $15+ hoy, pausar stocks resto
         # del día. SPORTS sigue (baja varianza). Ref: 21-Abr -$38 stocks.
         self._daily_loss_check: Dict = {"date": "", "start_balance": 0.0}
+        from modules.news_monitor import NewsMonitor
+        self.news = NewsMonitor()
         self._load_traded()
         self._load_today_directions()
 
@@ -345,6 +347,12 @@ class StockTrader:
             except Exception:
                 break
 
+        commodity_count = sum(1 for m in markets
+            if any(kw in (m.get("question","") or "").lower()
+                   for kw in ["gold","silver","oil","crude","wti"]))
+        if commodity_count > 0:
+            logger.info(f"   📈 {commodity_count} mercados de commodities")
+
         return markets
 
     # ═══════════════════════════════════════════════════════════════
@@ -432,6 +440,18 @@ class StockTrader:
         question = market.get("question", "")
         market_id = str(market.get("id", ""))
 
+        q_lower = question.lower()
+        # Solo permitir mercados "Up or Down". Los "close above/below"
+        # tienen 40% WR vs 67% de Up/Down. Datos del 27-Abr.
+        if any(kw in q_lower for kw in [
+            "close above", "close below",
+            "finish week", "finish above", "finish below",
+            "end above", "end below",
+            "closes above", "closes below"
+        ]):
+            logger.info(f"      ⛔ Solo Up/Down: skip '{question[:40]}'")
+            return None
+
         # 1. Parsear pregunta
         parsed = self._parse_stock_question(question)
         if not parsed:
@@ -458,6 +478,21 @@ class StockTrader:
                 logger.info(f"      ⚠️ VIX {vix:.1f} elevado pero operando")
         else:
             logger.warning(f"      ⚠️ VIX no disponible — continuar con precaución")
+
+        # News sentiment filter
+        try:
+            news = self.news.get_sentiment()
+            logger.info(f"      📰 News: {news['sentiment']} (score {news['score']:+d})")
+            # Si noticias muy bearish y apostamos UP → skip
+            if news["score"] <= -3 and direction.upper() == "UP":
+                logger.info(f"      📰 Noticias bearish ({news['score']:+d}), skip UP")
+                return None
+            # Si noticias muy bullish y apostamos DOWN → skip
+            if news["score"] >= 3 and direction.upper() == "DOWN":
+                logger.info(f"      📰 Noticias bullish ({news['score']:+d}), skip DOWN")
+                return None
+        except Exception as e:
+            logger.debug(f"      News check error: {e}")
 
         # Filtro de tendencia: si el S&P está bajando fuerte hoy,
         # NO apostar "Up" en ningún stock (correlación de mercado).

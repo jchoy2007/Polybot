@@ -34,6 +34,7 @@ from core.tracker import WinRateTracker
 from modules.crypto_daily import CryptoDailyStrategy
 from modules.auto_redeem import AutoRedeemer
 from modules.stock_trader import StockTrader
+from modules.politics_trader import PoliticsTrader
 from modules.telegram_monitor import TelegramMonitor
 
 # ============================================================
@@ -342,7 +343,8 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     stock_trader: StockTrader,
                     crypto_daily: CryptoDailyStrategy = None,
                     telegram: TelegramMonitor = None,
-                    scan_only: bool = False):
+                    scan_only: bool = False,
+                    politics: PoliticsTrader = None):
     """Ejecuta un ciclo completo con TODAS las estrategias."""
 
     cycle_start = datetime.now()
@@ -534,7 +536,10 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
     logger.info("\n" + "=" * 50)
     logger.info("🏆 ESTRATEGIA 1: IA Deportes + Esports")
     logger.info("=" * 50)
-    if markets:
+    sports_enabled = False
+    if not sports_enabled:
+        logger.info("   ⏭️ Sports desactivada (API billing agotado)")
+    if sports_enabled and markets:
         try:
             # Filtrar mercados de deportes Y esports
             sports_kw = [
@@ -956,6 +961,16 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             logger.error(f"   Error en Stock Trader: {e}")
             if telegram:
                 await telegram.send_error_alert(f"Error Stock Trader: {str(e)[:100]}")
+
+    # ===== ESTRATEGIA: Política (monitoring) =====
+    if politics:
+        logger.info("\n" + "=" * 50)
+        logger.info("🏛️ ESTRATEGIA: Política / Geopolítica")
+        logger.info("=" * 50)
+        try:
+            await politics.run_cycle()
+        except Exception as e:
+            logger.error(f"   Error Politics: {e}")
 
     # ===== ESTRATEGIA 6: Crypto Daily (BTC/ETH/SOL/XRP) =====
     # Desactivada definitivamente 27-Abr: 5/14 WR 36%, -$29 neto.
@@ -1428,6 +1443,7 @@ async def main():
     tracker = WinRateTracker()
     stock_trader = StockTrader()
     crypto_daily = CryptoDailyStrategy()
+    politics = PoliticsTrader()
     telegram = TelegramMonitor()
 
     # Enviar notificación de inicio
@@ -1440,7 +1456,8 @@ async def main():
             # Un solo ciclo
             await run_cycle(scanner, analyzer, risk, executor,
                           redeemer, tracker, stock_trader,
-                          crypto_daily, telegram, args.scan_only)
+                          crypto_daily, telegram, args.scan_only,
+                          politics=politics)
         else:
             # Loop continuo
             last_ia_scan = 0
@@ -1482,7 +1499,7 @@ async def main():
                     logger.info("=" * 50)
                     await run_cycle(scanner, analyzer, risk, executor,
                                   redeemer, tracker, stock_trader,
-                                  crypto_daily, telegram)
+                                  crypto_daily, telegram, politics=politics)
                     last_ia_scan = now
                     logger.info(f"\n⏰ Próximo ciclo en {SAFETY.scan_interval_minutes} min")
 
@@ -1505,6 +1522,7 @@ async def main():
         await redeemer.close()
         await stock_trader.close()
         await crypto_daily.close()
+        await politics.close()
         await telegram.close()
 
         # Guardar log final
