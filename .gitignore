@@ -8,5 +8,6 @@ node_modules/
 logs/
 backups/
 data/summary_*.json
+data/trade_results_backup_*.json
 venv/
 *.disabled

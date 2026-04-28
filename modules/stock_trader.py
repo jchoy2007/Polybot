@@ -952,10 +952,13 @@ class StockTrader:
             if not pk:
                 return False
             pk_clean = pk[2:] if pk.startswith("0x") else pk
+            sig_type = int(os.getenv("SIGNATURE_TYPE", "2"))
+            funder_param = os.getenv("POLYMARKET_FUNDER_ADDRESS") if sig_type > 0 else None
 
             client = ClobClient(
                 host="https://clob.polymarket.com",
-                key=pk_clean, chain_id=137, signature_type=0
+                key=pk_clean, chain_id=137,
+                signature_type=sig_type, funder=funder_param
             )
             client.set_api_creds(client.create_or_derive_api_key())
 

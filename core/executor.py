@@ -84,82 +84,28 @@ class TradeExecutor:
 
             pk_clean = pk[2:] if pk.startswith("0x") else pk
             funder = POLYMARKET_FUNDER_ADDRESS
+            sig_type = int(os.getenv("SIGNATURE_TYPE", "2"))
+            funder_param = funder if sig_type > 0 else None
 
-            # Probar configuraciones en orden de probabilidad
-            configs = []
-            
-            # Config 1: EOA directo sin proxy (fondos en wallet directamente)
-            configs.append({"sig_type": 0, "funder": None, "label": "EOA directo"})
-            
-            # Config 2: Browser proxy (MetaMask)
-            if funder:
-                configs.append({"sig_type": 2, "funder": funder, "label": "Browser proxy"})
-                configs.append({"sig_type": 1, "funder": funder, "label": "Email/Magic proxy"})
-                configs.append({"sig_type": 0, "funder": funder, "label": "EOA + funder"})
-            
-            # Si hay SIGNATURE_TYPE forzado en .env, probarlo primero
-            forced = os.environ.get("SIGNATURE_TYPE")
-            if forced is not None:
-                forced_int = int(forced)
-                configs.insert(0, {
-                    "sig_type": forced_int,
-                    "funder": funder if forced_int > 0 else None,
-                    "label": f"Forzado sig_type={forced_int}"
-                })
-
-            for cfg in configs:
-                try:
-                    if cfg["funder"]:
-                        client = ClobClient(
-                            host="https://clob.polymarket.com",
-                            key=pk_clean, chain_id=137,
-                            signature_type=cfg["sig_type"],
-                            funder=cfg["funder"]
-                        )
-                    else:
-                        client = ClobClient(
-                            host="https://clob.polymarket.com",
-                            key=pk_clean, chain_id=137,
-                            signature_type=cfg["sig_type"]
-                        )
-
-                    creds = client.create_or_derive_api_key()
-                    client.set_api_creds(creds)
-
-                    # Verificar balance
-                    bal_resp = client.get_balance_allowance(
-                        params=BalanceAllowanceParams(
-                            asset_type=AssetType.COLLATERAL,
-                            signature_type=cfg["sig_type"]
-                        )
-                    )
-                    balance = float(bal_resp.get("balance", "0")) / 1e6  # USDC tiene 6 decimales
-
-                    logger.info(
-                        f"   🔍 {cfg['label']}: balance=${balance:.2f}"
-                    )
-
-                    if balance > 0:
-                        self.clob_client = client
-                        logger.info(
-                            f"✅ Cliente CLOB listo ({cfg['label']}) "
-                            f"| Balance: ${balance:.2f}"
-                        )
-                        return True
-
-                except Exception as e:
-                    logger.debug(f"   {cfg['label']}: {str(e)[:60]}")
-                    continue
-
-            # Si ninguna config encuentra balance, usar la primera que no dio error
-            logger.warning("⚠️ Ninguna config encontró balance > 0, usando EOA directo")
             client = ClobClient(
                 host="https://clob.polymarket.com",
-                key=pk_clean, chain_id=137, signature_type=0
+                key=pk_clean, chain_id=137,
+                signature_type=sig_type, funder=funder_param
             )
             client.set_api_creds(client.create_or_derive_api_key())
+
+            bal_resp = client.get_balance_allowance(
+                params=BalanceAllowanceParams(
+                    asset_type=AssetType.COLLATERAL,
+                    signature_type=sig_type
+                )
+            )
+            balance = float(bal_resp.get("balance", "0")) / 1e6
             self.clob_client = client
-            logger.info("✅ Cliente CLOB listo (fallback EOA)")
+            logger.info(
+                f"✅ Cliente CLOB listo (sig_type={sig_type}, funder={'sí' if funder_param else 'no'}) "
+                f"| Balance: ${balance:.2f}"
+            )
             return True
 
         except Exception as e:
