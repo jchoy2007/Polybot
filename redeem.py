@@ -118,6 +118,8 @@ def try_uma_resolve(w3, eoa, pk, question_id, adapter_addr, title_short):
 
 async def find_all_positions(address):
     funder = os.getenv("POLYMARKET_FUNDER_ADDRESS", "")
+    seen = set()
+    all_positions = []
     for addr in [funder, address]:
         if not addr: continue
         try:
@@ -125,10 +127,15 @@ async def find_all_positions(address):
                 async with session.get(f"{DATA_API_URL}/positions?user={addr.lower()}") as resp:
                     if resp.status == 200:
                         data = await resp.json()
-                        if data and isinstance(data, list) and len(data) > 0:
-                            return data
+                        if data and isinstance(data, list):
+                            for p in data:
+                                key = (p.get("conditionId",""), p.get("asset",""))
+                                if key in seen:
+                                    continue
+                                seen.add(key)
+                                all_positions.append(p)
         except: continue
-    return []
+    return all_positions
 
 async def redeem_all():
     print(f"\n{'='*60}")

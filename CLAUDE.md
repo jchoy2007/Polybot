@@ -45,6 +45,24 @@
 - **MarketOrderArgs**: v2 requiere `side` explícito (`Side.BUY` desde `py_clob_client_v2`)
 - **Caveat pendiente**: `modules/auto_redeem.py` invoca `redeemPositions` desde la EOA, pero las posiciones v2 viven en el proxy. Cuando haya una posición v2 ganada, hay que verificar si el redeem funciona o requiere firmar desde el proxy.
 
+### Cobro de posiciones (v2 vs v1)
+
+**Posiciones v1 (legacy EOA)**: `redeem.py` las cobra automáticamente cuando el oráculo UMA resuelve. `modules/auto_redeem.py` corre cada ~1h dentro del bot.
+
+**Posiciones v2 (funder/proxy)**: el SDK `py-clob-client-v2` **no expone** método de redeem (verificado: ningún `redeem`, `settle`, `claim`, `merge`, `split`, `withdraw`, `convert` en `dir(ClobClient)`). El cobro automático on-chain falla porque:
+1. La posición vive en el funder (smart contract proxy), no en la EOA
+2. `CTF.redeemPositions` paga al `msg.sender` — si firma la EOA, los fondos quedan retenidos
+3. La EOA tendría que llamar `proxy.exec(CTF, calldata)` — el ABI del proxy de Polymarket no está documentado
+
+**Workaround actual**: cobrar manualmente desde polymarket.com:
+1. Abrir polymarket.com → conectar wallet
+2. Portfolio → click "Redeem" en cada posición resuelta
+3. Aprobar tx en MetaMask
+
+**Pendiente**: investigar el ABI del proxy de Polymarket para implementar `proxy.exec(CTF, calldata)` y volver el cobro automático para v2.
+
+**Nota sobre `redeem.py`**: el bug del `return` temprano en `find_all_positions` se corrigió el 28-Abr — ahora hace **merge** de las posiciones de funder + EOA, deduplicando por `(conditionId, asset)`. Antes solo veía las del primer address con resultados.
+
 ### Créditos API
 - **Anthropic**: agotado (-$0.01) — bot ya no depende de API
 - **Modelo previo**: Claude Haiku 4.5 (queda referenciado en código pero no se invoca con sports/crypto off)
