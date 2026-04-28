@@ -79,8 +79,8 @@ class TradeExecutor:
             return False
 
         try:
-            from py_clob_client.client import ClobClient
-            from py_clob_client.clob_types import BalanceAllowanceParams, AssetType
+            from py_clob_client_v2.client import ClobClient
+            from py_clob_client_v2.clob_types import BalanceAllowanceParams, AssetType
 
             pk_clean = pk[2:] if pk.startswith("0x") else pk
             funder = POLYMARKET_FUNDER_ADDRESS
@@ -123,7 +123,7 @@ class TradeExecutor:
                             signature_type=cfg["sig_type"]
                         )
 
-                    creds = client.create_or_derive_api_creds()
+                    creds = client.create_or_derive_api_key()
                     client.set_api_creds(creds)
 
                     # Verificar balance
@@ -157,7 +157,7 @@ class TradeExecutor:
                 host="https://clob.polymarket.com",
                 key=pk_clean, chain_id=137, signature_type=0
             )
-            client.set_api_creds(client.create_or_derive_api_creds())
+            client.set_api_creds(client.create_or_derive_api_key())
             self.clob_client = client
             logger.info("✅ Cliente CLOB listo (fallback EOA)")
             return True
@@ -242,8 +242,9 @@ class TradeExecutor:
         )
 
         try:
-            from py_clob_client.clob_types import MarketOrderArgs, OrderArgs, OrderType
-            from py_clob_client.order_builder.constants import BUY
+            from py_clob_client_v2.clob_types import MarketOrderArgs, OrderArgs, OrderType
+            from py_clob_client_v2 import Side
+            BUY = Side.BUY
 
             # Obtener token_id del mercado
             token_id = await self._get_token_id(analysis)

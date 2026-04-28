@@ -943,9 +943,10 @@ class StockTrader:
                                    amount: float) -> bool:
         """Ejecuta orden real (mismo patrón que btc_15min)."""
         try:
-            from py_clob_client.client import ClobClient
-            from py_clob_client.clob_types import MarketOrderArgs, OrderArgs, OrderType
-            from py_clob_client.order_builder.constants import BUY
+            from py_clob_client_v2.client import ClobClient
+            from py_clob_client_v2.clob_types import MarketOrderArgs, OrderArgs, OrderType
+            from py_clob_client_v2 import Side
+            BUY = Side.BUY
 
             pk = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
             if not pk:
@@ -956,7 +957,7 @@ class StockTrader:
                 host="https://clob.polymarket.com",
                 key=pk_clean, chain_id=137, signature_type=0
             )
-            client.set_api_creds(client.create_or_derive_api_creds())
+            client.set_api_creds(client.create_or_derive_api_key())
 
             # FOK
             try:
