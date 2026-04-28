@@ -6,7 +6,7 @@ Uso:
     cd /root/Polybot && ./venv/bin/python scripts/daily_audit.py
 
 Imprime:
-- Fecha/hora, balance USDC.e, win rate, P&L por estrategia
+- Fecha/hora, balance pUSD (funder), win rate, P&L por estrategia
 - Trades de las últimas 24h
 - Posiciones abiertas con valor >= $5 y tiempo a resolución
 """
@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 TRADE_FILE = ROOT / "data" / "trade_results.json"
-USDC_ADDR = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+PUSD_ADDR = "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB"
 GAMMA_URL = "https://gamma-api.polymarket.com/markets"
 
 
@@ -34,11 +34,12 @@ def get_usdc_balance() -> float:
     load_dotenv(ROOT / ".env")
     rpc = os.getenv("ALCHEMY_RPC_URL") or "https://polygon-bor-rpc.publicnode.com"
     w3 = Web3(Web3.HTTPProvider(rpc))
-    addr = w3.eth.account.from_key(os.getenv("POLYGON_WALLET_PRIVATE_KEY")).address
+    funder = os.getenv("POLYMARKET_FUNDER_ADDRESS", "")
+    target = funder or w3.eth.account.from_key(os.getenv("POLYGON_WALLET_PRIVATE_KEY")).address
     abi = [{"inputs":[{"name":"a","type":"address"}],"name":"balanceOf",
             "outputs":[{"name":"","type":"uint256"}],"type":"function"}]
-    c = w3.eth.contract(address=w3.to_checksum_address(USDC_ADDR), abi=abi)
-    return c.functions.balanceOf(addr).call() / 1e6
+    c = w3.eth.contract(address=w3.to_checksum_address(PUSD_ADDR), abi=abi)
+    return c.functions.balanceOf(w3.to_checksum_address(target)).call() / 1e6
 
 
 async def fetch_market(session: aiohttp.ClientSession, mid: str) -> dict | None:
@@ -95,7 +96,7 @@ async def main() -> None:
     # 1. Balance
     try:
         bal = get_usdc_balance()
-        print(f"\n💰 Balance USDC.e líquido:  ${bal:.2f}")
+        print(f"\n💰 Balance pUSD (funder):  ${bal:.2f}")
     except Exception as e:
         print(f"\n⚠️  No se pudo leer balance: {e}")
         bal = 0.0

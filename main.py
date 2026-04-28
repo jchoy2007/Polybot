@@ -1147,9 +1147,11 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     _w3br = _W3br(_W3br.HTTPProvider(_rpc_br, request_kwargs={'timeout': 10}))
                     if _w3br.is_connected():
                         _eoa_br = _w3br.eth.account.from_key(_pk_br).address
+                        _funder_br = os.getenv("POLYMARKET_FUNDER_ADDRESS", "")
+                        _target_br = _w3br.to_checksum_address(_funder_br) if _funder_br else _eoa_br
                         _usdc_abi_br = [{"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"}]
-                        _usdc_br = _w3br.eth.contract(address=_w3br.to_checksum_address("0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"), abi=_usdc_abi_br)
-                        _bal_before_redeem = _usdc_br.functions.balanceOf(_eoa_br).call() / 1e6
+                        _usdc_br = _w3br.eth.contract(address=_w3br.to_checksum_address("0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB"), abi=_usdc_abi_br)
+                        _bal_before_redeem = _usdc_br.functions.balanceOf(_target_br).call() / 1e6
                 except:
                     pass
 
@@ -1167,7 +1169,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 _bal_after_redeem = _bal_before_redeem
                 try:
                     if _w3br.is_connected():
-                        _bal_after_redeem = _usdc_br.functions.balanceOf(_eoa_br).call() / 1e6
+                        _bal_after_redeem = _usdc_br.functions.balanceOf(_target_br).call() / 1e6
                 except:
                     pass
 
@@ -1406,18 +1408,20 @@ async def main():
                 except:
                     continue
             if w3 and w3.is_connected():
-                USDC_E = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+                PUSD = "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB"
                 abi = [{"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"}]
                 pk = os.getenv("POLYGON_WALLET_PRIVATE_KEY", "")
                 account = w3.eth.account.from_key(pk)
-                usdc = w3.eth.contract(address=w3.to_checksum_address(USDC_E), abi=abi)
-                balance = usdc.functions.balanceOf(account.address).call() / 1e6
+                funder = os.getenv("POLYMARKET_FUNDER_ADDRESS", "")
+                target = w3.to_checksum_address(funder) if funder else account.address
+                pusd = w3.eth.contract(address=w3.to_checksum_address(PUSD), abi=abi)
+                balance = pusd.functions.balanceOf(target).call() / 1e6
                 STATE.current_bankroll = balance
                 # Resetear ATH al balance actual al iniciar (evita kill switch falso)
                 STATE.all_time_high = balance
                 STATE.is_paused = False  # Limpiar pausas previas al reiniciar
                 STATE.pause_reason = ""
-                logger.info(f"   💰 Balance real USDC.e: ${balance:.2f} (ATH reseteado)")
+                logger.info(f"   💰 Balance real pUSD (funder): ${balance:.2f} (ATH reseteado)")
             else:
                 logger.warning("   ⚠️ No se pudo conectar a Polygon para balance")
         except Exception as e:

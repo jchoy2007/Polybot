@@ -29,7 +29,7 @@ logger = logging.getLogger("polybot.redeem")
 # Contratos de Polymarket en Polygon
 CTF_ADDRESS = "0x4D97DCd97eC945f40cF65F87097ACe5EA0476045"
 NEG_RISK_ADAPTER = "0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296"
-USDC_E_ADDRESS = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+PUSD_ADDRESS = "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB"  # Polymarket v2 collateral
 WCOL_ADDRESS = "0x3A3BD7bb9528E159577F7C2e685CC81A765002E2"  # WrappedCollateral
 GAMMA_API_URL = "https://gamma-api.polymarket.com"
 
@@ -161,6 +161,8 @@ class AutoRedeemer:
 
             self.account = self.w3.eth.account.from_key(pk)
             self.address = self.account.address
+            funder = os.getenv("POLYMARKET_FUNDER_ADDRESS", "")
+            self.balance_target = self.w3.to_checksum_address(funder) if funder else self.address
 
             self.ctf_contract = self.w3.eth.contract(
                 address=self.w3.to_checksum_address(CTF_ADDRESS),
@@ -168,7 +170,7 @@ class AutoRedeemer:
             )
 
             self.usdc_contract = self.w3.eth.contract(
-                address=self.w3.to_checksum_address(USDC_E_ADDRESS),
+                address=self.w3.to_checksum_address(PUSD_ADDRESS),
                 abi=ERC20_ABI
             )
 
@@ -293,7 +295,7 @@ class AutoRedeemer:
                 logger.debug(f"   Mercado aún no resuelto por oráculo")
                 return False, 0.0
 
-            balance_before = self.usdc_contract.functions.balanceOf(self.address).call()
+            balance_before = self.usdc_contract.functions.balanceOf(self.balance_target).call()
 
             wcol_contract = self.w3.eth.contract(
                 address=self.w3.to_checksum_address(WCOL_ADDRESS),
@@ -346,7 +348,7 @@ class AutoRedeemer:
                     except Exception as e:
                         logger.warning(f"   Unwrap fallo: {str(e)[:40]}")
 
-                balance_after = self.usdc_contract.functions.balanceOf(self.address).call()
+                balance_after = self.usdc_contract.functions.balanceOf(self.balance_target).call()
                 gained = (balance_after - balance_before) / 1e6
                 if gained > 0:
                     logger.info(f"   COBRADO ${gained:.2f} (neg_risk/WCOL)")
@@ -357,7 +359,7 @@ class AutoRedeemer:
                 time.sleep(3)
                 nonce = self.w3.eth.get_transaction_count(self.address, 'pending')
                 txn = self.ctf_contract.functions.redeemPositions(
-                    self.w3.to_checksum_address(USDC_E_ADDRESS),
+                    self.w3.to_checksum_address(PUSD_ADDRESS),
                     bytes.fromhex("00" * 32),
                     cid_bytes,
                     [1, 2]
@@ -372,7 +374,7 @@ class AutoRedeemer:
 
                 if receipt.status == 1:
                     time.sleep(3)
-                    balance_after = self.usdc_contract.functions.balanceOf(self.address).call()
+                    balance_after = self.usdc_contract.functions.balanceOf(self.balance_target).call()
                     gained = (balance_after - balance_before) / 1e6
                     if gained > 0:
                         logger.info(f"   COBRADO ${gained:.2f} (CTF directo)")

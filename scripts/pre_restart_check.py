@@ -106,17 +106,19 @@ def check_wallet() -> None:
         rpc = os.getenv("ALCHEMY_RPC_URL") or "https://polygon-bor-rpc.publicnode.com"
         w3 = Web3(Web3.HTTPProvider(rpc, request_kwargs={"timeout": 10}))
         addr = w3.eth.account.from_key(os.getenv("POLYGON_WALLET_PRIVATE_KEY")).address
+        funder = os.getenv("POLYMARKET_FUNDER_ADDRESS", "")
+        target = w3.to_checksum_address(funder) if funder else addr
         abi = [{"inputs": [{"name": "a", "type": "address"}], "name": "balanceOf",
                 "outputs": [{"name": "", "type": "uint256"}], "type": "function"}]
-        usdc = w3.eth.contract(
-            address=w3.to_checksum_address("0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"),
+        pusd = w3.eth.contract(
+            address=w3.to_checksum_address("0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB"),
             abi=abi,
         )
-        bal = usdc.functions.balanceOf(addr).call() / 1e6
+        bal = pusd.functions.balanceOf(target).call() / 1e6
         if bal > 0:
-            print(f"  {OK} wallet {addr[:6]}… USDC.e ${bal:.2f}")
+            print(f"  {OK} funder {target[:6]}… pUSD ${bal:.2f}")
         else:
-            print(f"  {FAIL} USDC.e balance = 0 (wallet {addr})")
+            print(f"  {FAIL} pUSD balance = 0 (target {target})")
             errors.append("wallet balance 0")
     except Exception as e:
         print(f"  {FAIL} wallet check falló: {e}")
