@@ -7,18 +7,17 @@
 
 ## 📊 Estado actual del proyecto
 
-### Bankroll (27-Abr 22:30 UTC, post fresh-start)
-- **Depósito inicial**: $200 USDC.e (Polygon)
-- **Balance líquido**: $84.37 USDC.e (post redeem 7 posiciones)
-- **Posiciones abiertas**: ~3-4 (BJP, XRP, BTC, MegaETH) ≈ valor pendiente
-- **WR reseteado**: **0/0 desde 27-Abr 22:30 UTC** (fresh start tras refactor estratégico)
-- **Tracker viejo**: `data/trade_results_backup_27apr.json` (60/124 = 48% bajo bugs ya arreglados)
+### Bankroll (28-Abr, post migración v2)
+- **Depósito en Polymarket v2**: ~$102.72 pUSD (funder proxy)
+- **Cash disponible**: ~$101.72 pUSD (1 posición abierta de test manual desde la UI)
+- **WR reseteado**: **0/0** desde el fresh-start del 27-Abr 22:30 UTC
+- **Tracker histórico**: `data/trade_results_backup_27apr.json` — fuera del repo (gitignored)
 
-### Estrategias activas (post 27-Abr)
-- ✅ **STOCKS Up/Down only** (única estrategia ejecutora)
+### Estrategias activas (post 28-Abr, migración v2)
+- ✅ **STOCKS Up/Down only** (única estrategia ejecutora — ventana US 14-20 UTC, lun-vie)
 - 👀 **POLITICS monitoring** (loguea, no apuesta — recolectando data)
 - ⏭️ **SPORTS desactivada** (Anthropic API billing agotado)
-- ⏭️ **CRYPTO desactivada** (5/14 = 36% WR, -$29 — definitivo)
+- 🗑️ **CRYPTO eliminada definitivamente** (`modules/crypto_daily.py` borrado el 28-Abr — 5/14 WR 36%, -$29)
 
 ### Costos mensuales (post-30 abril)
 - **VPS Hetzner CPX22**: $10.99/mes
@@ -30,11 +29,21 @@
 ### Infraestructura
 - **VPS**: Hetzner Cloud CPX22 — Helsinki, Finland ($10.99/mes)
 - **RPC**: Alchemy Polygon (con fallback a public RPC)
-- **Wallet**: `0x4bcd692f8F5c18074fF3d37AE3edfB5E826EdC71` (EOA)
-- **Polymarket Funder**: ver `.env` (POLYMARKET_FUNDER_ADDRESS)
+- **Wallet EOA**: `0x4bcd692f8F5c18074fF3d37AE3edfB5E826EdC71` (firma órdenes)
+- **Polymarket Funder (proxy)**: `0x5718117523abb9648a39374f5d99fcc07c533482` — donde vive el pUSD
 - **Servicio**: `systemctl status polybot` (activo 24/7)
 - **Venv**: `/root/Polybot/venv/bin/python`
 - **Entry point**: `main.py --live` (definido en `/etc/systemd/system/polybot.service`)
+
+### Polymarket v2 (migración 27-28 Abr)
+- **SDK**: `py-clob-client-v2` (v1.0.0) — el SDK v1 quedó obsoleto cuando Polymarket migró el CLOB
+- **Colateral**: **pUSD** (`0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB`) — ya no USDC.e
+- **Auth**: derivada de la private key con `client.create_or_derive_api_key()`; **no** se usa `RELAYER_API_KEY`
+- **`SIGNATURE_TYPE=2`** forzado en `.env` (Browser proxy con funder). Antes el código probaba 0/1/2 — ahora va directo a 2.
+- **Balance reads**: `pUSD.balanceOf(funder)` en todos los sitios (`scripts/daily_audit.py`, `main.py` startup + redeem snap, `modules/auto_redeem.py`, `scripts/pre_restart_check.py`)
+- **Allowances**: aprobadas desde la UI de Polymarket (3 contratos: CTF Exchange, Neg-risk CTF, Neg-risk Adapter). Re-aprobar si cambian.
+- **MarketOrderArgs**: v2 requiere `side` explícito (`Side.BUY` desde `py_clob_client_v2`)
+- **Caveat pendiente**: `modules/auto_redeem.py` invoca `redeemPositions` desde la EOA, pero las posiciones v2 viven en el proxy. Cuando haya una posición v2 ganada, hay que verificar si el redeem funciona o requiere firmar desde el proxy.
 
 ### Créditos API
 - **Anthropic**: agotado (-$0.01) — bot ya no depende de API
@@ -47,27 +56,31 @@
 ```
 /root/Polybot/
 ├── main.py                  # Orchestrator principal, ciclo de scan cada 15 min
+├── redeem.py                # Script standalone de cobro (subprocess desde main)
+├── daily_report.py          # Reporte diario (importado lazy en main para auto-stop)
+├── CLAUDE.md / EMERGENCY.md # Docs operativas
 ├── config/
 │   └── settings.py          # SafetyRules (límites inquebrantables) + BotState
 ├── core/
 │   ├── market_scanner.py    # Busca mercados en Gamma API, aplica filtros duros
-│   ├── ai_analyzer.py       # Analiza mercados con Claude Haiku
+│   ├── ai_analyzer.py       # Analiza mercados con Claude Haiku (sin uso activo)
 │   ├── risk_manager.py      # Kelly criterion, stop-loss, cooldowns
-│   ├── executor.py          # Ejecuta órdenes via py-clob-client
+│   ├── executor.py          # Ejecuta órdenes via py-clob-client-v2 (sig_type=2)
 │   └── tracker.py           # Rastrea WON/LOST, calcula win rate
 ├── modules/
-│   ├── stock_trader.py      # Estrategia 5: stocks (S&P, QQQ, Dow, NVDA, etc.)
-│   ├── crypto_daily.py      # Estrategia 6: BTC/ETH/SOL/XRP diarios
-│   ├── auto_redeem.py       # Cobra posiciones resueltas cada ~1h
-│   ├── telegram_monitor.py  # Notificaciones a Telegram
-│   └── auto_seller.py.disabled  # DESACTIVADO (vendía winners prematuramente)
-├── redeem.py                # Script standalone de cobro (subprocess desde main)
-├── data/
-│   ├── trade_results.json   # Historial de trades (tracker)
-│   ├── bets_placed.json     # Market IDs ya apostados
-│   └── sold_markets.json    # (obsoleto, era para auto_seller)
-└── logs/
-    └── polybot_YYYYMMDD.log # Logs del día (formato fecha)
+│   ├── stock_trader.py      # Estrategia única ejecutora: stocks Up/Down
+│   ├── politics_trader.py   # Politics monitoring (no apuesta, recolecta data)
+│   ├── news_monitor.py      # RSS news filter para stock_trader
+│   ├── auto_redeem.py       # Cobra posiciones resueltas (pUSD desde funder)
+│   └── telegram_monitor.py  # Notificaciones a Telegram
+├── scripts/
+│   ├── daily_audit.py       # Snapshot rápido (balance pUSD, WR, posiciones)
+│   ├── daily_backup.sh      # Backup data/ (cron 23:00 UTC)
+│   ├── pre_restart_check.py # Validaciones antes de restart
+│   ├── whale_monitor.py     # Top whales monitor (cron horario)
+│   └── backtest.py          # Replay de filtros sobre trades históricos
+├── data/                    # JSON de estado (tracker, bets_placed, etc.)
+└── logs/                    # Logs diarios (gitignored)
 ```
 
 ---
@@ -99,13 +112,10 @@
   - **NO apostar direcciones opuestas del mismo ticker en el mismo día**
     (commit 5dd5635 — evita AMZN Up + AMZN Down = pérdida garantizada)
 
-### Estrategia 6: Crypto Daily (BTC/ETH/SOL/XRP)
-- **WR histórico**: 2/3 (67%) | P&L: +$3.81
-- **Flow**: Binance price → compara con Polymarket → apuesta si edge >= 5%
-- **Filtros críticos**:
-  - Solo mercados que resuelven en <48h (filtro agregado 13-Apr)
-  - Prob >= 55% (bloqueo de apuestas con baja convicción)
-  - Cooldown 10 min entre apuestas del mismo crypto
+### Estrategia 6: Crypto Daily ❌ ELIMINADA (28-Abr)
+- WR final: 5/14 (36%), P&L: -$29 — desactivada el 27-Abr, archivo borrado el 28-Abr.
+- `modules/crypto_daily.py` ya no existe en el repo. Si se reactiva con otra estrategia
+  (ej. latency arb tipo coinman2), recuperar de git history (`git show HEAD~1:modules/crypto_daily.py`).
 
 ### Estrategias DESACTIVADAS
 - ❌ **WEATHER** (estaba en prueba, eliminada del ciclo)
@@ -356,19 +366,19 @@ t = WinRateTracker()
 print(t.get_summary())
 "
 
-# Ver balance real de wallet
+# Ver balance real (pUSD en el funder de Polymarket v2)
 cd /root/Polybot && ./venv/bin/python -c "
 import os
 from web3 import Web3
 from dotenv import load_dotenv
 load_dotenv()
 w3 = Web3(Web3.HTTPProvider(os.getenv('ALCHEMY_RPC_URL', 'https://polygon-bor-rpc.publicnode.com')))
-addr = w3.eth.account.from_key(os.getenv('POLYGON_WALLET_PRIVATE_KEY')).address
-usdc = w3.eth.contract(
-    address=w3.to_checksum_address('0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'),
+funder = os.getenv('POLYMARKET_FUNDER_ADDRESS')
+pusd = w3.eth.contract(
+    address=w3.to_checksum_address('0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB'),
     abi=[{'inputs':[{'name':'a','type':'address'}],'name':'balanceOf','outputs':[{'name':'','type':'uint256'}],'type':'function'}]
 )
-print(f'USDC.e: \${usdc.functions.balanceOf(addr).call()/1e6:.2f}')
+print(f'pUSD (funder): \${pusd.functions.balanceOf(w3.to_checksum_address(funder)).call()/1e6:.2f}')
 "
 
 # Aplicar los últimos cambios del repo
@@ -454,4 +464,4 @@ cd /root/Polybot && git pull origin main && systemctl restart polybot
 
 ---
 
-**Última actualización**: 15 abril 2026, 20:00 UTC (post-fix `ba6162c` — bloqueo universal de derivados + audit script)
+**Última actualización**: 28 abril 2026 (post migración Polymarket v2 + cleanup producción)
