@@ -14,31 +14,48 @@ y geopolítica para acumular data.
 
 ---
 
-## Módulos del bot
+## Motores
 
-### 📈 STOCK TRADER (Up/Down) — único módulo ejecutor
+### 📈 STOCK TRADER (Up/Down + IA Sonnet)
 
 Apuesta en mercados *Up or Down* de stocks/índices comparando el precio
 actual de Yahoo Finance contra el implícito de Polymarket.
 
 - Solo durante **horario US (14:00-20:00 UTC, 9:30 AM-4:00 PM ET)**
 - Solo **lunes a viernes** (mercado US cerrado fines de semana)
-- **Máximo 4 apuestas por día**
-- Override: si el edge es excepcional (>25%), permite 1 extra
+- **Máximo 4 apuestas por día** (override por edge >25%)
 - Cubre índices (S&P, NASDAQ, Dow, Russell) + Mag 7
   (NVDA, GOOGL, AAPL, TSLA, META, AMZN, MSFT, NFLX) + commodities
-  (oro, petróleo)
+- **Último filtro Claude Sonnet 4.6**: revisa cada apuesta antes de
+  ejecutar y veta si ve catalizador adverso o riesgo de fade
 
-### 🏛️ POLITICS MONITOR
+### 🏛️ POLITICS TRADER (regla extrema + IA Sonnet)
 
-Escanea mercados políticos y geopolíticos. **Loguea pero NO apuesta**
-mientras se acumula data histórica para validar la estrategia.
+Apuesta en mercados políticos/geopolíticos donde el precio implica un
+desenlace casi seguro. La IA confirma cada apuesta antes de ejecutar.
 
-### 🔍 MARKET SCANNER (sports/esports IA)
+- Solo si **YES ≥ 0.85** (apuesta YES) o **YES ≤ 0.15** (apuesta NO)
+- Liquidez > $5,000, resuelve en **<3 días**
+- **Máximo 2 apuestas por día**, $2 por bet (sin Kelly hasta validar n≥5)
+- **Último filtro Claude Sonnet 4.6**: veta si detecta poll/leak adverso,
+  ambigüedad de resolución o whale anchoring
 
-Escanea mercados de deportes y esports usando Claude (Anthropic API).
-**Actualmente desactivado** mientras los créditos de Anthropic estén
-agotados. Reactivable poniendo `ANTHROPIC_API_KEY` en `.env`.
+### 📰 NEWS FILTER (sentiment para stocks)
+
+Lee headlines de Yahoo Finance, Bloomberg, MarketWatch y WSJ. Calcula un
+score (bullish - bearish) y bloquea apuestas en stocks contra la tendencia
+de noticias (UP si score ≤ -3, DOWN si score ≥ +3).
+
+### 🔍 MARKET SCANNER (sports/esports)
+
+Escanea mercados de deportes y esports. **Desactivado** intencionalmente:
+sin reglas determinísticas para sports (a diferencia de stocks/politics),
+la IA sola no compensa el costo + complejidad de filtros para derivados,
+empates y spreads. Pendiente revisar tras validar politics.
+
+> **Sin `ANTHROPIC_API_KEY`** el bot opera con filtros base (sin la capa de
+> IA). Stocks y politics siguen funcionando, pero pierdes la última
+> revisión cualitativa antes de cada ejecución.
 
 ---
 
@@ -108,13 +125,14 @@ El bot intenta cobrar automáticamente cada hora vía `redeem.py` /
 | Concepto | Costo |
 |---|---|
 | VPS Hetzner CPX22 | ~$11/mes |
-| Gas Polygon | ~$2-5/mes (~50 trades) |
+| Anthropic API (Claude Sonnet 4.6, último filtro) | ~$7/mes |
+| Gas Polygon | ~$2/mes (~50 trades) |
 | Telegram | Gratis |
-| Yahoo Finance + RSS | Gratis |
-| **Total mínimo** | **~$13-15/mes** |
+| Yahoo Finance + RSS news | Gratis |
+| **Total** | **~$20/mes** |
 
-Si activas `🔍 MARKET SCANNER` con Anthropic API: ~$5-10/mes adicional
-(Claude Haiku 4.5).
+Sin Anthropic API el bot opera solo con filtros base: ~$13/mes (pierdes la
+capa de IA, pero stocks y politics siguen ejecutando).
 
 ---
 

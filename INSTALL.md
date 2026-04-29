@@ -26,7 +26,7 @@ hasta verlo operando en producción.
 | Polymarket.com | Plataforma de apuestas + wallet conectada | Gratis |
 | MetaMask | Firmar transacciones (wallet) | Gratis |
 | Telegram | Notificaciones del bot | Gratis |
-| Anthropic API | Solo si activas `🔍 MARKET SCANNER` (sports IA) | Pay-as-you-go |
+| Anthropic API | IA Claude Sonnet (último filtro stocks + politics) | ~$5-10/mes |
 
 ### 3. Wallet con fondos
 
@@ -58,6 +58,25 @@ hasta verlo operando en producción.
 4. Una vez que se vea balance en Polymarket, **anota tu Polymarket Funder
    Address (proxy)** — está en el menú de la wallet (formato `0x...`). Esta
    dirección es donde vivirá el dinero, NO la dirección de MetaMask.
+
+---
+
+## Paso 2.5 — Anthropic API (recomendado)
+
+El bot usa Claude Sonnet como último filtro: revisa cada apuesta de stocks
+y politics y veta si detecta riesgo (catalizador adverso, mercado mispriced,
+ambigüedad de resolución). Sin esto, el bot opera solo con filtros base.
+
+1. Crear cuenta en [console.anthropic.com](https://console.anthropic.com).
+2. Ir a **Plans & Billing** → depositar mínimo **$5** (pay-as-you-go).
+3. Ir a **API Keys** → **Create Key** → copiar (formato `sk-ant-api03-...`).
+4. Guardarla; la pondrás en `.env` (paso 5) como `ANTHROPIC_API_KEY`.
+
+> **Modelo**: el bot usa `claude-sonnet-4-6` automáticamente — no hay que
+> configurar nada más. Costo estimado: $5-10/mes con uso normal.
+>
+> **Si no la configuras**: el bot funciona igual pero sin la capa de IA.
+> Recomendado activarla; el costo es bajo y la calibración mejora.
 
 ---
 
@@ -111,7 +130,7 @@ ALCHEMY_RPC_URL=https://polygon-rpc.com
 TELEGRAM_BOT_TOKEN=123456:ABC...
 TELEGRAM_CHAT_ID=TU_CHAT_ID
 SIGNATURE_TYPE=2
-ANTHROPIC_API_KEY=     # Opcional — dejar vacío si no usas IA
+ANTHROPIC_API_KEY=sk-ant-api03-...   # Recomendado (paso 2.5). Vacío = sin IA.
 ```
 
 > **Cómo exportar la private key de MetaMask**: MetaMask → tres puntos →

@@ -24,7 +24,7 @@ EXTREME_HIGH = 0.85       # YES >= 0.85 → apostar YES
 EXTREME_LOW = 0.15        # YES <= 0.15 → apostar NO
 ASSUMED_TRUE_PROB = 0.93  # Prob real asumida en zona extrema (mid del rango)
 MIN_LIQUIDITY = 5000.0
-MAX_DAYS_TO_RESOLVE = 7
+MAX_DAYS_TO_RESOLVE = 3
 MAX_DAILY_BETS = 2
 COUNTER_PATH = "data/politics_daily_count.json"
 
