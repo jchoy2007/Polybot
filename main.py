@@ -959,13 +959,71 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             if telegram:
                 await telegram.send_error_alert(f"Error Stock Trader: {str(e)[:100]}")
 
-    # ===== POLITICS MONITOR =====
+    # ===== POLITICS TRADER (extreme price strategy, sin IA) =====
     if politics:
         logger.info("\n" + "=" * 50)
-        logger.info("🏛️ POLITICS MONITOR")
+        logger.info("🏛️ POLITICS TRADER")
         logger.info("=" * 50)
         try:
-            await politics.run_cycle()
+            candidates = await politics.run_cycle()
+            if candidates:
+                from core.ai_analyzer import MarketAnalysis
+                today = datetime.now().strftime("%Y-%m-%d")
+                politics_bet_size = 2.0  # Fixed conservative — no Kelly hasta validar n>=5
+                for c in candidates:
+                    if STATE.cycle_bets >= SAFETY.max_bets_per_cycle:
+                        logger.info(f"   ⏭️ Politics: max apuestas/ciclo alcanzado")
+                        break
+                    if STATE.daily_spend + politics_bet_size > SAFETY.max_daily_spend:
+                        logger.info(f"   ⏭️ Politics: max gasto diario alcanzado")
+                        break
+                    if politics.daily_count >= politics.max_daily:
+                        logger.info(f"   ⏭️ Politics: max politics/día alcanzado ({politics.max_daily})")
+                        break
+
+                    analysis = MarketAnalysis(
+                        market_id=c["market_id"],
+                        question=c["question"],
+                        estimated_probability=c["prob"],
+                        confidence=0.70,
+                        market_price=c["price"],
+                        edge=c["edge"],
+                        reasoning=f"Politics extreme price (yes_price extremo, asumido prob {c['prob']:.0%})",
+                        side=c["side"],
+                        recommended_action="BET",
+                        risk_factors=[],
+                        key_evidence=[],
+                    )
+                    result = await executor.execute_bet(analysis, politics_bet_size)
+                    status = result.get("status", "UNKNOWN")
+                    if status in ("EXECUTED", "SIMULATED"):
+                        politics.increment_daily(today)
+                        politics.traded_markets.add(c["market_id"])
+                        tracker.add_trade(
+                            market_id=c["market_id"],
+                            question=c["question"],
+                            side=c["side"],
+                            amount=politics_bet_size,
+                            price=c["price"],
+                            strategy="POLITICS",
+                            edge=c["edge"],
+                            prob=c["prob"],
+                        )
+                        STATE.cycle_bets += 1
+                        STATE.daily_spend += politics_bet_size
+                        logger.info(
+                            f"   ✅ Politics ejecutado: ${politics_bet_size:.2f} {c['side']} "
+                            f"@ {c['price']:.3f} | Edge: {c['edge']:.1%}"
+                        )
+                        if telegram and status == "EXECUTED":
+                            await telegram.send_trade_alert(
+                                "POLITICS", c["question"], c["side"],
+                                politics_bet_size, c["price"], c["edge"],
+                                c["end_date"][:10] if c["end_date"] else "?"
+                            )
+                            telegram.log_trade("POLITICS", c["question"], c["side"], politics_bet_size)
+                    else:
+                        logger.info(f"   ❌ Politics no ejecutó: {status}")
         except Exception as e:
             logger.error(f"   Error Politics: {e}")
 

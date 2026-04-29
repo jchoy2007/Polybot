@@ -6,9 +6,12 @@ from typing import Dict, Optional
 logger = logging.getLogger("polybot.news")
 
 RSS_FEEDS = [
-    "https://feeds.reuters.com/reuters/businessNews",
-    "https://feeds.reuters.com/reuters/topNews",
-    "https://feeds.reuters.com/Reuters/worldNews",
+    # Reuters cerró sus RSS públicos (29-Abr verificado: 0 entries).
+    # Reemplazados por feeds activos: Yahoo Finance (42), Bloomberg (30), MarketWatch (10), WSJ (20).
+    "https://finance.yahoo.com/news/rssindex",
+    "https://feeds.bloomberg.com/markets/news.rss",
+    "https://feeds.content.dowjones.io/public/rss/mw_topstories",
+    "https://feeds.a.dj.com/rss/RSSMarketsMain.xml",
 ]
 
 BULLISH_KW = [
