@@ -201,7 +201,55 @@
     "2009111",
     "2009073",
     "0xa67b305d4115f769e16b232e5f4a7e3c3e6ee3f0c4f5e10157392c2217f7945a",
-    "0x1944324ea93c65ce70409cef960865a5c2ae2a9499ba358c7a281c4718192666"
+    "0x1944324ea93c65ce70409cef960865a5c2ae2a9499ba358c7a281c4718192666",
+    "2059462",
+    "0x16ffba5e9647b2606fdd3757a7afb4d77082ff6d05ebd51e114047c83cda0fd3",
+    "2047409",
+    "0x7c8241e9d7d1a6e8a42c6af38aeb18479ce087f7e47227399273b12766cb9ab2",
+    "2067158",
+    "2067149",
+    "2014351",
+    "2082185",
+    "2067174",
+    "2067110",
+    "2067112",
+    "0xd4185bcc3e2aa39de8c71ea9ced85f813c1110df9c46a640078108b6ea2e7891",
+    "0x839e0f6973643516ce0f8f556914eba845335574acfd2ab596be45c5247f1653",
+    "0xb7e63f7f9f76203dacef9f1d5dd7077be2ac4b951d20db21b0831304f73c9626",
+    "0x4ed6fdcf335972c3b2da1525968cc0a8d5b1dcd3abc98886d0e60936f5b17880",
+    "0x29c2971f358bdc7c036c2d912f484dabba11a5c65096cee96ea4e72a81c6e84e",
+    "0x0112be0f031c4ee059a78f8718e5df478b00cb8a14276c2378aad37305457255",
+    "2044580",
+    "2082240",
+    "0xfd559448a7b8d8e73fa91aff75146ab94bc1fc7e1f95bdf64da65d78f0cfe0f5",
+    "0x90c657926fe8737587911c000d8eaa97620996ac66cc8606c412a610feb37c0b",
+    "2082115",
+    "2044473",
+    "2091249",
+    "2084676",
+    "951183",
+    "2091420",
+    "0x49e0fd35e25a3c075cba2ddd500e0a69369c88a7ecf8971304495b1970d98017",
+    "0x5de0c281a402ebd9fe0d81335a5d22a65950ffc434acfa969f2ee71cfb3eb35c",
+    "0x53b2a9e2290b099ad3b95244890d0962396e6d2c6c9782874a994764122ac05a",
+    "0xd417c08cd6b8632f8fd6e6f11c00bec3bde272bafb2e51f65486f43d1b489d79",
+    "0x1ee727e95e20ade914c9c5b9d2fcead6355d4152a998b67a0a8489da139c5e78",
+    "2067122",
+    "2067136",
+    "2067189",
+    "2067170",
+    "2067128",
+    "2067166",
+    "2067171",
+    "0xcdead3c8857257390272500659323947250656a4b589f6cbe9ef21d5e90bc576",
+    "0x21bf34f889180cb48e8e6a02f926d6b60c34b4811dbea6766898dfdf4fdedcd8",
+    "0x865605ead690f81b19e2a23e1699dd4c60b8a6add0f7e7bffdc1234ffe073043",
+    "0xdbc5484044fe22805f97111e973f12a3b0b4ca00e03b396e9a9ca6bba3698fe1",
+    "0x1e31d3a9f83bf43ef315680cd1b87a013c585d0bd3a242bfcae2f2060b6a7a40",
+    "0xc08f13be2db6d608cd7ee37eaf26b5bd23af07724bc41478a5137a35f2e20ed0",
+    "0xde317904584a52d208b865db90b0f50ee14da71df1eb1a7f64c9dfdebe8cdeda",
+    "0x1e25feaca6587256a7d830023b797279561de33ceb29845186f3d29d3569743d",
+    "0xf480b4ea858af172baf1d8c4d2d0281ee8d2694ed9f40b12b3630c5328dfb3f6"
   ],
   "history": [
     {
@@ -1364,6 +1412,283 @@
       "market_id": "0x1944324ea93c65ce70409cef960865a5c2ae2a9499ba358c7a281c4718192666",
       "question": "Will Meta (META) finish week of April 20 above $670?",
       "timestamp": "2026-04-24T16:08:14.573004",
+      "source": "sync"
+    },
+    {
+      "market_id": "2059462",
+      "question": "Will Google (GOOGL) close above $345 on April 24?",
+      "timestamp": "2026-04-24T16:53:03.182110",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "0x16ffba5e9647b2606fdd3757a7afb4d77082ff6d05ebd51e114047c83cda0fd3",
+      "question": "Will Google (GOOGL) close above $345 on April 24?",
+      "timestamp": "2026-04-24T22:14:40.438048",
+      "source": "sync"
+    },
+    {
+      "market_id": "2047409",
+      "question": "US x Iran diplomatic meeting by April 26, 2026?",
+      "timestamp": "2026-04-24T23:31:14.219158"
+    },
+    {
+      "market_id": "0x7c8241e9d7d1a6e8a42c6af38aeb18479ce087f7e47227399273b12766cb9ab2",
+      "question": "US x Iran diplomatic meeting by April 26, 2026?",
+      "timestamp": "2026-04-25T11:33:54.966770",
+      "source": "sync"
+    },
+    {
+      "market_id": "2067158",
+      "question": "Google (GOOGL) Up or Down on April 27?",
+      "timestamp": "2026-04-25T20:06:40.092223",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2067149",
+      "question": "Amazon (AMZN) Up or Down on April 27?",
+      "timestamp": "2026-04-25T20:21:48.541032",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2014351",
+      "question": "LoL: T1 vs BNK FEARX - Game 1 Winner",
+      "timestamp": "2026-04-26T04:38:13.249462"
+    },
+    {
+      "market_id": "2082185",
+      "question": "Will Ethereum reach $2,350 on April 26?",
+      "timestamp": "2026-04-26T08:23:56.756661"
+    },
+    {
+      "market_id": "2067174",
+      "question": "Tesla (TSLA) Up or Down on April 27?",
+      "timestamp": "2026-04-26T14:09:58.863802",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2067110",
+      "question": "S&P 500 (SPX) Up or Down on April 27?",
+      "timestamp": "2026-04-26T14:25:07.600294",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2067112",
+      "question": "Will Apple (AAPL) close above $265 on April 27?",
+      "timestamp": "2026-04-26T14:40:13.870386",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "0xd4185bcc3e2aa39de8c71ea9ced85f813c1110df9c46a640078108b6ea2e7891",
+      "question": "Google (GOOGL) Up or Down on April 27?",
+      "timestamp": "2026-04-26T14:53:33.288788",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x839e0f6973643516ce0f8f556914eba845335574acfd2ab596be45c5247f1653",
+      "question": "Will Apple (AAPL) close above $265 on April 27?",
+      "timestamp": "2026-04-26T14:53:33.288846",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xb7e63f7f9f76203dacef9f1d5dd7077be2ac4b951d20db21b0831304f73c9626",
+      "question": "S&P 500 (SPX) Up or Down on April 27?",
+      "timestamp": "2026-04-26T14:53:33.288899",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x4ed6fdcf335972c3b2da1525968cc0a8d5b1dcd3abc98886d0e60936f5b17880",
+      "question": "Will Ethereum reach $2,350 on April 26?",
+      "timestamp": "2026-04-26T14:53:33.288961",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x29c2971f358bdc7c036c2d912f484dabba11a5c65096cee96ea4e72a81c6e84e",
+      "question": "Tesla (TSLA) Up or Down on April 27?",
+      "timestamp": "2026-04-26T14:53:33.288968",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x0112be0f031c4ee059a78f8718e5df478b00cb8a14276c2378aad37305457255",
+      "question": "Amazon (AMZN) Up or Down on April 27?",
+      "timestamp": "2026-04-26T14:53:33.288997",
+      "source": "sync"
+    },
+    {
+      "market_id": "2044580",
+      "question": "Will the price of XRP be above $1.40 on April 28?",
+      "timestamp": "2026-04-26T16:10:10.107063"
+    },
+    {
+      "market_id": "2082240",
+      "question": "Will XRP reach $1.45 on April 26?",
+      "timestamp": "2026-04-26T19:40:39.600625"
+    },
+    {
+      "market_id": "0xfd559448a7b8d8e73fa91aff75146ab94bc1fc7e1f95bdf64da65d78f0cfe0f5",
+      "question": "Will XRP reach $1.45 on April 26?",
+      "timestamp": "2026-04-26T22:20:31.134924",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x90c657926fe8737587911c000d8eaa97620996ac66cc8606c412a610feb37c0b",
+      "question": "Will the price of XRP be above $1.40 on April 28?",
+      "timestamp": "2026-04-26T22:20:31.135117",
+      "source": "sync"
+    },
+    {
+      "market_id": "2082115",
+      "question": "Will Bitcoin reach $79,000 on April 26?",
+      "timestamp": "2026-04-26T22:21:56.597131"
+    },
+    {
+      "market_id": "2044473",
+      "question": "Will the price of Bitcoin be above $78,000 on April 28?",
+      "timestamp": "2026-04-26T22:36:57.762166"
+    },
+    {
+      "market_id": "2091249",
+      "question": "Will Bitcoin reach $82,000 on April 27?",
+      "timestamp": "2026-04-27T04:52:18.644092"
+    },
+    {
+      "market_id": "2084676",
+      "question": "Counter-Strike: fnatic vs Leo Team (BO3) - ESL Challenger League Europe Cup #4 Playoffs",
+      "timestamp": "2026-04-27T07:22:26.052895"
+    },
+    {
+      "market_id": "951183",
+      "question": "Will the Bharatiya Janata Party (BJP) win the most seats in the 2026 West Bengal Legislative Assembly election?",
+      "timestamp": "2026-04-27T08:08:04.071245"
+    },
+    {
+      "market_id": "2091420",
+      "question": "Will XRP dip to $1.35 on April 27?",
+      "timestamp": "2026-04-27T08:08:08.529627"
+    },
+    {
+      "market_id": "0x49e0fd35e25a3c075cba2ddd500e0a69369c88a7ecf8971304495b1970d98017",
+      "question": "Will the Bharatiya Janata Party (BJP) win the most seats in the 2026 West Bengal",
+      "timestamp": "2026-04-27T09:33:29.318669",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x5de0c281a402ebd9fe0d81335a5d22a65950ffc434acfa969f2ee71cfb3eb35c",
+      "question": "Counter-Strike: fnatic vs Leo Team (BO3) - ESL Challenger League Europe Cup #4 P",
+      "timestamp": "2026-04-27T09:33:29.318780",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x53b2a9e2290b099ad3b95244890d0962396e6d2c6c9782874a994764122ac05a",
+      "question": "Will XRP dip to $1.35 on April 27?",
+      "timestamp": "2026-04-27T09:33:29.319112",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xd417c08cd6b8632f8fd6e6f11c00bec3bde272bafb2e51f65486f43d1b489d79",
+      "question": "Will the price of Bitcoin be above $78,000 on April 28?",
+      "timestamp": "2026-04-27T09:33:29.319219",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x1ee727e95e20ade914c9c5b9d2fcead6355d4152a998b67a0a8489da139c5e78",
+      "question": "Will Bitcoin reach $82,000 on April 27?",
+      "timestamp": "2026-04-27T09:33:29.319318",
+      "source": "sync"
+    },
+    {
+      "market_id": "2067122",
+      "question": "S&P 500 (SPY) closes above $705 on April 27?",
+      "timestamp": "2026-04-27T14:05:24.291492",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2067136",
+      "question": "WTI Crude Oil (WTI) closes above $99 on April 27?",
+      "timestamp": "2026-04-27T14:20:51.159295",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2067189",
+      "question": "Will NVIDIA (NVDA) close above $210 on April 27?",
+      "timestamp": "2026-04-27T14:35:15.918717",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2067170",
+      "question": "Will Meta (META) close above $670 on April 27?",
+      "timestamp": "2026-04-27T14:50:15.984380",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2067128",
+      "question": "Microsoft (MSFT) Up or Down on April 27?",
+      "timestamp": "2026-04-27T15:20:56.042791",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2067166",
+      "question": "Meta (META) Up or Down on April 27?",
+      "timestamp": "2026-04-27T16:21:09.992761",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2067171",
+      "question": "Will Meta (META) close above $680 on April 27?",
+      "timestamp": "2026-04-27T16:35:37.486057",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "0xcdead3c8857257390272500659323947250656a4b589f6cbe9ef21d5e90bc576",
+      "question": "S&P 500 (SPY) closes above $705 on April 27?",
+      "timestamp": "2026-04-27T22:17:51.682821",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x21bf34f889180cb48e8e6a02f926d6b60c34b4811dbea6766898dfdf4fdedcd8",
+      "question": "WTI Crude Oil (WTI) closes above $99 on April 27?",
+      "timestamp": "2026-04-27T22:17:51.683007",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x865605ead690f81b19e2a23e1699dd4c60b8a6add0f7e7bffdc1234ffe073043",
+      "question": "Will NVIDIA (NVDA) close above $210 on April 27?",
+      "timestamp": "2026-04-27T22:17:51.683362",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xdbc5484044fe22805f97111e973f12a3b0b4ca00e03b396e9a9ca6bba3698fe1",
+      "question": "Microsoft (MSFT) Up or Down on April 27?",
+      "timestamp": "2026-04-27T22:17:51.683439",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x1e31d3a9f83bf43ef315680cd1b87a013c585d0bd3a242bfcae2f2060b6a7a40",
+      "question": "Meta (META) Up or Down on April 27?",
+      "timestamp": "2026-04-27T22:17:51.683539",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xc08f13be2db6d608cd7ee37eaf26b5bd23af07724bc41478a5137a35f2e20ed0",
+      "question": "Will Meta (META) close above $680 on April 27?",
+      "timestamp": "2026-04-27T22:17:51.683688",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xde317904584a52d208b865db90b0f50ee14da71df1eb1a7f64c9dfdebe8cdeda",
+      "question": "Will Meta (META) close above $670 on April 27?",
+      "timestamp": "2026-04-27T22:17:51.683706",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x1e25feaca6587256a7d830023b797279561de33ceb29845186f3d29d3569743d",
+      "question": "US x Iran diplomatic meeting by April 29, 2026?",
+      "timestamp": "2026-04-28T22:34:05.584711",
+      "source": "sync"
+    },
+    {
+      "market_id": "0xf480b4ea858af172baf1d8c4d2d0281ee8d2694ed9f40b12b3630c5328dfb3f6",
+      "question": "Will the All India Trinamool Congress (AITC) win the most seats in the 2026 West",
+      "timestamp": "2026-04-28T23:11:20.626107",
       "source": "sync"
     }
   ]

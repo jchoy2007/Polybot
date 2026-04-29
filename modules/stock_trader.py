@@ -289,16 +289,12 @@ class StockTrader:
             "close green", "close red", "trading day", "above $", "below $",
         ]
 
-        # Filtrar server-side por endDate: los mercados stocks diarios
-        # (Up/Down hoy, close above $X hoy) están enterrados después de 1000+
-        # long-term si se paginar por volumen. Con end_date_min/max el API
-        # devuelve directamente los de <48h.
-        now = datetime.now(timezone.utc)
-        end_date_min = now.isoformat()
-        end_date_max = (now + timedelta(hours=48)).isoformat()
-
+        # NOTA (29-Abr-2026): Gamma API rompe (HTTP 500) cuando se pasan
+        # `end_date_min`/`end_date_max`. Los quitamos y filtramos endDate
+        # localmente más abajo (línea ~334). Mientras tanto paginamos más
+        # profundo por volumen para alcanzar los daily.
         markets = []
-        for offset in [0, 100, 200, 300, 400]:
+        for offset in [0, 100, 200, 300, 400, 500, 600, 700, 800, 900]:
             try:
                 async with session.get(
                     f"{GAMMA_API_URL}/markets",
@@ -306,8 +302,6 @@ class StockTrader:
                         "active": "true", "closed": "false",
                         "limit": 100, "offset": str(offset),
                         "order": "volume", "ascending": "false",
-                        "end_date_min": end_date_min,
-                        "end_date_max": end_date_max,
                     }
                 ) as resp:
                     if resp.status == 200:

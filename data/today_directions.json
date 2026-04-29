@@ -1,8 +1,20 @@
 {
-  "date": "2026-04-24",
+  "date": "2026-04-27",
   "data": {
-    "msft": ["DOWN", "UP"],
-    "tsla": ["UP"],
-    "meta": ["DOWN"]
+    "sp500": [
+      "DOWN"
+    ],
+    "oil": [
+      "UP"
+    ],
+    "nvda": [
+      "UP"
+    ],
+    "meta": [
+      "UP"
+    ],
+    "msft": [
+      "UP"
+    ]
   }
 }
