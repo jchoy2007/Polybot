@@ -291,6 +291,21 @@ class TelegramMonitor:
                 f"📰 News: {news['sentiment']} (score {news['score']:+d})"
             )
 
+        # Créditos API: estimación a partir de los logs del día.
+        # Cuenta líneas '🧠 IA' (BET confirmado, SKIP, discrepa). $0.0045/call
+        # asume ~500 in + 150 out tokens en Sonnet 4.6.
+        try:
+            log_file = f"logs/polybot_{datetime.now().strftime('%Y%m%d')}.log"
+            if os.path.exists(log_file):
+                with open(log_file) as f:
+                    content = f.read()
+                ia_calls_today = content.count("🧠 IA")
+                if ia_calls_today > 0:
+                    estimated_cost = ia_calls_today * 0.0045
+                    lines.append(f"🧠 IA: {ia_calls_today} análisis hoy (~${estimated_cost:.3f})")
+        except Exception:
+            pass
+
         if active:
             # Clasificar posiciones por curPrice
             winning = []   # cur_price >= 0.85 (casi ganadas)
