@@ -147,22 +147,6 @@ Si:
 
 ---
 
-## (Opcional) Paso 8 — Dashboard web
-
-```bash
-./venv/bin/python dashboard/server.py
-```
-
-Acceder desde el navegador:
-- Si VPS: `http://TU_IP:5000`
-- Si local: `http://localhost:5000`
-
-> Para que el dashboard quede corriendo en background como servicio, puedes
-> crear un segundo unit systemd `polybot-dashboard.service` apuntando a
-> `dashboard/server.py`.
-
----
-
 ## Comandos importantes
 
 ```bash

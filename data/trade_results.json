@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "market_id": "2104925",
+    "question": "NVIDIA (NVDA) Up or Down on April 29?",
+    "side": "YES",
+    "amount": 9.0,
+    "price": 0.285,
+    "strategy": "STOCKS",
+    "timestamp": "2026-04-29T15:54:40.904504",
+    "result": "PENDING",
+    "payout": 0.0,
+    "profit": 0.0,
+    "edge": 0.35292592592592603,
+    "prob": null
+  },
+  {
+    "market_id": "2104916",
+    "question": "Tesla (TSLA) Up or Down on April 29?",
+    "side": "YES",
+    "amount": 7.5,
+    "price": 0.2,
+    "strategy": "STOCKS",
+    "timestamp": "2026-04-29T16:09:46.949352",
+    "result": "PENDING",
+    "payout": 0.0,
+    "profit": 0.0,
+    "edge": 0.1478736032618514,
+    "prob": null
+  }
+]

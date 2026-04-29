@@ -20,6 +20,3 @@ anthropic>=0.40.0
 
 # --- Datos de mercado / news ---
 feedparser>=6.0.0            # RSS news para STOCK TRADER
-
-# --- Dashboard web ---
-flask>=3.0.0

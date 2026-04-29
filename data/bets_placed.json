@@ -249,7 +249,11 @@
     "0xc08f13be2db6d608cd7ee37eaf26b5bd23af07724bc41478a5137a35f2e20ed0",
     "0xde317904584a52d208b865db90b0f50ee14da71df1eb1a7f64c9dfdebe8cdeda",
     "0x1e25feaca6587256a7d830023b797279561de33ceb29845186f3d29d3569743d",
-    "0xf480b4ea858af172baf1d8c4d2d0281ee8d2694ed9f40b12b3630c5328dfb3f6"
+    "0xf480b4ea858af172baf1d8c4d2d0281ee8d2694ed9f40b12b3630c5328dfb3f6",
+    "2104925",
+    "2104916",
+    "0xd0b6de9f0556f6f35302c22dde0081b71f4be3cba157da26542a83ac35020483",
+    "0x37c702a8d3a517412bd3ee5ac14648e6917108ee50e12e58ea4c4f46850ed946"
   ],
   "history": [
     {
@@ -1689,6 +1693,30 @@
       "market_id": "0xf480b4ea858af172baf1d8c4d2d0281ee8d2694ed9f40b12b3630c5328dfb3f6",
       "question": "Will the All India Trinamool Congress (AITC) win the most seats in the 2026 West",
       "timestamp": "2026-04-28T23:11:20.626107",
+      "source": "sync"
+    },
+    {
+      "market_id": "2104925",
+      "question": "NVIDIA (NVDA) Up or Down on April 29?",
+      "timestamp": "2026-04-29T15:54:40.900317",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "2104916",
+      "question": "Tesla (TSLA) Up or Down on April 29?",
+      "timestamp": "2026-04-29T16:09:46.946883",
+      "strategy": "STOCKS"
+    },
+    {
+      "market_id": "0xd0b6de9f0556f6f35302c22dde0081b71f4be3cba157da26542a83ac35020483",
+      "question": "NVIDIA (NVDA) Up or Down on April 29?",
+      "timestamp": "2026-04-29T16:14:51.696602",
+      "source": "sync"
+    },
+    {
+      "market_id": "0x37c702a8d3a517412bd3ee5ac14648e6917108ee50e12e58ea4c4f46850ed946",
+      "question": "Tesla (TSLA) Up or Down on April 29?",
+      "timestamp": "2026-04-29T16:14:51.696722",
       "source": "sync"
     }
   ]

@@ -118,20 +118,9 @@ Si activas `🔍 MARKET SCANNER` con Anthropic API: ~$5-10/mes adicional
 
 ---
 
-## Dashboard web
+## Cómo ver tu progreso
 
-Para verlo sin tocar terminal:
-
-```bash
-./venv/bin/python dashboard/server.py
-```
-
-Abrir:
-- VPS: `http://TU_IP:5000`
-- Local: `http://localhost:5000`
-
-Muestra balance, win rate, posiciones abiertas, últimos trades. Auto-refresh
-cada 30 s.
+Para ver tu progreso usa Telegram (reportes cada hora) o polymarket.com (Portfolio).
 
 ---
 

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-04-29T15:00:02.391105Z",
+  "timestamp": "2026-04-29T16:00:01.933850Z",
   "wallets": {
     "coinman2": {
       "0x8f434513700d9d990523e3169a438f0c2d57fce2e940cb081ff4480dceca6f02_No": {
@@ -12,15 +12,15 @@
       "0xf362ea6dd9e7d0d0878d02c505f73a850be676befcec3724254e52fea0968084_No": {
         "size": 8999.9973,
         "side": "No",
-        "price": 0.9985,
-        "value": 8986.49730405,
+        "price": 0.999,
+        "value": 8990.997302700001,
         "title": "Will Solana reach $120 in April?"
       },
       "0x190fa2cc2afb3b0aa9721b4ab2209265c7fa8c89aec97c2addf26a7facaf99d8_No": {
         "size": 8929.2972,
         "side": "No",
-        "price": 0.0015,
-        "value": 13.393945800000001,
+        "price": 0.0025,
+        "value": 22.323243,
         "title": "Will the price of Ethereum be above $2,000 on May 3?"
       },
       "0x316335f4359e966db915a1d4097d6ee3eb651def2178d49a5350fcac2112d518_No": {
@@ -75,22 +75,22 @@
       "0x21f508fa6a87e7406f2efe44b40db04a73273d3372ef65a13392ce00d1eb668f_No": {
         "size": 1872.7288,
         "side": "No",
-        "price": 0.425,
-        "value": 795.90974,
+        "price": 0.991,
+        "value": 1855.8742408,
         "title": "Will the price of Ethereum be above $2,300 on April 29?"
       },
       "0xed367585fcba7e80a94d3317f7c2d77d4bfd3ba81641e6bfb8fa7f5da9ada848_Yes": {
         "size": 1231.8414,
         "side": "Yes",
-        "price": 0.51,
-        "value": 628.239114,
+        "price": 0.36,
+        "value": 443.462904,
         "title": "Will the price of Ethereum be above $2,300 on May 1?"
       },
       "0x3639518d149542ee63da3fc64772baa33f5e74bc64ad5c6e106cf33139e3f606_No": {
         "size": 1034.9315,
         "side": "No",
-        "price": 0.9685,
-        "value": 1002.33115775,
+        "price": 0.962,
+        "value": 995.6041029999999,
         "title": "Will Solana dip to $80 on April 29?"
       }
     },
@@ -119,8 +119,8 @@
       "0x23dbb60ade08c2664ac29488325afbc0136735bc7beb9180d9c0cb72620b0b13_Yes": {
         "size": 146572.3656,
         "side": "Yes",
-        "price": 0.994,
-        "value": 145692.9314064,
+        "price": 0.9915,
+        "value": 145326.5004924,
         "title": "Will Kevin Warsh be confirmed as Fed Chair?"
       },
       "0x7434b22007745d99095c102119fdb6b975d34869212e9dda4c6c5c48db0683a7_No": {
@@ -147,15 +147,15 @@
       "0xa467b14d51f01b957109d9cbb1d6c124fab2a089d52ed8f471d23c2812e743b7_No": {
         "size": 76588.3014,
         "side": "No",
-        "price": 0.9185,
-        "value": 70346.3548359,
+        "price": 0.9155,
+        "value": 70116.5899317,
         "title": "Xi Jinping out before 2027?"
       },
       "0xeeb1b35c595b19f9512c55f85fdf93f3625c3cec1a9b6bac6262921fbd87912e_No": {
         "size": 67649.64,
         "side": "No",
-        "price": 0.9615,
-        "value": 65045.128860000004,
+        "price": 0.961,
+        "value": 65011.304039999995,
         "title": "Trump out as President by June 30?"
       },
       "0xaaacff0f7424b38e61ee5c5b2ea9d7335d0553eca2afb874267cd94c54a11925_Yes": {
@@ -168,8 +168,8 @@
       "0x1d2787cb8aed975d092b2799ed6f4083e9445f7420cdc09e9d47e7d54356c6cd_No": {
         "size": 51000.0,
         "side": "No",
-        "price": 0.9975,
-        "value": 50872.5,
+        "price": 0.9965,
+        "value": 50821.5,
         "title": "US x Iran ceasefire extended by April 22, 2026?"
       },
       "0x36e8ca24d2a13435f519f15580d42b45cdbe3bc425fb39a7c2733260357af0fa_Yes": {
@@ -224,8 +224,8 @@
       "0x3ded5a5738cdcb0a0c5cbaf2023a4aed7e837a20bbe0a57accc4abd04ad63809_No": {
         "size": 3797.0788,
         "side": "No",
-        "price": 0.9825,
-        "value": 3730.6299209999997,
+        "price": 0.9845,
+        "value": 3738.2240785999998,
         "title": "Trump out as President by May 31?"
       },
       "0xc9b7230bb0e876264f52bae4f396669d280fc4eee817b3fe222fda8329d863d7_No": {
@@ -238,8 +238,8 @@
       "0xb553a25b7670031fc7cf095e79525406f10b3cf66e793255836fc1fb95bf8f7c_No": {
         "size": 3451.5597,
         "side": "No",
-        "price": 0.947,
-        "value": 3268.6270358999996,
+        "price": 0.948,
+        "value": 3272.0785955999995,
         "title": "Russian strike on Poland by June 30?"
       },
       "0xcddc048c672ee233890b99b18885dbd510e3db3d67c53afb408ddc93f9aadff4_No": {
@@ -273,15 +273,15 @@
       "0xd666c8eb740964a90685bf02d2a235a0970907fc48434e607011e89f6a092ea8_No": {
         "size": 1598.0271,
         "side": "No",
-        "price": 0.996,
-        "value": 1591.6349916,
+        "price": 0.9965,
+        "value": 1592.43400515,
         "title": "Will Donald Trump have a diplomatic meeting with Iran by April 30?"
       },
       "0x5bd438968a2386b6e05847b0a0b40af63000a460cf95770dc4c9b3021c283e81_Yes": {
         "size": 1010.0,
         "side": "Yes",
-        "price": 0.985,
-        "value": 994.85,
+        "price": 0.983,
+        "value": 992.83,
         "title": "Will Bitmine announce that it holds more than 5M ETH before 2027?"
       },
       "0x70d706fe084905dbafb95dfff13b727e4073efc3ef590adc8330562bac5d26de_Yes": {
