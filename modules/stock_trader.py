@@ -445,18 +445,6 @@ class StockTrader:
         question = market.get("question", "")
         market_id = str(market.get("id", ""))
 
-        q_lower = question.lower()
-        # Solo permitir mercados "Up or Down". Los "close above/below"
-        # tienen 40% WR vs 67% de Up/Down. Datos del 27-Abr.
-        if any(kw in q_lower for kw in [
-            "close above", "close below",
-            "finish week", "finish above", "finish below",
-            "end above", "end below",
-            "closes above", "closes below"
-        ]):
-            logger.info(f"      ⛔ Solo Up/Down: skip '{question[:40]}'")
-            return None
-
         # 1. Parsear pregunta
         parsed = self._parse_stock_question(question)
         if not parsed:
