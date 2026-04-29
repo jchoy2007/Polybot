@@ -100,6 +100,17 @@ class StockTrader:
         self._daily_loss_check: Dict = {"date": "", "start_balance": 0.0}
         from modules.news_monitor import NewsMonitor
         self.news = NewsMonitor()
+        # IA como último filtro (29-Abr): si hay API key, Claude Sonnet
+        # confirma cada apuesta antes de ejecutar. Si no hay key, opera
+        # solo con filtros base (estado pre-29-Abr).
+        self.ai = None
+        if os.getenv("ANTHROPIC_API_KEY"):
+            try:
+                from core.ai_analyzer import AIAnalyzer
+                self.ai = AIAnalyzer()
+                logger.info("📈 Stock trader: IA (Claude Sonnet) activada como último filtro")
+            except Exception as e:
+                logger.warning(f"📈 Stock trader: IA no inicializó ({e}) — operando sin IA")
         self._load_traded()
         self._load_today_directions()
 
@@ -643,6 +654,57 @@ class StockTrader:
             return None
 
         logger.info(f"      🎯 EDGE {side}: {edge:.1%}")
+
+        # IA como ÚLTIMO filtro (29-Abr): Claude Sonnet revisa todos los filtros
+        # base ya pasados y vetea si ve un catalizador adverso o riesgo de fade.
+        # Conservador: si IA no responde, continuamos con filtros base; si IA
+        # discrepa del side, también skip (la IA tiene contexto que el bot no).
+        if self.ai:
+            try:
+                from core.market_scanner import MarketOpportunity
+                hours_left = max(
+                    (datetime.fromisoformat((market.get("endDate") or "").replace("Z", "+00:00"))
+                     - datetime.now(timezone.utc)).total_seconds() / 3600,
+                    0.0
+                ) if market.get("endDate") else 24.0
+                opp = MarketOpportunity(
+                    market_id=market_id,
+                    condition_id=str(market.get("conditionId", "") or ""),
+                    question=question,
+                    description=market.get("description", "") or "",
+                    category="stocks",
+                    outcome_yes_price=yes_price,
+                    outcome_no_price=no_price,
+                    liquidity=float(market.get("liquidityNum") or 0),
+                    volume=float(market.get("volumeNum") or 0),
+                    volume_24h=float(market.get("volume24hr") or 0),
+                    end_date=market.get("endDate", "") or "",
+                    token_id_yes=tokens[0] if tokens else "",
+                    token_id_no=tokens[1] if len(tokens) > 1 else "",
+                    slug=market.get("slug", "") or "",
+                    active=True,
+                    days_until_resolution=max(int(hours_left / 24), 0),
+                    hours_until_resolution=hours_left,
+                )
+                ai_analysis = await self.ai.analyze_market(opp)
+                if ai_analysis is None:
+                    logger.warning(f"      ⚠️ IA no respondió — continuar con filtros base")
+                elif ai_analysis.recommended_action == "SKIP":
+                    logger.info(f"      🧠 IA dice SKIP: {ai_analysis.reasoning[:100]}")
+                    return None
+                elif ai_analysis.side.upper() != side:
+                    logger.info(
+                        f"      🧠 IA discrepa side: bot={side}, IA={ai_analysis.side} "
+                        f"({ai_analysis.reasoning[:80]}) — skip"
+                    )
+                    return None
+                else:
+                    logger.info(
+                        f"      🧠 IA confirma BET {side} | prob {ai_analysis.estimated_probability:.1%} "
+                        f"| {ai_analysis.reasoning[:80]}"
+                    )
+            except Exception as e:
+                logger.warning(f"      ⚠️ IA error: {e} — continuar con filtros base")
 
         # 5. Sizing — ESTRATEGIA PRINCIPAL, apuesta más grande
         # Stocks: 3W/0L (100% WR, +$19.82) — nuestra mejor estrategia

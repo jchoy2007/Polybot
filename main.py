@@ -981,6 +981,51 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                         logger.info(f"   ⏭️ Politics: max politics/día alcanzado ({politics.max_daily})")
                         break
 
+                    # IA como último filtro de politics (29-Abr): si hay API key,
+                    # Claude Sonnet veta apuestas donde detecta riesgo (catalizador,
+                    # ambigüedad, whale anchor). Sin API key, opera con regla extrema sola.
+                    if analyzer and analyzer.api_key:
+                        try:
+                            from core.market_scanner import MarketOpportunity
+                            yes_for_ai = c["price"] if c["side"] == "YES" else 1.0 - c["price"]
+                            opp = MarketOpportunity(
+                                market_id=c["market_id"],
+                                condition_id="",
+                                question=c["question"],
+                                description="",
+                                category="politics",
+                                outcome_yes_price=yes_for_ai,
+                                outcome_no_price=1.0 - yes_for_ai,
+                                liquidity=c["liquidity"],
+                                volume=0,
+                                volume_24h=0,
+                                end_date=c["end_date"],
+                                token_id_yes="",
+                                token_id_no="",
+                                slug="",
+                                active=True,
+                                days_until_resolution=0,
+                            )
+                            ai_check = await analyzer.analyze_market(opp)
+                            if ai_check is None:
+                                logger.warning("   ⚠️ IA politics no respondió — continuar con regla extrema")
+                            elif ai_check.recommended_action == "SKIP":
+                                logger.info(f"   🧠 IA dice SKIP politics: {ai_check.reasoning[:100]}")
+                                continue
+                            elif ai_check.side.upper() != c["side"]:
+                                logger.info(
+                                    f"   🧠 IA discrepa politics: bot={c['side']}, IA={ai_check.side} "
+                                    f"({ai_check.reasoning[:80]}) — skip"
+                                )
+                                continue
+                            else:
+                                logger.info(
+                                    f"   🧠 IA confirma politics {c['side']} | "
+                                    f"{ai_check.reasoning[:80]}"
+                                )
+                        except Exception as e:
+                            logger.warning(f"   ⚠️ IA politics error: {e} — continuar con regla extrema")
+
                     analysis = MarketAnalysis(
                         market_id=c["market_id"],
                         question=c["question"],

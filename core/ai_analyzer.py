@@ -17,8 +17,9 @@ from core.market_scanner import MarketOpportunity
 logger = logging.getLogger("polybot.analyzer")
 
 CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
-CLAUDE_MODEL = "claude-haiku-4-5-20251001"
-# Rate limit: wait between calls (Haiku is fast but has limits)
+# Sonnet 4.6 es más caro pero analiza mucho mejor; usuario re-cargó créditos 29-Abr.
+# Alias `claude-sonnet-4-6` (sin sufijo de fecha) — verificado vía /v1/models 29-Abr.
+CLAUDE_MODEL = "claude-sonnet-4-6"
 RATE_LIMIT_SECONDS = 5
 
 
@@ -111,9 +112,95 @@ class AIAnalyzer:
 
     def _build_analysis_prompt(self, market: MarketOpportunity) -> str:
         """
-        Prompt calibrado para deportes y esports.
-        Agresivo en favoritos claros, disciplinado en coin-flips.
+        Selecciona el prompt según categoría: stocks / politics / sports (default).
         """
+        cat = (market.category or "").lower()
+        if any(k in cat for k in ("stock", "finance", "ticker", "equity")):
+            return self._build_stocks_prompt(market)
+        if any(k in cat for k in ("politic", "election", "diplomatic", "world")):
+            return self._build_politics_prompt(market)
+        return self._build_sports_prompt(market)
+
+    def _build_stocks_prompt(self, market: MarketOpportunity) -> str:
+        yes = market.outcome_yes_price or 0.5
+        return f"""You are a US equities short-term price-action analyst. Your bankroll depends on accuracy.
+
+CONTEXT:
+You are evaluating a Polymarket binary on whether a stock/index closes UP or DOWN today
+(or above/below a level by close). The bot has already verified market hours, S&P trend,
+VIX, news sentiment, gap filters, and direction-specific edge. Your job is the FINAL sanity check.
+
+MARKET:
+- Question: {market.question}
+- Description: {(market.description or 'N/A')[:300]}
+- YES price: ${yes:.3f} (market implies {yes:.1%})
+- NO price: ${market.outcome_no_price or 0.5:.3f}
+- Resolves in: {market.days_until_resolution or 0} day(s) ({market.hours_until_resolution or 0:.1f}h)
+- Category: {market.category}
+
+WHAT TO LOOK FOR:
+1. Is there a known catalyst today (earnings, Fed, geopolitical) that the bot's filters missed?
+2. Is the resolve window so short that intraday volatility dominates over direction?
+3. Is the implied move (vs current price) consistent with normal daily volatility for this ticker?
+4. Has the stock already moved a lot today? (mean-reversion risk for late-day "Up/Down" bets)
+
+DECISION RULES:
+- Default to BET unless you spot a specific reason to skip. The bot's pre-filters are strict.
+- SKIP only if: (a) clear adverse catalyst, (b) implied move is unrealistic, (c) heavy late-day fade risk.
+- Confidence: high when catalyst-free and direction matches recent flow; medium otherwise.
+- ALWAYS pick the same side the bot is leaning toward unless you have strong reason otherwise.
+
+Return JSON only (no markdown, no backticks):
+{{
+    "estimated_probability": 0.XX,
+    "confidence": "high/medium/low",
+    "side": "YES" or "NO",
+    "reasoning": "brief explanation (max 120 chars)",
+    "key_evidence": ["evidence 1", "evidence 2"],
+    "risk_factors": ["risk 1"],
+    "recommended_action": "BET" or "SKIP"
+}}"""
+
+    def _build_politics_prompt(self, market: MarketOpportunity) -> str:
+        yes = market.outcome_yes_price or 0.5
+        return f"""You are a political/geopolitical prediction market analyst. Your bankroll depends on accuracy.
+
+CONTEXT:
+The bot already filtered for extreme prices (YES>=0.85 or YES<=0.15), liquidity >$5k, resolves <7 days.
+The hypothesis: extreme prices reflect "near-certain" outcomes. Your job is to verify the market is NOT mispriced
+because of new news the simple filter doesn't see.
+
+MARKET:
+- Question: {market.question}
+- Description: {(market.description or 'N/A')[:300]}
+- YES price: ${yes:.3f} (market implies {yes:.1%})
+- NO price: ${market.outcome_no_price or 0.5:.3f}
+- Resolves in: {market.days_until_resolution or 0} day(s)
+
+WHAT TO LOOK FOR:
+1. Is there a recent event/leak/poll that could flip the outcome before resolution?
+2. Is the question phrased ambiguously? (resolution risk)
+3. Are extreme prices the result of one whale anchoring the order book?
+4. Does the question resolve on a specific date threshold and is the deadline imminent?
+
+DECISION RULES:
+- The base assumption is that extreme prices (>=0.85 or <=0.15) are usually right.
+- Default to BET on the dominant side (YES if price>=0.85, NO if price<=0.15).
+- SKIP only if you find a concrete reason to doubt the "near-certain" outcome.
+- Probabilities should be high (0.85+) when confirming, otherwise SKIP.
+
+Return JSON only (no markdown, no backticks):
+{{
+    "estimated_probability": 0.XX,
+    "confidence": "high/medium/low",
+    "side": "YES" or "NO",
+    "reasoning": "brief explanation (max 120 chars)",
+    "key_evidence": ["evidence 1", "evidence 2"],
+    "risk_factors": ["risk 1"],
+    "recommended_action": "BET" or "SKIP"
+}}"""
+
+    def _build_sports_prompt(self, market: MarketOpportunity) -> str:
         return f"""You are an expert sports and esports betting analyst. Your bankroll depends on accuracy.
 
 RULES:
