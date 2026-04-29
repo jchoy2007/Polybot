@@ -251,18 +251,20 @@ class TelegramMonitor:
         real_roi = (pnl_real / initial) * 100 if initial > 0 else 0
         pnl_emoji = "📈" if pnl_real >= 0 else "📉"
 
-        # Goal tracking: meta $350 al 30-Abril-2026.
-        goal = 350.0
-        goal_date = datetime(2026, 4, 30)
+        # Goal tracking: meta configurable en config/settings.py.
+        from config.settings import SAFETY
+        goal = SAFETY.goal_amount
+        goal_date = datetime.strptime(SAFETY.goal_date, "%Y-%m-%d")
         days_left = max((goal_date - datetime.now()).days, 1)
         missing = goal - total_estimated
+        goal_date_short = goal_date.strftime("%d-%b-%Y")
         if missing <= 0:
-            goal_line = f"🏆 META CUMPLIDA: ${total_estimated:.2f} ≥ ${goal:.0f}"
+            goal_line = f"🏆 META CUMPLIDA: ${total_estimated:.2f} ≥ ${goal:,.0f}"
         else:
             per_day = missing / days_left
             goal_line = (
-                f"🎯 META: ${goal:.0f} al 30-Abr | Falta: ${missing:.0f} "
-                f"({days_left}d, +${per_day:.1f}/día)"
+                f"🎯 META: ${goal:,.0f} al {goal_date_short} | Falta: ${missing:,.0f} "
+                f"({days_left}d, +${per_day:,.1f}/día)"
             )
 
         lines = [

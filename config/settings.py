@@ -75,6 +75,10 @@ class SafetyRules:
     dry_run: bool = True                  # MODO SIMULACIÓN por defecto
     log_every_decision: bool = True       # Registrar cada decisión
 
+    # --- Meta del usuario (configurable) ---
+    goal_amount: float = 1000000.0   # $1M default
+    goal_date: str = "2027-04-30"    # Fecha límite (YYYY-MM-DD)
+
     # --- Categorías permitidas ---
     allowed_categories: List[str] = field(default_factory=lambda: [
         "politics", "economics", "crypto", "sports",

@@ -505,14 +505,15 @@ class StockTrader:
                 return None
             market_change = sp500_data.get("change_pct", 0)
             logger.info(f"      📊 S&P tendencia: {market_change:+.2%}")
-            # Umbral bajado de ±1% a ±0.5% tras pérdida 4/4 del 21-Abr.
-            if market_change < -0.005 and direction.upper() == "UP":
+            # Umbral bajado de ±0.5% a ±0.3% (29-Abr): el 29-Abr S&P estaba -0.28%
+            # y no bloqueó NVDA UP (LOST -$6.75). ±0.3% captura tendencias chicas pero claras.
+            if market_change < -0.003 and direction.upper() == "UP":
                 logger.info(
                     f"      📉 Mercado bajando ({market_change:+.2%}), "
                     f"skip bet UP en {INDICES[index_key]['name']}"
                 )
                 return None
-            if market_change > 0.005 and direction.upper() == "DOWN":
+            if market_change > 0.003 and direction.upper() == "DOWN":
                 logger.info(
                     f"      📈 Mercado subiendo ({market_change:+.2%}), "
                     f"skip bet DOWN en {INDICES[index_key]['name']}"
