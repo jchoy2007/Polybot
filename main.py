@@ -527,12 +527,11 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
         run_cycle._daily_teams = {"date": today, "teams": set()}
     teams_bet_today = run_cycle._daily_teams["teams"]
 
-    # ===== ESTRATEGIA 1: IA Deportes + Esports =====
-    # Stocks: 100% WR (+$19.82) — mejor estrategia
-    # Esports: 100% WR (+$16.80) — segunda mejor
-    # Ahora incluimos TODOS los deportes + esports
+    # ===== MARKET SCANNER =====
+    # Escanea mercados con la IA (sports/esports). Actualmente dormido
+    # mientras Anthropic API esté agotado.
     logger.info("\n" + "=" * 50)
-    logger.info("🏆 ESTRATEGIA 1: IA Deportes + Esports")
+    logger.info("🔍 MARKET SCANNER")
     logger.info("=" * 50)
     sports_enabled = False
     if not sports_enabled:
@@ -888,9 +887,9 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
 
     # (Harvest, Weather, Crypto — eliminados del ciclo)
 
-    # ===== ESTRATEGIA 5: Stock Market Trader =====
+    # ===== STOCK TRADER =====
     logger.info("\n" + "=" * 50)
-    logger.info("📈 ESTRATEGIA 5: Stock Market Trader (S&P/NASDAQ/Dow)")
+    logger.info("📈 STOCK TRADER (Up/Down)")
     logger.info("=" * 50)
     # Guardas de límite global ANTES de invocar al stock trader.
     # Stock trader no revisa estos límites internamente, así que los
@@ -960,10 +959,10 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             if telegram:
                 await telegram.send_error_alert(f"Error Stock Trader: {str(e)[:100]}")
 
-    # ===== ESTRATEGIA: Política (monitoring) =====
+    # ===== POLITICS MONITOR =====
     if politics:
         logger.info("\n" + "=" * 50)
-        logger.info("🏛️ ESTRATEGIA: Política / Geopolítica")
+        logger.info("🏛️ POLITICS MONITOR")
         logger.info("=" * 50)
         try:
             await politics.run_cycle()
@@ -1282,7 +1281,7 @@ async def main():
     risk = RiskManager()
     executor = TradeExecutor(risk)
 
-    logger.info("🤖 PolyBot MULTI-ESTRATEGIA iniciado")
+    logger.info("🤖 PolyBot iniciado")
 
     # En modo LIVE, obtener balance real de la wallet
     if not SAFETY.dry_run:

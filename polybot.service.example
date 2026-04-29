@@ -1,0 +1,22 @@
+[Unit]
+Description=PolyBot Trading Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/Polybot
+ExecStart=/root/Polybot/venv/bin/python /root/Polybot/main.py --live
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Reglas básicas de hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/root/Polybot
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PolyBot Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background:#0b1220; color:#e6edf3; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  .card { background:#111a2e; border:1px solid #1f2a44; }
+  .pos { color:#22c55e; }
+  .neg { color:#ef4444; }
+  .muted { color:#94a3b8; }
+  .pill { padding:2px 8px; border-radius:9999px; font-size:11px; font-weight:600; }
+  .pill-win { background:#14532d; color:#86efac; }
+  .pill-loss { background:#7f1d1d; color:#fca5a5; }
+  .pill-pending { background:#1e3a8a; color:#bfdbfe; }
+</style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+<header class="max-w-6xl mx-auto flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl md:text-3xl font-bold">📊 PolyBot Dashboard</h1>
+    <p class="muted text-sm">Auto-refresh cada 30s · <span id="lastUpdate">—</span></p>
+  </div>
+  <div class="text-right text-xs muted">
+    <div>Status: <span id="botStatus" class="font-semibold">…</span></div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto space-y-6">
+
+  <!-- KPIs -->
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="card rounded-xl p-4">
+      <div class="text-xs muted uppercase">Bankroll</div>
+      <div id="bankroll" class="text-2xl font-bold mt-1">—</div>
+    </div>
+    <div class="card rounded-xl p-4">
+      <div class="text-xs muted uppercase">Win Rate</div>
+      <div id="winRate" class="text-2xl font-bold mt-1">—</div>
+      <div id="winRateDetail" class="text-xs muted mt-1">—</div>
+    </div>
+    <div class="card rounded-xl p-4">
+      <div class="text-xs muted uppercase">Net P&amp;L</div>
+      <div id="netPnl" class="text-2xl font-bold mt-1">—</div>
+    </div>
+    <div class="card rounded-xl p-4">
+      <div class="text-xs muted uppercase">Posiciones abiertas</div>
+      <div id="openCount" class="text-2xl font-bold mt-1">—</div>
+      <div id="openInvested" class="text-xs muted mt-1">—</div>
+    </div>
+  </section>
+
+  <!-- Posiciones abiertas -->
+  <section class="card rounded-xl p-4">
+    <h2 class="font-semibold mb-3">Posiciones abiertas</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-xs uppercase muted">
+          <tr><th class="text-left py-2">Mercado</th><th class="text-left">Lado</th><th class="text-right">Monto</th><th class="text-right">Precio</th><th class="text-right">Edge</th><th class="text-left">Estrategia</th></tr>
+        </thead>
+        <tbody id="positionsBody"><tr><td colspan="6" class="muted py-4 text-center">Sin posiciones abiertas</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Últimos trades -->
+  <section class="card rounded-xl p-4">
+    <h2 class="font-semibold mb-3">Últimos trades</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-xs uppercase muted">
+          <tr><th class="text-left py-2">Fecha</th><th class="text-left">Mercado</th><th class="text-left">Lado</th><th class="text-right">Monto</th><th class="text-right">P&amp;L</th><th class="text-left">Resultado</th></tr>
+        </thead>
+        <tbody id="recentBody"><tr><td colspan="6" class="muted py-4 text-center">—</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Filtros -->
+  <section class="card rounded-xl p-4">
+    <h2 class="font-semibold mb-3">Filtros activados hoy</h2>
+    <div id="filtersBody" class="flex flex-wrap gap-2"><span class="muted text-sm">—</span></div>
+  </section>
+
+</main>
+
+<footer class="max-w-6xl mx-auto text-center text-xs muted mt-10 pb-6">
+  PolyBot · Polymarket trading bot
+</footer>
+
+<script>
+const fmtMoney = (v) => v == null ? '—' : `$${Number(v).toFixed(2)}`;
+const fmtPct = (v) => v == null ? '—' : `${Number(v).toFixed(1)}%`;
+const truncate = (s, n=70) => !s ? '—' : (s.length > n ? s.slice(0, n) + '…' : s);
+
+async function load() {
+  try {
+    const [statusRes, posRes, recRes, filtRes] = await Promise.all([
+      fetch('/api/status').then(r => r.json()),
+      fetch('/api/positions').then(r => r.json()),
+      fetch('/api/recent').then(r => r.json()),
+      fetch('/api/filters').then(r => r.json()),
+    ]);
+
+    document.getElementById('bankroll').textContent = fmtMoney(statusRes.bankroll);
+    document.getElementById('winRate').textContent = fmtPct(statusRes.win_rate);
+    document.getElementById('winRateDetail').textContent = `${statusRes.wins ?? 0}W / ${statusRes.losses ?? 0}L · ${statusRes.resolved ?? 0} resueltos`;
+    const pnl = statusRes.net_pnl ?? 0;
+    const pnlEl = document.getElementById('netPnl');
+    pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmtMoney(pnl);
+    pnlEl.className = 'text-2xl font-bold mt-1 ' + (pnl >= 0 ? 'pos' : 'neg');
+    document.getElementById('openCount').textContent = statusRes.pending ?? 0;
+    document.getElementById('openInvested').textContent = `Invertido: ${fmtMoney(statusRes.invested_open)}`;
+    document.getElementById('botStatus').textContent = '🟢 Online';
+    document.getElementById('botStatus').className = 'font-semibold pos';
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+
+    // posiciones
+    const posBody = document.getElementById('positionsBody');
+    if (Array.isArray(posRes) && posRes.length) {
+      posBody.innerHTML = posRes.map(p => `
+        <tr class="border-t border-slate-800">
+          <td class="py-2 pr-2">${truncate(p.question)}</td>
+          <td>${p.side ?? '—'}</td>
+          <td class="text-right">${fmtMoney(p.amount)}</td>
+          <td class="text-right">${p.price != null ? Number(p.price).toFixed(3) : '—'}</td>
+          <td class="text-right">${p.edge != null ? fmtPct(p.edge * 100) : '—'}</td>
+          <td>${p.strategy ?? '—'}</td>
+        </tr>`).join('');
+    } else {
+      posBody.innerHTML = '<tr><td colspan="6" class="muted py-4 text-center">Sin posiciones abiertas</td></tr>';
+    }
+
+    // recent
+    const recBody = document.getElementById('recentBody');
+    if (Array.isArray(recRes) && recRes.length) {
+      recBody.innerHTML = recRes.map(t => {
+        const ts = (t.timestamp || '').slice(5, 16).replace('T', ' ');
+        const profit = t.profit;
+        const profitTxt = profit != null ? ((profit >= 0 ? '+' : '') + fmtMoney(profit)) : '—';
+        const profitClass = profit == null ? 'muted' : (profit >= 0 ? 'pos' : 'neg');
+        const r = t.result || 'PENDING';
+        const pillClass = r === 'WON' ? 'pill-win' : r === 'LOST' ? 'pill-loss' : 'pill-pending';
+        return `<tr class="border-t border-slate-800">
+          <td class="py-2 pr-2 muted text-xs">${ts}</td>
+          <td>${truncate(t.question)}</td>
+          <td>${t.side ?? '—'}</td>
+          <td class="text-right">${fmtMoney(t.amount)}</td>
+          <td class="text-right ${profitClass}">${profitTxt}</td>
+          <td><span class="pill ${pillClass}">${r}</span></td>
+        </tr>`;
+      }).join('');
+    } else {
+      recBody.innerHTML = '<tr><td colspan="6" class="muted py-4 text-center">Sin trades aún</td></tr>';
+    }
+
+    // filtros
+    const filtBody = document.getElementById('filtersBody');
+    const entries = Object.entries(filtRes || {});
+    if (entries.length) {
+      filtBody.innerHTML = entries
+        .sort((a,b) => b[1] - a[1])
+        .map(([k,v]) => `<span class="pill" style="background:#1e293b;color:#cbd5e1">${k}: ${v}</span>`)
+        .join('');
+    } else {
+      filtBody.innerHTML = '<span class="muted text-sm">No hay filtros activados hoy aún</span>';
+    }
+  } catch (e) {
+    document.getElementById('botStatus').textContent = '🔴 Error';
+    document.getElementById('botStatus').className = 'font-semibold neg';
+  }
+}
+
+load();
+setInterval(load, 30000);
+</script>
+</body>
+</html>

@@ -14,10 +14,15 @@
 - **Tracker histórico**: `data/trade_results_backup_27apr.json` — fuera del repo (gitignored)
 
 ### Estrategias activas (post 28-Abr, migración v2)
-- ✅ **STOCKS Up/Down only** (única estrategia ejecutora — ventana US 14-20 UTC, lun-vie)
-- 👀 **POLITICS monitoring** (loguea, no apuesta — recolectando data)
-- ⏭️ **SPORTS desactivada** (Anthropic API billing agotado)
+- ✅ **📈 STOCK TRADER (Up/Down)** — única estrategia ejecutora (ventana US 14-20 UTC, lun-vie)
+- 👀 **🏛️ POLITICS MONITOR** — loguea, no apuesta (recolectando data)
+- ⏭️ **🔍 MARKET SCANNER (sports/esports)** — desactivada (Anthropic API billing agotado)
 - 🗑️ **CRYPTO eliminada definitivamente** (`modules/crypto_daily.py` borrado el 28-Abr — 5/14 WR 36%, -$29)
+
+> **Nombres comerciales (29-Abr)**: el bot pasó a tener 3 módulos con nombres
+> sin numerar — `📈 STOCK TRADER`, `🏛️ POLITICS MONITOR`, `🔍 MARKET SCANNER`.
+> Los logs y docs usan estos nombres. Las menciones a "Estrategia 1/5/6" son
+> históricas.
 
 ### Costos mensuales (post-30 abril)
 - **VPS Hetzner CPX22**: $10.99/mes
@@ -105,7 +110,7 @@
 
 ## 🎯 Estrategias activas
 
-### Estrategia 1: IA Deportes + Esports (PRINCIPAL)
+### 🔍 MARKET SCANNER (IA Deportes + Esports — actualmente dormido)
 - **WR histórico**: 8/13 (62%) | P&L: +$16.80
 - **Flow**: scanner → filtro sports_kw → IA Haiku → risk check → executor
 - **Cubre**: esports (LoL, CS, Dota, Valorant), fútbol europeo + LatAm (Liga MX,
@@ -119,7 +124,7 @@
   - No mercados de empate ("end in a draw", "draw?")
   - No correlated bets (mismo partido = 1 apuesta máx)
 
-### Estrategia 5: Stock Market Trader
+### 📈 STOCK TRADER (Up/Down)
 - **WR histórico**: 1/1 (100%) pero pocos datos
 - **Cubre**: S&P, NASDAQ, Dow, Russell + NVDA, GOOGL, AAPL, TSLA, META, AMZN, MSFT, NFLX
 - **Flow**: Yahoo Finance (datos reales) → compara con Polymarket → apuesta
@@ -130,7 +135,7 @@
   - **NO apostar direcciones opuestas del mismo ticker en el mismo día**
     (commit 5dd5635 — evita AMZN Up + AMZN Down = pérdida garantizada)
 
-### Estrategia 6: Crypto Daily ❌ ELIMINADA (28-Abr)
+### Crypto Daily ❌ ELIMINADA (28-Abr)
 - WR final: 5/14 (36%), P&L: -$29 — desactivada el 27-Abr, archivo borrado el 28-Abr.
 - `modules/crypto_daily.py` ya no existe en el repo. Si se reactiva con otra estrategia
   (ej. latency arb tipo coinman2), recuperar de git history (`git show HEAD~1:modules/crypto_daily.py`).
