@@ -472,21 +472,6 @@ class StockTrader:
         else:
             logger.warning(f"      ⚠️ VIX no disponible — continuar con precaución")
 
-        # News sentiment filter
-        try:
-            news = self.news.get_sentiment()
-            logger.info(f"      📰 News: {news['sentiment']} (score {news['score']:+d})")
-            # Si noticias muy bearish y apostamos UP → skip
-            if news["score"] <= -3 and direction.upper() == "UP":
-                logger.info(f"      📰 Noticias bearish ({news['score']:+d}), skip UP")
-                return None
-            # Si noticias muy bullish y apostamos DOWN → skip
-            if news["score"] >= 3 and direction.upper() == "DOWN":
-                logger.info(f"      📰 Noticias bullish ({news['score']:+d}), skip DOWN")
-                return None
-        except Exception as e:
-            logger.debug(f"      News check error: {e}")
-
         # Filtro de tendencia: si el S&P está bajando fuerte hoy,
         # NO apostar "Up" en ningún stock (correlación de mercado).
         # 20-Abr: mercado -2%, 5 bets Up perdieron -$34.
@@ -497,6 +482,8 @@ class StockTrader:
         # (above → parser default "up", below matchea "close lower"/"decline"
         # → "down"). Parser gap conocido: "closes below $X" sin verbos de caída
         # cae en default "up"; seguimiento en TODO separado.
+        # 30-Abr: este bloque se movió ANTES del news filter para que
+        # market_change esté disponible como override del news score.
         try:
             sp500_data = await self._get_market_data("sp500")
             if sp500_data is None:
@@ -521,6 +508,35 @@ class StockTrader:
         except Exception as e:
             logger.warning(f"      ⚠️ Error trend check: {e} — skip por precaución")
             return None
+
+        # News sentiment filter con override por S&P real:
+        # Si el S&P trend contradice el news score, confiar en S&P
+        # (el precio real > keywords de noticias mal parseados).
+        # 30-Abr: news capturaba "sink" en "Jobless claims sink to 57-yr low"
+        # (BULLISH real) marcándolo BEARISH y bloqueando UP con S&P +0.42%.
+        try:
+            news = self.news.get_sentiment()
+            logger.info(f"      📰 News: {news['sentiment']} (score {news['score']:+d})")
+            if news["score"] <= -3 and direction.upper() == "UP":
+                if market_change > 0.002:
+                    logger.info(
+                        f"      📰 News bearish (score {news['score']:+d}) PERO "
+                        f"S&P real {market_change:+.2%} UP → confiar en mercado"
+                    )
+                else:
+                    logger.info(f"      📰 Noticias bearish ({news['score']:+d}), skip UP")
+                    return None
+            if news["score"] >= 3 and direction.upper() == "DOWN":
+                if market_change < -0.002:
+                    logger.info(
+                        f"      📰 News bullish (score {news['score']:+d}) PERO "
+                        f"S&P real {market_change:+.2%} DOWN → confiar en mercado"
+                    )
+                else:
+                    logger.info(f"      📰 Noticias bullish ({news['score']:+d}), skip DOWN")
+                    return None
+        except Exception as e:
+            logger.debug(f"      News check error: {e}")
 
         # 2. Obtener datos del mercado
         mkt_data = await self._get_market_data(index_key)

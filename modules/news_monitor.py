@@ -19,6 +19,8 @@ BULLISH_KW = [
     "record high", "bull", "optimism", "recovery",
     "deal", "peace", "ceasefire", "agreement",
     "beat expectations", "strong earnings",
+    "climb", "advance", "edge higher", "best month",
+    "up points", "bounce back", "rebound",
 ]
 
 BEARISH_KW = [
