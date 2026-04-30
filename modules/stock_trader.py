@@ -671,11 +671,39 @@ class StockTrader:
                      - datetime.now(timezone.utc)).total_seconds() / 3600,
                     0.0
                 ) if market.get("endDate") else 24.0
+
+                # 30-Abr: Sonnet alucinaba precios viejos de su training data
+                # (Ene-2026) cuando le faltaban datos reales. Inyectamos el
+                # contexto live aquí para que NO adivine: ticker, precio actual,
+                # target, S&P trend, VIX, edge calculado, news sentiment.
+                _local = locals()
+                _ctx_lines = [
+                    "LIVE DATA from today (override any training-data prices):",
+                    f"- Ticker: {INDICES[index_key]['name']} ({INDICES[index_key]['symbol']})",
+                    f"- Current price: ${mkt_data.get('price', 0):,.2f}",
+                    f"- Change today: {change:+.2%}",
+                ]
+                if _local.get("target_price") is not None:
+                    _ctx_lines.append(f"- Market target: ${_local['target_price']:,.2f}")
+                if _local.get("gap_pct") is not None:
+                    _ctx_lines.append(f"- Gap to target: {_local['gap_pct']:.1%}")
+                _ctx_lines.append(f"- S&P 500 today: {market_change:+.2%}")
+                if vix is not None:
+                    _ctx_lines.append(f"- VIX: {vix:.1f}")
+                _ctx_lines.append(f"- Bot edge: {edge:.1%} on {side} (P_dir={prob_direction:.1%})")
+                _news = _local.get("news") or {}
+                if _news:
+                    _ctx_lines.append(
+                        f"- News sentiment: {_news.get('sentiment', '?')} "
+                        f"(score {_news.get('score', 0):+d})"
+                    )
+                real_context = "\n".join(_ctx_lines)
+
                 opp = MarketOpportunity(
                     market_id=market_id,
                     condition_id=str(market.get("conditionId", "") or ""),
                     question=question,
-                    description=market.get("description", "") or "",
+                    description=real_context,
                     category="stocks",
                     outcome_yes_price=yes_price,
                     outcome_no_price=no_price,

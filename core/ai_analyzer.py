@@ -130,9 +130,15 @@ You are evaluating a Polymarket binary on whether a stock/index closes UP or DOW
 (or above/below a level by close). The bot has already verified market hours, S&P trend,
 VIX, news sentiment, gap filters, and direction-specific edge. Your job is the FINAL sanity check.
 
+CRITICAL: Use the LIVE DATA in the Description field below. Your training-data knowledge
+of stock prices is stale (months out of date). The Description contains today's real
+ticker price, target, S&P trend, VIX and the bot's computed edge. Never override those
+numbers with prices you remember.
+
 MARKET:
 - Question: {market.question}
-- Description: {(market.description or 'N/A')[:300]}
+- Description (LIVE DATA, authoritative):
+{(market.description or 'N/A')[:800]}
 - YES price: ${yes:.3f} (market implies {yes:.1%})
 - NO price: ${market.outcome_no_price or 0.5:.3f}
 - Resolves in: {market.days_until_resolution or 0} day(s) ({market.hours_until_resolution or 0:.1f}h)
