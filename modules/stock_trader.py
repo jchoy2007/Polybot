@@ -156,28 +156,24 @@ class StockTrader:
             "data": {k: set(v) for k, v in raw.get("data", {}).items()},
         }
 
-    def _is_opposite_bet(self, index_key: str, direction: str) -> bool:
+    def _is_already_bet(self, index_key: str) -> bool:
         """
-        ¿Ya apostamos la dirección CONTRARIA de este ticker HOY?
+        ¿Ya apostamos CUALQUIER dirección de este ticker HOY?
 
-        Protege contra el patrón observado el 14-Apr:
-        bot apostó Google Up + Google Down el mismo día → Down perdió
-        garantizado, Up perdió también por movimiento lateral.
-        Apostar ambos lados en stocks correlacionados es matemática-
-        mente -EV salvo en escenarios muy específicos.
+        Max 1 apuesta por ticker por día. Bloquea tanto direcciones
+        opuestas (Google Up + Google Down → -EV garantizado, observado
+        14-Abr) como múltiples apuestas en la misma dirección
+        (ej: TSLA Up or Down + TSLA finish week above $380 = correlación
+        positiva pero exposición duplicada al mismo riesgo idiosincrático).
 
-        Nota: permitimos múltiples apuestas en la MISMA dirección
-        (ej: Amazon Up + Amazon close above $245 ambos bull) porque
-        ganan juntas. Solo bloqueamos direcciones opuestas.
+        Caso real 30-Abr: TSLA Up/Down + TSLA finish week, WTI $105 +
+        WTI $107 — el bot tomó 2 apuestas del mismo ticker en el día.
         """
         today = datetime.now().strftime("%Y-%m-%d")
         if self._today_directions["date"] != today:
             return False
         existing = self._today_directions["data"].get(index_key, set())
-        if not existing:
-            return False
-        opposite = "DOWN" if direction.upper() == "UP" else "UP"
-        return opposite in existing
+        return bool(existing)
 
     async def _get_session(self) -> aiohttp.ClientSession:
         if self.session is None or self.session.closed:
@@ -384,9 +380,8 @@ class StockTrader:
         else:
             self._daily_limit_reached = False
 
-        # Daily loss limit: si perdimos $15+ hoy, pausar stocks resto del
-        # día. SPORTS sigue operando (baja varianza). Motivación: 21-Abr
-        # stocks perdieron ~$38 consecutivos sin freno.
+        # Daily loss limit: si perdimos $25+ hoy, pausar stocks resto del
+        # día. Motivación: 21-Abr stocks perdieron ~$38 consecutivos sin freno.
         if self._daily_loss_check["date"] != today:
             self._daily_loss_check = {
                 "date": today,
@@ -408,8 +403,7 @@ class StockTrader:
                         f"🚨 DAILY LOSS LIMIT\n"
                         f"P&L neto hoy: ${net_daily_pnl:.2f}\n"
                         f"Límite: -$25\n"
-                        f"Stocks PAUSADOS hasta mañana.\n"
-                        f"SPORTS sigue operando."
+                        f"Stocks PAUSADOS hasta mañana."
                     ))
             except Exception:
                 pass
@@ -646,14 +640,14 @@ class StockTrader:
         if side == "NO":
             effective_direction = "DOWN" if effective_direction == "UP" else "UP"
 
-        # Bloquear si ya apostamos en dirección OPUESTA hoy.
-        # Evita casos como Google Up + Google Down el mismo día
-        # (pérdida garantizada en uno de los dos).
-        if self._is_opposite_bet(index_key, effective_direction):
+        # Max 1 apuesta por ticker por día — bloquea cualquier duplicado,
+        # no solo direcciones opuestas. Evita TSLA Up/Down + TSLA finish
+        # week, WTI $105 + WTI $107 (caso real 30-Abr).
+        if self._is_already_bet(index_key):
             existing = self._today_directions["data"].get(index_key, set())
             logger.info(
                 f"      ⛔ Skip: {INDICES[index_key]['name']} ya "
-                f"apostado HOY en {existing} (correlación negativa)"
+                f"apostado HOY en {existing} (max 1 apuesta/ticker/día)"
             )
             return None
 
