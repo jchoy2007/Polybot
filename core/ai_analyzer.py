@@ -131,9 +131,8 @@ You are evaluating a Polymarket binary on whether a stock/index closes UP or DOW
 VIX, news sentiment, gap filters, and direction-specific edge. Your job is the FINAL sanity check.
 
 CRITICAL: Use the LIVE DATA in the Description field below. Your training-data knowledge
-of stock prices is stale (months out of date). The Description contains today's real
-ticker price, target, S&P trend, VIX and the bot's computed edge. Never override those
-numbers with prices you remember.
+of stock prices is stale. The Description contains today's real ticker price, target,
+S&P trend, VIX and the bot's computed edge. Never override those numbers.
 
 MARKET:
 - Question: {market.question}
@@ -144,17 +143,29 @@ MARKET:
 - Resolves in: {market.days_until_resolution or 0} day(s) ({market.hours_until_resolution or 0:.1f}h)
 - Category: {market.category}
 
-WHAT TO LOOK FOR:
-1. Is there a known catalyst today (earnings, Fed, geopolitical) that the bot's filters missed?
-2. Is the resolve window so short that intraday volatility dominates over direction?
-3. Is the implied move (vs current price) consistent with normal daily volatility for this ticker?
-4. Has the stock already moved a lot today? (mean-reversion risk for late-day "Up/Down" bets)
+EMPIRICAL TRACK RECORD (4-5 May 2026):
+The bot's daily "Up or Down on [today]" bets went 0/6 (-$48) when betting WITH the
+intraday momentum direction. Mean-reversion into the close beat continuation in every case.
+"Stock already +X% today" or "stock already -X% today" arguments to bet continuation are
+EMPIRICALLY WRONG for this market type. Be skeptical of momentum continuation.
 
-DECISION RULES:
-- Default to BET unless you spot a specific reason to skip. The bot's pre-filters are strict.
-- SKIP only if: (a) clear adverse catalyst, (b) implied move is unrealistic, (c) heavy late-day fade risk.
-- Confidence: high when catalyst-free and direction matches recent flow; medium otherwise.
-- ALWAYS pick the same side the bot is leaning toward unless you have strong reason otherwise.
+WHAT TO LOOK FOR:
+1. Is the question "X Up or Down on [today]?" intraday market? → high mean-reversion risk
+2. Has the underlying moved >0.5% intraday? → continuation bias is a TRAP, not a signal
+3. Is the question "close above/below $X by [date]?" with target close to current? → safer
+4. Known catalyst today (earnings, Fed, geo) that filters missed?
+5. Implied move (vs current) consistent with normal volatility for this ticker?
+
+DECISION RULES (revised post 5-May audit):
+- For "Up or Down on [today]" markets: SKIP if abs(intraday move) > 0.5% AND bot bets in
+  the same direction as that move (this is the failure pattern). Only confirm BET if either
+  (a) the market has barely moved (<0.5%) and edge is structural, or
+  (b) bot is betting AGAINST the intraday move (mean-reversion play, not continuation).
+- For "close above/below $X" markets with multi-day window: DEFAULT to BET when bot's edge
+  is supported by current price + target gap and no catalyst conflicts. This pattern works.
+- Confidence: high only when evidence supports the side beyond "momentum continues".
+- Pick the same side as the bot ONLY if your independent reasoning agrees. If you would
+  pick the opposite side OR you are unsure, return recommended_action="SKIP".
 
 Return JSON only (no markdown, no backticks):
 {{

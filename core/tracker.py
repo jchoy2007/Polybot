@@ -209,14 +209,75 @@ class WinRateTracker:
                                                 market = await resp.json()
                                                 resolved = market.get("closed", False) or market.get("resolved", False)
                                                 if resolved:
-                                                    # Verificar resultado
+                                                    # Verificar resultado.
+                                                    # Bug fix 5-May-2026: Gamma a veces deja `outcome`/
+                                                    # `winningOutcome` vacíos pero `outcomePrices` indica
+                                                    # el ganador (["1","0"] = outcomes[0] ganó). Sin este
+                                                    # fallback, trades reales WON quedaban PENDING para
+                                                    # siempre — encontrados 3 stuck del 1-May (+$28.04
+                                                    # WON sin marcar) durante audit del 5-May.
                                                     outcome = market.get("outcome", "")
                                                     winning_outcome = market.get("winningOutcome", "")
                                                     resolution = (outcome or winning_outcome or "").upper()
-                                                    trade_side = trade.get("side", "").upper()
 
-                                                    if resolution and trade_side:
-                                                        if trade_side in resolution or resolution in trade_side:
+                                                    if not resolution:
+                                                        outcomes_raw = market.get("outcomes")
+                                                        prices_raw = market.get("outcomePrices")
+                                                        try:
+                                                            outcomes_list = (
+                                                                json.loads(outcomes_raw)
+                                                                if isinstance(outcomes_raw, str)
+                                                                else outcomes_raw
+                                                            )
+                                                            prices_list = (
+                                                                json.loads(prices_raw)
+                                                                if isinstance(prices_raw, str)
+                                                                else prices_raw
+                                                            )
+                                                            if (outcomes_list and prices_list
+                                                                    and len(outcomes_list) == 2
+                                                                    and len(prices_list) == 2):
+                                                                if str(prices_list[0]) == "1":
+                                                                    resolution = str(outcomes_list[0]).upper()
+                                                                elif str(prices_list[1]) == "1":
+                                                                    resolution = str(outcomes_list[1]).upper()
+                                                        except (TypeError, ValueError, json.JSONDecodeError):
+                                                            pass
+
+                                                    trade_side = trade.get("side", "").upper()
+                                                    # Para "Up or Down" markets, side=YES → outcomes[0]
+                                                    # ("Up"), side=NO → outcomes[1] ("Down"). Si tenemos
+                                                    # outcomes_list ya parseado, es match directo.
+                                                    if not resolution and trade_side and outcome is None:
+                                                        pass  # ya intentamos
+
+                                                    bot_outcome_label = ""
+                                                    try:
+                                                        outcomes_raw2 = market.get("outcomes")
+                                                        outcomes_list2 = (
+                                                            json.loads(outcomes_raw2)
+                                                            if isinstance(outcomes_raw2, str)
+                                                            else outcomes_raw2
+                                                        )
+                                                        if outcomes_list2 and len(outcomes_list2) == 2:
+                                                            bot_outcome_label = (
+                                                                outcomes_list2[0] if trade_side == "YES"
+                                                                else outcomes_list2[1]
+                                                            ).upper()
+                                                    except (TypeError, ValueError, json.JSONDecodeError):
+                                                        pass
+
+                                                    if resolution and (trade_side or bot_outcome_label):
+                                                        # Match preferente por bot_outcome_label
+                                                        # ("Up"/"Down"), fallback a trade_side ("YES"/"NO")
+                                                        won = False
+                                                        if bot_outcome_label and resolution == bot_outcome_label:
+                                                            won = True
+                                                        elif (not bot_outcome_label and trade_side
+                                                              and (trade_side in resolution
+                                                                   or resolution in trade_side)):
+                                                            won = True
+                                                        if won:
                                                             trade["result"] = "WON"
                                                             tokens = trade["amount"] / trade["price"]
                                                             trade["payout"] = round(tokens, 2)

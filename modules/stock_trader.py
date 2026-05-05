@@ -380,18 +380,21 @@ class StockTrader:
         else:
             self._daily_limit_reached = False
 
-        # Daily loss limit: si perdimos $25+ hoy, pausar stocks resto del
+        # Daily loss limit: si perdimos $35+ hoy, pausar stocks resto del
         # día. Motivación: 21-Abr stocks perdieron ~$38 consecutivos sin freno.
+        # Subido de -$25 a -$35 (2-May-2026): el límite mide solo balance
+        # líquido; cuando hay posiciones ganadoras pendientes el "loss" es
+        # falso. Más margen evita disparos prematuros.
         if self._daily_loss_check["date"] != today:
             self._daily_loss_check = {
                 "date": today,
                 "start_balance": STATE.current_bankroll,
             }
         net_daily_pnl = STATE.current_bankroll - self._daily_loss_check["start_balance"]
-        if net_daily_pnl <= -25:
+        if net_daily_pnl <= -35:
             logger.warning(
                 f"      ⛔ Daily loss limit NETO: P&L hoy ${net_daily_pnl:.2f} "
-                f"(límite -$25). Stocks pausados hasta mañana."
+                f"(límite -$35). Stocks pausados hasta mañana."
             )
             try:
                 import os
@@ -402,16 +405,16 @@ class StockTrader:
                     asyncio.ensure_future(tg.send(
                         f"🚨 DAILY LOSS LIMIT\n"
                         f"P&L neto hoy: ${net_daily_pnl:.2f}\n"
-                        f"Límite: -$25\n"
+                        f"Límite: -$35\n"
                         f"Stocks PAUSADOS hasta mañana."
                     ))
             except Exception:
                 pass
             return None
-        elif net_daily_pnl < -15:
+        elif net_daily_pnl < -22:
             logger.info(
                 f"      ⚠️ P&L neto hoy: ${net_daily_pnl:.2f} "
-                f"(acercándose al límite -$25)"
+                f"(acercándose al límite -$35)"
             )
 
         # Solo apostar stocks durante horario de mercado US.
@@ -447,6 +450,11 @@ class StockTrader:
         index_key = parsed["index"]
         direction = parsed["direction"]
 
+        # Identificar mercado "Up or Down on [today]" (intradía).
+        # Track record 4-5 May 2026: 0/6 LOST (-$48) por mean-reversion.
+        # Los semanales "close above/below $X" siguen sanos (GOOGL +$6.14, etc.).
+        is_daily_intraday = "up or down on" in question.lower()
+
         logger.info(f"   📈 {question[:55]}")
 
         # Filtro VIX: volatilidad del mercado. VIX alto = mercado en pánico,
@@ -466,18 +474,15 @@ class StockTrader:
         else:
             logger.warning(f"      ⚠️ VIX no disponible — continuar con precaución")
 
-        # Filtro de tendencia: si el S&P está bajando fuerte hoy,
-        # NO apostar "Up" en ningún stock (correlación de mercado).
-        # 20-Abr: mercado -2%, 5 bets Up perdieron -$34.
-        # 21-Abr: 4 stocks perdieron sin log del filtro (silent fail en debug).
-        # Fail-safe: si no se puede obtener data, skip (no apostar ciego).
-        # NOTA (22-Abr): _parse_stock_question devuelve "up"/"down" lowercase,
-        # así que direction.upper() cubre tanto "Up/Down" como "close above/below"
-        # (above → parser default "up", below matchea "close lower"/"decline"
-        # → "down"). Parser gap conocido: "closes below $X" sin verbos de caída
-        # cae en default "up"; seguimiento en TODO separado.
-        # 30-Abr: este bloque se movió ANTES del news filter para que
-        # market_change esté disponible como override del news score.
+        # Obtener S&P trend y news sentiment para usar más abajo.
+        # IMPORTANTE (5-May-2026): el bloqueo direction-dependiente se movió a
+        # DESPUÉS de calcular `effective_direction`. Antes usaba `direction.upper()`
+        # que para mercados "Up or Down" siempre es "up" (parser default), así
+        # que el filtro NO bloqueaba apuestas DOWN (side=NO). 3 de las 6 perdidas
+        # de Lun-Mar (WTI, NVDA, Silver) habrían sido bloqueadas por este filtro
+        # si hubiera usado effective_direction. Fix: separar fetch (aquí) del
+        # bloqueo (post side selection).
+        # Fail-safe: si no se puede obtener S&P data, skip (no apostar ciego).
         try:
             sp500_data = await self._get_market_data("sp500")
             if sp500_data is None:
@@ -485,52 +490,16 @@ class StockTrader:
                 return None
             market_change = sp500_data.get("change_pct", 0)
             logger.info(f"      📊 S&P tendencia: {market_change:+.2%}")
-            # Umbral bajado de ±0.5% a ±0.3% (29-Abr): el 29-Abr S&P estaba -0.28%
-            # y no bloqueó NVDA UP (LOST -$6.75). ±0.3% captura tendencias chicas pero claras.
-            if market_change < -0.003 and direction.upper() == "UP":
-                logger.info(
-                    f"      📉 Mercado bajando ({market_change:+.2%}), "
-                    f"skip bet UP en {INDICES[index_key]['name']}"
-                )
-                return None
-            if market_change > 0.003 and direction.upper() == "DOWN":
-                logger.info(
-                    f"      📈 Mercado subiendo ({market_change:+.2%}), "
-                    f"skip bet DOWN en {INDICES[index_key]['name']}"
-                )
-                return None
         except Exception as e:
             logger.warning(f"      ⚠️ Error trend check: {e} — skip por precaución")
             return None
 
-        # News sentiment filter con override por S&P real:
-        # Si el S&P trend contradice el news score, confiar en S&P
-        # (el precio real > keywords de noticias mal parseados).
-        # 30-Abr: news capturaba "sink" en "Jobless claims sink to 57-yr low"
-        # (BULLISH real) marcándolo BEARISH y bloqueando UP con S&P +0.42%.
         try:
             news = self.news.get_sentiment()
             logger.info(f"      📰 News: {news['sentiment']} (score {news['score']:+d})")
-            if news["score"] <= -3 and direction.upper() == "UP":
-                if market_change > 0.002:
-                    logger.info(
-                        f"      📰 News bearish (score {news['score']:+d}) PERO "
-                        f"S&P real {market_change:+.2%} UP → confiar en mercado"
-                    )
-                else:
-                    logger.info(f"      📰 Noticias bearish ({news['score']:+d}), skip UP")
-                    return None
-            if news["score"] >= 3 and direction.upper() == "DOWN":
-                if market_change < -0.002:
-                    logger.info(
-                        f"      📰 News bullish (score {news['score']:+d}) PERO "
-                        f"S&P real {market_change:+.2%} DOWN → confiar en mercado"
-                    )
-                else:
-                    logger.info(f"      📰 Noticias bullish ({news['score']:+d}), skip DOWN")
-                    return None
         except Exception as e:
             logger.debug(f"      News check error: {e}")
+            news = {"sentiment": "NEUTRAL", "score": 0}
 
         # 2. Obtener datos del mercado
         mkt_data = await self._get_market_data(index_key)
@@ -618,7 +587,7 @@ class StockTrader:
         # Override check: si ya llegamos al límite diario, solo permitir
         # si el edge es excepcional
         if getattr(self, '_daily_limit_reached', False) and edge < 0.25:
-            logger.info(f"      ⛔ Max 5/día + edge {edge:.1%} < 25%: skip")
+            logger.info(f"      ⛔ Max 4/día + edge {edge:.1%} < 25%: skip")
             return None
         elif getattr(self, '_daily_limit_reached', False) and edge >= 0.25:
             logger.info(f"      🔥 OVERRIDE: edge {edge:.1%} >= 25% — apuesta a pesar del límite diario")
@@ -639,6 +608,65 @@ class StockTrader:
         effective_direction = direction.upper()
         if side == "NO":
             effective_direction = "DOWN" if effective_direction == "UP" else "UP"
+
+        # Filtro tendencia S&P (post side selection — usa effective_direction).
+        # 20-Abr: mercado -2%, 5 bets Up perdieron -$34. Umbral ±0.3% (29-Abr).
+        # Bug fix 5-May: antes usaba parser direction, fallaba para "Up or Down"
+        # con side=NO (3/6 perdedoras Lun-Mar habrían sido bloqueadas).
+        if market_change < -0.003 and effective_direction == "UP":
+            logger.info(
+                f"      📉 Mercado bajando ({market_change:+.2%}), "
+                f"skip bet UP en {INDICES[index_key]['name']}"
+            )
+            return None
+        if market_change > 0.003 and effective_direction == "DOWN":
+            logger.info(
+                f"      📈 Mercado subiendo ({market_change:+.2%}), "
+                f"skip bet DOWN en {INDICES[index_key]['name']}"
+            )
+            return None
+
+        # Filtro news sentiment (post side selection). Override: si S&P real
+        # contradice el news score, confiar en S&P (precio > keywords).
+        # 30-Abr: news capturaba "sink" en "Jobless claims sink" como BEARISH.
+        if news["score"] <= -3 and effective_direction == "UP":
+            if market_change > 0.002:
+                logger.info(
+                    f"      📰 News bearish (score {news['score']:+d}) PERO "
+                    f"S&P real {market_change:+.2%} UP → confiar en mercado"
+                )
+            else:
+                logger.info(f"      📰 Noticias bearish ({news['score']:+d}), skip UP")
+                return None
+        if news["score"] >= 3 and effective_direction == "DOWN":
+            if market_change < -0.002:
+                logger.info(
+                    f"      📰 News bullish (score {news['score']:+d}) PERO "
+                    f"S&P real {market_change:+.2%} DOWN → confiar en mercado"
+                )
+            else:
+                logger.info(f"      📰 Noticias bullish ({news['score']:+d}), skip DOWN")
+                return None
+
+        # Anti-continuación intradía (5-May-2026): para "Up or Down on [today]"
+        # 6/6 LOST -$48 cuando se apostó EN LA MISMA dirección del movimiento
+        # intradía del subyacente. La reversión a la media hacia el cierre
+        # vence al "momentum continúa". Skip si el ticker ya se movió >0.5%
+        # y estamos apostando continuación.
+        if is_daily_intraday:
+            move_threshold = 0.005
+            if change > move_threshold and effective_direction == "UP":
+                logger.info(
+                    f"      ↩️ Anti-continuación: {INDICES[index_key]['name']} "
+                    f"ya {change:+.2%} hoy y apostamos UP. Skip (mean-reversion risk)"
+                )
+                return None
+            if change < -move_threshold and effective_direction == "DOWN":
+                logger.info(
+                    f"      ↩️ Anti-continuación: {INDICES[index_key]['name']} "
+                    f"ya {change:+.2%} hoy y apostamos DOWN. Skip (mean-reversion risk)"
+                )
+                return None
 
         # Max 1 apuesta por ticker por día — bloquea cualquier duplicado,
         # no solo direcciones opuestas. Evita TSLA Up/Down + TSLA finish
@@ -725,6 +753,17 @@ class StockTrader:
                     )
                     return None
                 else:
+                    # Para daily intraday: requerir confidence ≥ medium (0.65).
+                    # Las 6 perdedoras 4-5 May tuvieron Sonnet aprobando con
+                    # razonamientos de "momentum continúa" — confidence alta no
+                    # se correlacionó con éxito, pero confidence baja debe ser
+                    # razón inmediata de skip para este bucket riesgoso.
+                    if is_daily_intraday and ai_analysis.confidence < 0.65:
+                        logger.info(
+                            f"      🧠 IA confidence {ai_analysis.confidence:.2f} < 0.65 "
+                            f"para daily intraday: skip"
+                        )
+                        return None
                     logger.info(
                         f"      🧠 IA confirma BET {side} | prob {ai_analysis.estimated_probability:.1%} "
                         f"| {ai_analysis.reasoning[:80]}"
@@ -732,14 +771,24 @@ class StockTrader:
             except Exception as e:
                 logger.warning(f"      ⚠️ IA error: {e} — continuar con filtros base")
 
-        # 5. Sizing — ESTRATEGIA PRINCIPAL, apuesta más grande
-        # Stocks: 3W/0L (100% WR, +$19.82) — nuestra mejor estrategia
-        bet_amount = min(
-            STATE.current_bankroll * 0.12,      # 12% del bankroll (era 8%)
-            SAFETY.max_bet_absolute * 1.5,      # 50% extra vs normal
-            STATE.current_bankroll * 0.15        # Techo 15%
-        )
-        bet_amount = max(bet_amount, 4.0)
+        # 5. Sizing — diferenciado por tipo de mercado.
+        # Daily intraday "Up or Down on [today]" (5-May-2026): 0/6 LOST -$48,
+        # mitad de stake mientras se valida el nuevo prompt + filtro anti-continuación.
+        # Semanales "close above/below $X" (3W/0L incluyendo GOOGL +$6.14): full stake.
+        if is_daily_intraday:
+            bet_amount = min(
+                STATE.current_bankroll * 0.06,  # 6% del bankroll
+                SAFETY.max_bet_absolute * 0.7,  # ~$4.20 con max 6.0
+                STATE.current_bankroll * 0.08,
+            )
+            bet_amount = max(bet_amount, 2.5)
+        else:
+            bet_amount = min(
+                STATE.current_bankroll * 0.12,
+                SAFETY.max_bet_absolute * 1.5,
+                STATE.current_bankroll * 0.15,
+            )
+            bet_amount = max(bet_amount, 4.0)
         bet_amount = round(bet_amount, 2)
 
         # 6. Ejecutar
@@ -752,7 +801,7 @@ class StockTrader:
             "amount": bet_amount,
             "price": price,
             "edge": edge,
-            "probability": prob_direction if side == "YES" else 1 - prob_direction,
+            "prob": prob_direction if side == "YES" else 1 - prob_direction,
             "index": index_key,
             "direction": direction,
             "market_change": change,
