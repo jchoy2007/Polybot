@@ -72,7 +72,20 @@ INDICES = {
                 "name": "Oil"},
 }
 
-MIN_EDGE = 0.08  # 8% (data más confiable que weather)
+MIN_EDGE = 0.08  # 8% base (semanales y "close above/below $X")
+# Daily intraday "Up or Down on" requiere edge mayor por mala calibración
+# (4-May: 4/4 LOST, 5-May: 0/6 LOST). Subido a 10% el 7-May-2026.
+MIN_EDGE_DAILY_INTRADAY = 0.10
+# Anti-señal: en colas (precio ≤0.20 o ≥0.80) un edge enorme suele ser
+# error de modelo, no oportunidad. Histórico (32 trades): perdedoras
+# avg edge 30.9% vs ganadoras 13.7%. Casos: TSLA $400 @0.215 edge 61% LOST,
+# Gold @0.105 edge 59% LOST. Si cumple ambas condiciones → skip.
+EXTREME_PRICE_LOW = 0.20
+EXTREME_PRICE_HIGH = 0.80
+EXTREME_EDGE_CAP = 0.30
+# Sizing inverso: edges >25% históricamente son anti-señal,
+# reducir stake a la mitad para limitar daño.
+HIGH_EDGE_SIZING_THRESHOLD = 0.25
 
 
 class StockTrader:
@@ -369,13 +382,11 @@ class StockTrader:
         if self._daily_stock_count["date"] != today:
             self._daily_stock_count = {"date": today, "count": 0}
         if self._daily_stock_count["count"] >= 4:
-            # Override: si el edge es excepcional (>25%), dejar pasar.
-            # Edges >25% son raros (1-2/semana) y casi siempre ganan.
-            # Ejemplo: AMZN >$245 con edge 72% → +$16.53
-            # El override se evalúa DESPUÉS de calcular edge (más abajo),
-            # así que aquí solo logeamos y seguimos — el check real
-            # va después de calcular edge_yes/edge_no.
-            logger.info(f"      ⚠️ Max 4 stock bets/día alcanzado — evaluando override por edge alto...")
+            # Override por edge alto retirado (7-May-2026): la data muestra
+            # que perdedoras tienen avg edge 30.9% vs ganadoras 13.7% — los
+            # edges enormes son anti-señal, no oportunidad. El cap diario
+            # ahora es duro y se aplica abajo después de calcular edge.
+            logger.info(f"      ⛔ Max 4 stock bets/día alcanzado — skip resto del día")
             self._daily_limit_reached = True
         else:
             self._daily_limit_reached = False
@@ -576,21 +587,29 @@ class StockTrader:
         edge_yes = prob_direction - yes_price
         edge_no = (1 - prob_direction) - no_price
 
-        if edge_yes > edge_no and edge_yes >= MIN_EDGE:
+        # Threshold diferenciado: daily intraday tiene calibración pobre
+        # → exigir más edge. Otros formatos (close above/below, finish week)
+        # mantienen el threshold base.
+        min_edge_required = MIN_EDGE_DAILY_INTRADAY if is_daily_intraday else MIN_EDGE
+
+        if edge_yes > edge_no and edge_yes >= min_edge_required:
             side, edge, price, token_id = "YES", edge_yes, yes_price, tokens[0]
-        elif edge_no >= MIN_EDGE:
+        elif edge_no >= min_edge_required:
             side, edge, price, token_id = "NO", edge_no, no_price, tokens[1]
         else:
-            logger.info(f"      Edge YES={edge_yes:+.1%}, NO={edge_no:+.1%} → insuficiente")
+            label = "daily intraday" if is_daily_intraday else "base"
+            logger.info(
+                f"      Edge YES={edge_yes:+.1%}, NO={edge_no:+.1%} → "
+                f"insuficiente (req {min_edge_required:.0%} {label})"
+            )
             return None
 
-        # Override check: si ya llegamos al límite diario, solo permitir
-        # si el edge es excepcional
-        if getattr(self, '_daily_limit_reached', False) and edge < 0.25:
-            logger.info(f"      ⛔ Max 4/día + edge {edge:.1%} < 25%: skip")
+        # Daily limit: skip extra trades. OVERRIDE retirado (7-May): la data
+        # mostró que edges >25% son anti-señal (perdedoras avg 30.9% edge),
+        # así que dejar de premiar edges altos que en realidad son ruido.
+        if getattr(self, '_daily_limit_reached', False):
+            logger.info(f"      ⛔ Max daily alcanzado, skip (edge {edge:.1%})")
             return None
-        elif getattr(self, '_daily_limit_reached', False) and edge >= 0.25:
-            logger.info(f"      🔥 OVERRIDE: edge {edge:.1%} >= 25% — apuesta a pesar del límite diario")
 
         # Colas largas (precio < 10¢ o > 90¢) tienen alta varianza y
         # poco upside realista. El único STOCKS LOST histórico fue
@@ -598,6 +617,16 @@ class StockTrader:
         # el filtro 0.02/0.98 que ya existe arriba.
         if price < 0.10 or price > 0.90:
             logger.info(f"      Cola larga @ {price:.3f}: skip")
+            return None
+
+        # Anti-señal: precio extremo + edge enorme = modelo equivocado,
+        # no oportunidad. El mercado en colas suele tener info que el bot
+        # no captura. Casos 4-5 May: TSLA $400 @0.215 edge 61% LOST,
+        # Gold @0.105 edge 59% LOST.
+        if (price <= EXTREME_PRICE_LOW or price >= EXTREME_PRICE_HIGH) and edge > EXTREME_EDGE_CAP:
+            logger.info(
+                f"      🚫 Cola {price:.3f} con edge {edge:.1%}>30% (anti-señal): skip"
+            )
             return None
 
         # Determinar la dirección EFECTIVA que estamos apostando:
@@ -789,11 +818,37 @@ class StockTrader:
                 STATE.current_bankroll * 0.15,
             )
             bet_amount = max(bet_amount, 4.0)
+
+        # Sizing inverso: edges >25% son anti-señal. Reducir stake a la
+        # mitad para limitar daño cuando el modelo se equivoca, sin perder
+        # las ocasiones reales que sí ganan dentro de ese bucket.
+        if edge > HIGH_EDGE_SIZING_THRESHOLD:
+            bet_amount = bet_amount * 0.5
+            bet_amount = max(bet_amount, 2.0)
+            logger.info(
+                f"      🛡️ Edge alto {edge:.1%}>25%: stake reducido a la "
+                f"mitad (anti-señal histórica)"
+            )
+
         bet_amount = round(bet_amount, 2)
+
+        # Clasificar subtipo para tracking de WR por formato.
+        # Histórico muestra que "close above $X" y semanales rinden mejor
+        # que daily intraday Up/Down genérico.
+        q_lower_subtype = question.lower()
+        if "up or down on" in q_lower_subtype:
+            market_subtype = "daily_intraday"
+        elif "finish week" in q_lower_subtype or "finish above" in q_lower_subtype or "finish below" in q_lower_subtype:
+            market_subtype = "weekly"
+        elif "close above" in q_lower_subtype or "close below" in q_lower_subtype:
+            market_subtype = "close_target"
+        else:
+            market_subtype = "other"
 
         # 6. Ejecutar
         trade = {
             "strategy": "STOCKS",
+            "market_subtype": market_subtype,
             "timestamp": datetime.now().isoformat(),
             "market_id": market_id,
             "question": question,
