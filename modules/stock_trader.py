@@ -512,11 +512,16 @@ class StockTrader:
             logger.debug(f"      News check error: {e}")
             news = {"sentiment": "NEUTRAL", "score": 0}
 
-        # 2. Obtener datos del mercado
-        mkt_data = await self._get_market_data(index_key)
+        # 2. Obtener datos del mercado. Si el mercado nombra explícitamente un
+        # ETF (SPY/QQQ/DIA/IWM), usar el precio del ETF — el índice subyacente
+        # (^GSPC etc.) tiene precio ~10x mayor y confunde al modelo y a Sonnet.
+        etf_symbol = parsed.get("etf_symbol")
+        mkt_data = await self._get_market_data(index_key, override_symbol=etf_symbol)
         if not mkt_data:
             logger.info(f"      No se pudo obtener datos de {INDICES[index_key]['name']}")
             return None
+        if etf_symbol:
+            logger.info(f"      🔁 Usando ETF {etf_symbol} (no índice) para precio del mercado")
 
         # Gap filter (17-Abr): "close above $X" / "close below $X" con target
         # lejano pierden 3/3 esta semana (AAPL >$255, AMZN >$250, NVDA >$200).
@@ -526,7 +531,11 @@ class StockTrader:
         import re as _re
         q_lower = question.lower()
         target_match = _re.search(r'\$(\d+(?:,\d{3})*(?:\.\d+)?)', question)
-        daily_kw = ("close above" in q_lower or "close below" in q_lower)
+        # 13-May-2026: aceptar "close above/below" y "closes above/below"
+        # (plural). SPY/WTI mercados usan "closes above $X" y el filtro de gap
+        # no se disparaba, dejando pasar bets at-the-money que el modelo
+        # sobreestimaba (SPY $740 +47.5% edge LOST -$3.54, WTI $98 LOST -$7.07).
+        daily_kw = bool(_re.search(r'\bcloses?\s+(above|below)\b', q_lower))
         weekly_kw = any(kw in q_lower for kw in (
             "finish week", "finish above", "finish below",
             "end above", "end below",
@@ -551,8 +560,30 @@ class StockTrader:
                 pass
 
         change = mkt_data.get("change_pct", 0)
-        logger.info(f"      {INDICES[index_key]['name']}: ${mkt_data['price']:,.0f} | "
+        _label = etf_symbol if etf_symbol else INDICES[index_key]['name']
+        logger.info(f"      {_label}: ${mkt_data['price']:,.2f} | "
                      f"Cambio: {change:+.2%} | Estado: {mkt_data.get('state', '?')}")
+
+        # At-the-money trap (13-May-2026): cuando el precio está pegado al target
+        # (<0.5%) Y ya hubo un movimiento grande del día (>2%), el mercado está
+        # en zona de mean-reversion. El modelo P(up) sobreestima (cap 78-82%)
+        # cuando la realidad es ~coin flip. Casos 11-May:
+        #   SPY $740 (precio $740, +2.98%) → bot P_up=78.5% → LOST -$3.54
+        #   WTI $98  (precio $98,  +3.16%) → bot P_up=79.1% → LOST -$7.07
+        if target_match and (daily_kw or weekly_kw):
+            try:
+                _tp = float(target_match.group(1).replace(",", ""))
+                _cp = mkt_data.get("price", 0) or 0.001
+                _atm_gap = abs(_tp - _cp) / _cp
+                if _atm_gap < 0.005 and abs(change) > 0.02:
+                    logger.info(
+                        f"      🪤 At-the-money trap: precio ${_cp:.2f} ≈ target "
+                        f"${_tp:.2f} ({_atm_gap:.2%}) con cambio {change:+.2%} "
+                        f"hoy → skip (mean-reversion likely)"
+                    )
+                    return None
+            except (ValueError, AttributeError):
+                pass
 
         # 3. Calcular probabilidad
         prob_direction = self._calculate_prob(mkt_data, direction, parsed.get("threshold_pct"))
@@ -728,9 +759,10 @@ class StockTrader:
                 # contexto live aquí para que NO adivine: ticker, precio actual,
                 # target, S&P trend, VIX, edge calculado, news sentiment.
                 _local = locals()
+                _effective_symbol = etf_symbol if etf_symbol else INDICES[index_key]['symbol']
                 _ctx_lines = [
                     "LIVE DATA from today (override any training-data prices):",
-                    f"- Ticker: {INDICES[index_key]['name']} ({INDICES[index_key]['symbol']})",
+                    f"- Ticker: {INDICES[index_key]['name']} ({_effective_symbol})",
                     f"- Current price: ${mkt_data.get('price', 0):,.2f}",
                     f"- Change today: {change:+.2%}",
                 ]
@@ -895,9 +927,17 @@ class StockTrader:
     # PARSEAR PREGUNTA
     # ═══════════════════════════════════════════════════════════════
 
+    # ETFs que tienen precio distinto al índice subyacente. Cuando el mercado
+    # de Polymarket usa estos tickers, hay que fetch el ETF (no el índice) o
+    # Yahoo devuelve el valor del índice (~10x el del ETF) y Sonnet alucina
+    # gaps imposibles. 11-May SPY $740: el bot leyó S&P=$7,415 y declaró
+    # "900% above target → BET 97%". Fix 13-May.
+    _ETF_TICKERS = {"spy": "SPY", "qqq": "QQQ", "dia": "DIA", "iwm": "IWM"}
+
     def _parse_stock_question(self, question: str) -> Optional[Dict]:
         q = question.lower()
-        result = {"index": None, "direction": "up", "threshold_pct": None}
+        result = {"index": None, "direction": "up", "threshold_pct": None,
+                  "etf_symbol": None}
 
         # Word boundary matching para evitar 'dow' matcheando 'down'
         best_len = 0
@@ -910,6 +950,15 @@ class StockTrader:
                         best_len = len(alias)
         if not result["index"]:
             return None
+        # ETF detect: si en la pregunta aparece SPY/QQQ/DIA/IWM como token
+        # explícito, usar ese ticker (no el índice subyacente). Detectado
+        # independiente del longest-alias winner — "S&P 500 (SPY)" gana
+        # "s&p 500" en longitud pero el target ($740) es del ETF SPY.
+        for etf_alias, etf_ticker in self._ETF_TICKERS.items():
+            pattern = r'(?:^|[\s,;:\-\(\)])' + re.escape(etf_alias) + r'(?:$|[\s,;:\-\(\)\'\"?!.])'
+            if re.search(pattern, q):
+                result["etf_symbol"] = etf_ticker
+                break
 
         if any(w in q for w in ["close down", "close lower", "close red", "drop", "fall", "decline"]):
             result["direction"] = "down"
@@ -926,19 +975,25 @@ class StockTrader:
     # DATOS DE MERCADO (Yahoo Finance)
     # ═══════════════════════════════════════════════════════════════
 
-    async def _get_market_data(self, index_key: str) -> Optional[Dict]:
-        """Obtiene datos de Yahoo Finance."""
-        cache_key = f"stock:{index_key}"
+    async def _get_market_data(self, index_key: str,
+                                override_symbol: Optional[str] = None) -> Optional[Dict]:
+        """Obtiene datos de Yahoo Finance.
+
+        override_symbol: si se provee, se usa en lugar del symbol del INDICES.
+        Necesario para mercados que usan tickers de ETF (SPY/QQQ/DIA/IWM) cuyo
+        precio es ~10x menor que el índice subyacente (^GSPC/^IXIC/^DJI/^RUT).
+        """
+        symbol = override_symbol or INDICES[index_key]["symbol"]
+        cache_key = f"stock:{symbol}"
         if cache_key in self.cache:
             c = self.cache[cache_key]
             if time.time() - c["ts"] < self.cache_ttl:
                 return c["data"]
 
-        idx = INDICES[index_key]
         session = await self._get_session()
 
         try:
-            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{idx['symbol']}"
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
             headers = {"User-Agent": "Mozilla/5.0"}
             params = {"range": "5d", "interval": "1d", "includePrePost": "true"}
 
@@ -977,9 +1032,10 @@ class StockTrader:
                 "pre_market": meta.get("preMarketPrice"),
             }
 
-            # Futuros si mercado cerrado
-            if state in ("PRE", "POST", "CLOSED"):
-                fut = await self._get_futures(idx["futures"])
+            # Futuros si mercado cerrado (solo si no es override de ETF —
+            # los ETFs usan su propio ticker spot, no necesitan futuros)
+            if state in ("PRE", "POST", "CLOSED") and not override_symbol:
+                fut = await self._get_futures(INDICES[index_key]["futures"])
                 if fut:
                     result["futures"] = fut
 
