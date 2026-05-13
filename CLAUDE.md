@@ -293,6 +293,16 @@ _Añadir filas cada auditoría._
 |--------|-----|---------|
 | `dbc8fda` | Bloquear stocks en fin de semana (`stock_trader.py:416-428`) | El check de `weekday` estaba **anidado dentro** del check de horario US: si la hora caía en 14-20 UTC, saltaba el bloque entero y nunca verificaba sáb/dom. Resultado: 5 apuestas stocks en weekend (2 sáb + 3 dom 26-Abr) usando datos de Yahoo del viernes (mercado cerrado). Total comprometido $40.50 con info stale. Fix: chequear `weekday >= 5` ANTES del horario, retornar `None` con log explícito. Weekend mode de `main.py:358-362` solo ajusta `max_bets/min_edge`, NO bloquea stocks — la defensa correcta es en `stock_trader.py`. |
 
+## 🐛 Bugs arreglados el 13 mayo 2026
+
+Tras 2 LOSS el 11-May (SPY $740 −$3.54, WTI $98 −$7.07) y revisión de logs:
+
+| Commit | Fix | Por qué |
+|--------|-----|---------|
+| `51063c8` | SPY/QQQ/DIA/IWM usan precio del ETF (no del índice) en `stock_trader.py:_parse_stock_question` + `_get_market_data(override_symbol=...)` | El bot fetchaba `^GSPC` (~$7,415) cuando el mercado preguntaba sobre **SPY ETF** ($740). Sonnet recibió "S&P=$7,415" y declaró "SPY 900% above target → BET 97% YES". SPY ETF estaba exactamente en $740 (coin flip) y perdió. Fix: detectar `spy/qqq/dia/iwm` como tokens en la pregunta — independiente del longest-alias winner — y pasar `override_symbol="SPY"` (etc.) a Yahoo. El context que se envía a Sonnet ahora también muestra el ticker correcto. |
+| `51063c8` | Regex "close**s** above/below" en el gap filter | El gap filter usaba `"close above" in q_lower` pero los mercados de ETFs/commodities usan **plural** "closes above $X". El filtro nunca disparaba para SPY/WTI/Gold dailies, dejando pasar bets at-the-money. Fix: `re.search(r'\bcloses?\s+(above|below)\b', q_lower)`. |
+| `51063c8` | At-the-money trap: skip si `\|precio−target\|/precio < 0.5%` Y `\|change\|>2%` | Cuando el precio está pegado al target y ya hubo movimiento intradía grande, el modelo `_calculate_prob` sobreestima a 78-82% (cap por momentum) cuando la realidad es ~coin flip + mean-reversion. SPY $740 (+2.98%) y WTI $98 (+3.16%) cayeron en esto el 11-May. El nuevo filtro corre **antes** del cálculo de prob y de Sonnet — bloquea ambos casos. |
+
 ## 🐛 Bugs pendientes identificados (no arreglados aún)
 
 1. **Telegram muestra valores incorrectos para posiciones perdidas**: MSFT mostró
@@ -487,4 +497,4 @@ cd /root/Polybot && git pull origin main && systemctl restart polybot
 
 ---
 
-**Última actualización**: 28 abril 2026 (post migración Polymarket v2 + cleanup producción)
+**Última actualización**: 13 mayo 2026 (fix SPY/ETF + closes regex + ATM trap)
