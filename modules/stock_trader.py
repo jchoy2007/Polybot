@@ -72,10 +72,13 @@ INDICES = {
                 "name": "Oil"},
 }
 
-MIN_EDGE = 0.08  # 8% base (semanales y "close above/below $X")
+MIN_EDGE = 0.06  # 6% base (semanales y "close above/below $X")
 # Daily intraday "Up or Down on" requiere edge mayor por mala calibración
 # (4-May: 4/4 LOST, 5-May: 0/6 LOST). Subido a 10% el 7-May-2026.
-MIN_EDGE_DAILY_INTRADAY = 0.10
+# Bajado a 8% el 15-May-2026: con Sonnet IA + ATM trap + anti-señal cola
+# las defensas están en capas; el 10% rechazaba edges legítimos de 6-9%
+# (AMZN finish week 14-May, edge NO 6.4% no se ejecutó).
+MIN_EDGE_DAILY_INTRADAY = 0.08
 # Anti-señal: en colas (precio ≤0.20 o ≥0.80) un edge enorme suele ser
 # error de modelo, no oportunidad. Histórico (32 trades): perdedoras
 # avg edge 30.9% vs ganadoras 13.7%. Casos: TSLA $400 @0.215 edge 61% LOST,
@@ -601,10 +604,35 @@ class StockTrader:
         yes_price = float(prices[0])
         no_price = float(prices[1])
 
-        # VALIDACIÓN: rechazar precios inválidos
-        if yes_price < 0.02 or yes_price > 0.98 or no_price < 0.02 or no_price > 0.98:
-            logger.info(f"      Precios fuera de rango (YES={yes_price:.2f}, NO={no_price:.2f}), skip")
+        # VALIDACIÓN: rechazar precios inválidos (precio = 0 o = 1 exacto:
+        # mercado cerrado o sin liquidez).
+        if yes_price <= 0.0 or yes_price >= 1.0 or no_price <= 0.0 or no_price >= 1.0:
+            logger.info(f"      Precios inválidos (YES={yes_price:.2f}, NO={no_price:.2f}), skip")
             return None
+
+        # Extreme-side bet (15-May): si una side está a ≤$0.05 y la otra ≥$0.95,
+        # ANTES skip. Ahora: si nuestro P(side cara) ≥80%, permitir apostar
+        # la side cara con stake reducido (alto WR esperado, payout chico pero
+        # casi seguro). Si NO, mantener skip — apostar la side barata con prob
+        # real ~20% es trampa.
+        _extreme_side_bet = False
+        if (yes_price <= 0.05 or yes_price >= 0.95
+                or no_price <= 0.05 or no_price >= 0.95):
+            # Determinar cuál side es la cara (≥0.95)
+            cara_side = "YES" if yes_price >= 0.95 else "NO"
+            cara_prob = prob_direction if cara_side == "YES" else (1 - prob_direction)
+            if cara_prob >= 0.80:
+                _extreme_side_bet = True
+                logger.info(
+                    f"      ⚡ Extreme-side bet: {cara_side}@{(yes_price if cara_side=='YES' else no_price):.2f} "
+                    f"(prob real {cara_prob:.0%}≥80%), stake reducido"
+                )
+            else:
+                logger.info(
+                    f"      Cola extrema (YES={yes_price:.2f}, NO={no_price:.2f}) y "
+                    f"prob {cara_prob:.0%}<80%: skip"
+                )
+                return None
 
         tokens = market.get("clobTokenIds", "[]")
         if isinstance(tokens, str):
@@ -623,7 +651,15 @@ class StockTrader:
         # mantienen el threshold base.
         min_edge_required = MIN_EDGE_DAILY_INTRADAY if is_daily_intraday else MIN_EDGE
 
-        if edge_yes > edge_no and edge_yes >= min_edge_required:
+        if _extreme_side_bet:
+            # En extreme-side, forzamos apostar la side cara (≥0.95) con
+            # prob real ≥80% — edge probablemente negativo pero alto WR.
+            cara_side = "YES" if yes_price >= 0.95 else "NO"
+            if cara_side == "YES":
+                side, edge, price, token_id = "YES", edge_yes, yes_price, tokens[0]
+            else:
+                side, edge, price, token_id = "NO", edge_no, no_price, tokens[1]
+        elif edge_yes > edge_no and edge_yes >= min_edge_required:
             side, edge, price, token_id = "YES", edge_yes, yes_price, tokens[0]
         elif edge_no >= min_edge_required:
             side, edge, price, token_id = "NO", edge_no, no_price, tokens[1]
@@ -646,7 +682,9 @@ class StockTrader:
         # poco upside realista. El único STOCKS LOST histórico fue
         # SPX Up/Down @ $0.060 → −$7.50 (14-Abr). Más estricto que
         # el filtro 0.02/0.98 que ya existe arriba.
-        if price < 0.10 or price > 0.90:
+        # Excepción: extreme-side bet (15-May) apuesta deliberadamente la
+        # side cara cuando prob_real ≥80% — no es cola larga adversa.
+        if not _extreme_side_bet and (price < 0.10 or price > 0.90):
             logger.info(f"      Cola larga @ {price:.3f}: skip")
             return None
 
@@ -708,25 +746,12 @@ class StockTrader:
                 logger.info(f"      📰 Noticias bullish ({news['score']:+d}), skip DOWN")
                 return None
 
-        # Anti-continuación intradía (5-May-2026): para "Up or Down on [today]"
-        # 6/6 LOST -$48 cuando se apostó EN LA MISMA dirección del movimiento
-        # intradía del subyacente. La reversión a la media hacia el cierre
-        # vence al "momentum continúa". Skip si el ticker ya se movió >0.5%
-        # y estamos apostando continuación.
-        if is_daily_intraday:
-            move_threshold = 0.005
-            if change > move_threshold and effective_direction == "UP":
-                logger.info(
-                    f"      ↩️ Anti-continuación: {INDICES[index_key]['name']} "
-                    f"ya {change:+.2%} hoy y apostamos UP. Skip (mean-reversion risk)"
-                )
-                return None
-            if change < -move_threshold and effective_direction == "DOWN":
-                logger.info(
-                    f"      ↩️ Anti-continuación: {INDICES[index_key]['name']} "
-                    f"ya {change:+.2%} hoy y apostamos DOWN. Skip (mean-reversion risk)"
-                )
-                return None
+        # Anti-continuación retirado el 15-May-2026.
+        # Razón: bloqueaba apuestas legítimas cuando había momentum genuino
+        # (14-May AAPL +3.73% con S&P +2.35% → bot skip UP y la apuesta
+        # hubiera ganado). El caso 11-May SPY $740 que motivó el filtro está
+        # cubierto por el ATM trap (precio≈target + cambio>2%), y Sonnet IA
+        # valida momentum vs mean-reversion con contexto live.
 
         # Max 1 apuesta por ticker por día — bloquea cualquier duplicado,
         # no solo direcciones opuestas. Evita TSLA Up/Down + TSLA finish
@@ -860,6 +885,17 @@ class StockTrader:
             logger.info(
                 f"      🛡️ Edge alto {edge:.1%}>25%: stake reducido a la "
                 f"mitad (anti-señal histórica)"
+            )
+
+        # Extreme-side bet (15-May): apostar la side cara con prob ≥80%.
+        # Upside chico ($0.05 por $0.95 invertido = 5%), así que stake
+        # absoluto limitado a $3 para mantener riesgo contenido.
+        if _extreme_side_bet:
+            bet_amount = min(bet_amount * 0.4, 3.0)
+            bet_amount = max(bet_amount, 2.0)
+            logger.info(
+                f"      ⚡ Extreme-side sizing: ${bet_amount:.2f} "
+                f"(stake reducido por payout chico)"
             )
 
         bet_amount = round(bet_amount, 2)

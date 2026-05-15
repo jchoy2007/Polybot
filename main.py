@@ -969,7 +969,7 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             if candidates:
                 from core.ai_analyzer import MarketAnalysis
                 today = datetime.now().strftime("%Y-%m-%d")
-                politics_bet_size = 2.0  # Fixed conservative — no Kelly hasta validar n>=5
+                politics_bet_size = 4.0  # 15-May: WR 12/12 (100%) en n=12 resueltos — doblamos de $2 a $4
                 for c in candidates:
                     if STATE.cycle_bets >= SAFETY.max_bets_per_cycle:
                         logger.info(f"   ⏭️ Politics: max apuestas/ciclo alcanzado")

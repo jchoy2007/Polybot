@@ -293,6 +293,18 @@ _Añadir filas cada auditoría._
 |--------|-----|---------|
 | `dbc8fda` | Bloquear stocks en fin de semana (`stock_trader.py:416-428`) | El check de `weekday` estaba **anidado dentro** del check de horario US: si la hora caía en 14-20 UTC, saltaba el bloque entero y nunca verificaba sáb/dom. Resultado: 5 apuestas stocks en weekend (2 sáb + 3 dom 26-Abr) usando datos de Yahoo del viernes (mercado cerrado). Total comprometido $40.50 con info stale. Fix: chequear `weekday >= 5` ANTES del horario, retornar `None` con log explícito. Weekend mode de `main.py:358-362` solo ajusta `max_bets/min_edge`, NO bloquea stocks — la defensa correcta es en `stock_trader.py`. |
 
+## 🔧 Ajustes 15 mayo 2026 (post-auditoría)
+
+Después de auditar 1-14 May (STOCKS 12/26 WR 46%, P&L −$16.76; POLITICS 12/12
+100% P&L +$2.61 "centavos") y caso 14-May (SP500 +2.35% sin apuestas):
+
+| Cambio | Por qué |
+|---|---|
+| **MIN_EDGE 8%→6%** y **DAILY_INTRADAY 10%→8%** en `stock_trader.py` | El 14-May AMZN finish-week NO tenía edge 6.4% y fue rechazado. Con las defensas en capas (Sonnet IA + ATM trap + anti-señal cola + gap filter) el threshold alto era redundante. |
+| **Anti-continuación retirado** (`stock_trader.py:711+`) | Bloqueaba AAPL Up el 14-May cuando AAPL +3.73% y S&P +2.35% — momentum genuino. El caso 11-May (SPY $740 ATM) que motivó el filtro ya está cubierto por ATM trap. |
+| **Extreme-side bet** (`stock_trader.py:608+`) | Antes: precios fuera de 0.02-0.98 → skip ciego. Ahora: si side cara ≥$0.95 Y prob real ≥80%, apuesta side cara con stake 0.4× (cap $3). Captura "SPY no llega a $755" cuando el mercado ya descontó. |
+| **Politics sizing $2→$4** (`main.py:972`) | WR 12/12 (100%) en n=12 resueltos. El comentario "no Kelly hasta n>=5" ya era obsoleto. Upside ahora 2x ($0.30-0.70/win). |
+
 ## 🐛 Bugs arreglados el 13 mayo 2026
 
 Tras 2 LOSS el 11-May (SPY $740 −$3.54, WTI $98 −$7.07) y revisión de logs:
