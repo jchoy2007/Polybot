@@ -78,7 +78,9 @@ MIN_EDGE = 0.06  # 6% base (semanales y "close above/below $X")
 # Bajado a 8% el 15-May-2026: con Sonnet IA + ATM trap + anti-señal cola
 # las defensas están en capas; el 10% rechazaba edges legítimos de 6-9%
 # (AMZN finish week 14-May, edge NO 6.4% no se ejecutó).
-MIN_EDGE_DAILY_INTRADAY = 0.08
+# Subido a 12% el 1-Jun-2026: 27 daily-intraday a 8%, 30% WR, -$57.12.
+# Coin-flip estructural; con whitelist tech-only el threshold debe subir.
+MIN_EDGE_DAILY_INTRADAY = 0.12
 # Anti-señal: en colas (precio ≤0.20 o ≥0.80) un edge enorme suele ser
 # error de modelo, no oportunidad. Histórico (32 trades): perdedoras
 # avg edge 30.9% vs ganadoras 13.7%. Casos: TSLA $400 @0.215 edge 61% LOST,
@@ -86,9 +88,21 @@ MIN_EDGE_DAILY_INTRADAY = 0.08
 EXTREME_PRICE_LOW = 0.20
 EXTREME_PRICE_HIGH = 0.80
 EXTREME_EDGE_CAP = 0.30
+# Cap absoluto de edge (1-Jun-2026): 9 trades con edge>=35% en precios
+# medios → 1W/8L (-$42.36). El cap de cola solo cubre extremos; edges
+# >40% en cualquier precio son anti-señal del modelo, no oportunidad.
+ABSOLUTE_EDGE_CAP = 0.40
 # Sizing inverso: edges >25% históricamente son anti-señal,
 # reducir stake a la mitad para limitar daño.
 HIGH_EDGE_SIZING_THRESHOLD = 0.25
+
+# Whitelist tradeable (1-Jun-2026): solo tickers con WR positivo en n=99.
+# AAPL 4/4 100%, GOOGL 3/5 60% +$10.69, NVDA 5/7 71% +$8.97, META 2/3 67% +$4.53.
+# TSLA 4/8 50% break-even (marginal, dentro). AMZN 1/2 50% -$3.74 (n bajo).
+# MSFT n=0 (sin trades, dentro por consistencia tech).
+# BANEADOS: WTI 2/10 -$45.91, DJIA 0/3, SPY 0/3, RUT 0/1, NFLX 0/1, commodities.
+# sp500/nasdaq se quedan en INDICES como benchmark macro pero NO son tradeables.
+TRADEABLE_TICKERS = {"nvda", "googl", "aapl", "tsla", "meta", "amzn", "msft"}
 
 
 class StockTrader:
@@ -464,6 +478,16 @@ class StockTrader:
         index_key = parsed["index"]
         direction = parsed["direction"]
 
+        # Whitelist (1-Jun-2026): solo tradear tickers con WR histórico
+        # positivo. Bloquea WTI (-$45.91), índices puros (DJIA/SPY/RUT 0/7),
+        # commodities. sp500/nasdaq se usan como benchmark, no como apuesta.
+        if index_key not in TRADEABLE_TICKERS:
+            logger.info(
+                f"      ⛔ {INDICES[index_key]['name']} fuera de whitelist "
+                f"(recovery 1-Jun): skip"
+            )
+            return None
+
         # Identificar mercado "Up or Down on [today]" (intradía).
         # Track record 4-5 May 2026: 0/6 LOST (-$48) por mean-reversion.
         # Los semanales "close above/below $X" siguen sanos (GOOGL +$6.14, etc.).
@@ -567,18 +591,19 @@ class StockTrader:
         logger.info(f"      {_label}: ${mkt_data['price']:,.2f} | "
                      f"Cambio: {change:+.2%} | Estado: {mkt_data.get('state', '?')}")
 
-        # At-the-money trap (13-May-2026): cuando el precio está pegado al target
-        # (<0.5%) Y ya hubo un movimiento grande del día (>2%), el mercado está
-        # en zona de mean-reversion. El modelo P(up) sobreestima (cap 78-82%)
-        # cuando la realidad es ~coin flip. Casos 11-May:
+        # At-the-money trap (13-May-2026, ampliado 1-Jun-2026): cuando el
+        # precio está pegado al target (<1%) Y ya hubo un movimiento del día
+        # (>1.5%), zona de mean-reversion. El modelo P(up) sobreestima
+        # (cap 78-82%) cuando la realidad es ~coin flip. Casos 11-May:
         #   SPY $740 (precio $740, +2.98%) → bot P_up=78.5% → LOST -$3.54
         #   WTI $98  (precio $98,  +3.16%) → bot P_up=79.1% → LOST -$7.07
+        # Umbral 0.5%→1% y change 2%→1.5% para cubrir más casos cerca del strike.
         if target_match and (daily_kw or weekly_kw):
             try:
                 _tp = float(target_match.group(1).replace(",", ""))
                 _cp = mkt_data.get("price", 0) or 0.001
                 _atm_gap = abs(_tp - _cp) / _cp
-                if _atm_gap < 0.005 and abs(change) > 0.02:
+                if _atm_gap < 0.01 and abs(change) > 0.015:
                     logger.info(
                         f"      🪤 At-the-money trap: precio ${_cp:.2f} ≈ target "
                         f"${_tp:.2f} ({_atm_gap:.2%}) con cambio {change:+.2%} "
@@ -668,6 +693,19 @@ class StockTrader:
             logger.info(
                 f"      Edge YES={edge_yes:+.1%}, NO={edge_no:+.1%} → "
                 f"insuficiente (req {min_edge_required:.0%} {label})"
+            )
+            return None
+
+        # Cap absoluto de edge (1-Jun-2026): edges >40% en CUALQUIER precio
+        # son anti-señal del modelo. El cap EXTREME_EDGE_CAP=30% solo aplica
+        # en colas; pero en precios medios 9 trades con edge>=35% → 1W/8L
+        # (-$42.36). El modelo "se emociona" en el extremo de confianza.
+        # Excepción: extreme_side_bet (prob_real ≥80%, payout chico) ya tiene
+        # su propio sizing reducido.
+        if not _extreme_side_bet and edge > ABSOLUTE_EDGE_CAP:
+            logger.info(
+                f"      🚫 Edge {edge:.1%} > {ABSOLUTE_EDGE_CAP:.0%} "
+                f"(anti-señal modelo en cualquier precio): skip"
             )
             return None
 
