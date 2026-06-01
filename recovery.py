@@ -752,14 +752,14 @@ def disable_losing_strategies(strategy_status: dict, dry_run: bool = False) -> b
         old_end = "    log_every_decision: bool = True       # Registrar cada decisión"
         new_end = (
             "    log_every_decision: bool = True       # Registrar cada decisión\n\n"
-            "    # --- RECOVERY MODE: Control de estrategias ---\n"
-            "    enable_weather_trader: bool = False    # DESACTIVADO (win rate 7%)\n"
-            "    enable_flash_crash: bool = False       # DESACTIVADO (muy especulativo)\n"
-            "    enable_football_trader: bool = True    # NUEVO: fútbol con estadísticas\n"
-            "    enable_stock_trader: bool = True       # 100% win rate histórico\n"
-            "    enable_harvest: bool = True            # 100% win rate histórico\n"
-            "    enable_btc_crypto: bool = True         # 40% win rate - monitorear\n"
-            "    enable_ia_bets: bool = True            # 57% win rate - mantener"
+            "    # --- RECOVERY MODE: Solo estrategias ganadoras ---\n"
+            "    enable_weather_trader: bool = False    # DESACTIVADO\n"
+            "    enable_flash_crash: bool = False       # DESACTIVADO\n"
+            "    enable_harvest: bool = False           # DESACTIVADO en recovery\n"
+            "    enable_btc_crypto: bool = False        # DESACTIVADO en recovery\n"
+            "    enable_ia_bets: bool = False           # DESACTIVADO en recovery\n"
+            "    enable_stock_trader: bool = True       # ✅ ACTIVO: 100% win rate\n"
+            "    enable_football_trader: bool = True    # ✅ ACTIVO: nuevo con Elo"
         )
         content = content.replace(old_end, new_end)
         changes.append("+ Flags de control por estrategia en SafetyRules")
@@ -791,23 +791,28 @@ def _add_strategy_guards(dry_run: bool):
     changes = []
 
     guards = [
-        # (marcador único en el código, guard a insertar antes)
         (
             "        btc_trade = await btc_strategy.run_cycle()",
             "        if not getattr(SAFETY, 'enable_btc_crypto', True):\n"
-            "            logger.info(\"   ₿ CRYPTO desactivado en modo recuperación\")\n"
+            "            logger.info(\"   ₿ CRYPTO desactivado (recovery mode)\")\n"
             "        else:\n            "
         ),
         (
             "        weather_trade = await weather_trader.run_cycle()",
             "        if not getattr(SAFETY, 'enable_weather_trader', True):\n"
-            "            logger.info(\"   ⛅ WEATHER desactivado (win rate bajo)\")\n"
+            "            logger.info(\"   ⛅ WEATHER desactivado (recovery mode)\")\n"
             "        else:\n            "
         ),
         (
             "        flash_trade = await flash_crash.run_cycle()",
             "        if not getattr(SAFETY, 'enable_flash_crash', True):\n"
-            "            logger.info(\"   ⚡ FLASH CRASH desactivado en modo recuperación\")\n"
+            "            logger.info(\"   ⚡ FLASH CRASH desactivado (recovery mode)\")\n"
+            "        else:\n            "
+        ),
+        (
+            "        harvest_opps = await harvester.find_harvest_opportunities()",
+            "        if not getattr(SAFETY, 'enable_harvest', True):\n"
+            "            logger.info(\"   🌾 HARVEST desactivado (recovery mode)\")\n"
             "        else:\n            "
         ),
     ]
@@ -922,15 +927,16 @@ def print_recovery_plan():
     print(f"{bold('  🎯 PLAN DE RECUPERACIÓN DE CAPITAL')}")
     print(f"{bold('='*60)}")
     print(f"""
-{bold('ESTRATEGIAS ACTIVAS (ganadoras):')}
-  ✅ HARVEST    — 100% win rate, ganancias pequeñas y seguras
+{bold('ESTRATEGIAS ACTIVAS (RECOVERY MODE — solo 2):')}
   ✅ STOCKS     — 100% win rate, mejor trade del bot (+$5 en 1 trade)
   ✅ FOOTBALL   — NUEVO: fútbol con ratings Elo + detección underdogs
-  ⚠️  IA BETS   — 57% win rate, mantener pero con edge >7%
 
-{bold('ESTRATEGIAS DESACTIVADAS (perdedoras):')}
-  ❌ WEATHER    — 7% win rate en trades resueltos — fuera del sistema
-  ❌ FLASH CRASH — muy especulativo, capital en riesgo innecesario
+{bold('ESTRATEGIAS DESACTIVADAS (recuperando capital):')}
+  ❌ WEATHER    — pocos trades resueltos, demasiado riesgo ahora
+  ❌ FLASH CRASH — muy especulativo
+  ❌ HARVEST    — pausado temporalmente (reactivar cuando capital suba)
+  ❌ CRYPTO     — pausado temporalmente
+  ❌ IA BETS    — pausado temporalmente (reactivar cuando capital suba)
 
 {bold('AJUSTES DE RECUPERACIÓN:')}
   • Edge mínimo:    5% → 7%   (apuestas de mayor valor únicamente)
