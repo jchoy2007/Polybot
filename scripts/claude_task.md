@@ -37,6 +37,9 @@ Lee el **PROTOCOLO DE COLABORACIÓN** completo arriba en `CLAUDE.md`. Resumen:
 - Si abres un PR desde sandbox, escribe acá: **"PR #X listo para merge"**.
 
 ### 📌 Bitácora de coordinación (último arriba)
+- _(2-Jun, Claude-sandbox)_ Verificación completa del estado del repo desde `main`
+  (commit `f5a93b9`). Todo OK: syntax, filtros, flags, bug fixes. Sin cambios de
+  código — solo auditoría. No hay tareas pendientes urgentes. VPS no necesita acción.
 - _(2-Jun, Claude-VPS)_ Recovery mode + fix currentValue/kill-switch + protocolo
   de colaboración. Todo en `main` (commits hasta `fa2bd58`). Bot reiniciado y OK.
 
