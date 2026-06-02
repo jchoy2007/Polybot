@@ -63,6 +63,9 @@ def show_strategy_flags():
         print(f"     'Up or Down' intradía: {(G+'ON') if intraday else (R+'OFF (coin-flip, -$57)')}{X}")
         print(f"   Sizing: Kelly {SAFETY.kelly_fraction} | min_edge {SAFETY.min_edge_required:.0%} | "
               f"max apuesta ${SAFETY.max_bet_absolute:.0f} ({SAFETY.max_bet_pct:.0%} bankroll)")
+    except ModuleNotFoundError as e:
+        print(f"   {Y}Falta '{e.name}' — fuera del venv. Corre: "
+              f"{C}./venv/bin/python scripts/onboard.py{X}")
     except Exception as e:
         print(f"   {R}Error leyendo settings: {e}{X}")
 
@@ -86,8 +89,15 @@ def show_balance(skip=False):
         col = G if bal >= 60 else (Y if bal >= 45 else R)
         print(f"   💰 Balance libre: {col}${bal:.2f}{X}")
         print(f"   Kill-switch dinámico: piso ≈ 70% del valor total desde el último arranque.")
+    except ModuleNotFoundError as e:
+        # Caso típico: se corrió con el python del sistema, sin el venv.
+        print(f"   {Y}Falta el módulo '{e.name}' — estás corriendo fuera del venv.{X}")
+        print(f"   {C}→ Corre con el venv:  ./venv/bin/python scripts/onboard.py{X}")
+        print(f"   {Y}(o usa --no-balance para saltar esta sección){X}")
     except Exception as e:
-        print(f"   {Y}No se pudo leer balance ({str(e)[:50]}). Usa --no-balance o revisa .env/RPC.{X}")
+        # RPC caído, .env sin funder, timeout de red, etc. — no es fatal.
+        print(f"   {Y}No se pudo leer balance: {str(e)[:60]}{X}")
+        print(f"   {Y}→ Revisa .env (POLYMARKET_FUNDER_ADDRESS/RPC) o usa --no-balance{X}")
 
 
 def show_winrate():
@@ -163,6 +173,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-balance", action="store_true", help="No consultar el RPC (más rápido)")
     args = ap.parse_args()
+
+    # Aviso temprano si se corrió fuera del venv (deps clave ausentes).
+    try:
+        import dotenv  # noqa: F401
+    except ModuleNotFoundError:
+        print(f"\n   {Y}⚠️  Parece que NO estás en el venv (falta python-dotenv).{X}")
+        print(f"   {C}   Para el reporte completo:  ./venv/bin/python scripts/onboard.py{X}")
 
     header_for_claude()
     show_strategy_flags()
