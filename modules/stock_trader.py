@@ -104,6 +104,13 @@ HIGH_EDGE_SIZING_THRESHOLD = 0.25
 # sp500/nasdaq se quedan en INDICES como benchmark macro pero NO son tradeables.
 TRADEABLE_TICKERS = {"nvda", "googl", "aapl", "tsla", "meta", "amzn", "msft"}
 
+# Conviction tiers (2-Jun-2026): concentrar el riesgo en tickers con WR probado.
+# Tier A (full stake): NVDA 5/7 71% +$8.97, GOOGL 3/5 60% +$10.69,
+#   AAPL 4/4 100% +$11.31, META 2/3 67% +$4.53.
+# Tier B (marginal/sin data → 0.7x): TSLA 4/8 50% -$1.22, AMZN 1/2 -$3.74, MSFT n=0.
+# NO sube el stake de nadie; solo recorta los flojos. Reasignación, no aumento.
+PROVEN_WINNERS = {"nvda", "googl", "aapl", "meta"}
+
 
 class StockTrader:
     """Estrategia de trading en mercados bursátiles de Polymarket."""
@@ -925,6 +932,16 @@ class StockTrader:
                 STATE.current_bankroll * 0.15,
             )
             bet_amount = max(bet_amount, 4.0)
+
+        # Conviction sizing (2-Jun): full stake en tickers probados, 0.7x en los
+        # marginales/sin data. Concentra el mismo presupuesto de riesgo en lo que
+        # gana. NUNCA sube por encima del base — solo recorta los flojos.
+        if index_key not in PROVEN_WINNERS:
+            bet_amount = bet_amount * 0.7
+            logger.info(
+                f"      🎯 Conviction: {INDICES[index_key]['name']} marginal "
+                f"(WR no probado) → stake 0.7x"
+            )
 
         # Sizing inverso: edges >25% son anti-señal. Reducir stake a la
         # mitad para limitar daño cuando el modelo se equivoca, sin perder

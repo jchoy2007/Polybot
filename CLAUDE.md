@@ -18,7 +18,7 @@
 > sobre todo de **politics** apostando a edge 1.5-3.4% (casi -EV). Modo recuperación:
 > **SOLO lo que funciona + seguro, bajo el capital real (~$56).**
 
-- ✅ **📈 STOCK TRADER** — activa (ventana US 14-20 UTC, lun-vie). Whitelist tech-only (`TRADEABLE_TICKERS`: nvda/googl/aapl/tsla/meta/amzn/msft) + cap edge 40%. **2-Jun: "Up or Down" intradía DESACTIVADO** (`enable_intraday_updown=False`). Solo target-based: "closes above $X", "finish week above $X".
+- ✅ **📈 STOCK TRADER** — activa (ventana US 14-20 UTC, lun-vie). Whitelist tech-only (`TRADEABLE_TICKERS`: nvda/googl/aapl/tsla/meta/amzn/msft) + cap edge 40%. **2-Jun: "Up or Down" intradía DESACTIVADO** (`enable_intraday_updown=False`). Solo target-based: "closes above $X", "finish week above $X". **Conviction sizing:** Tier A (`PROVEN_WINNERS`: nvda/googl/aapl/meta) full stake; Tier B (tsla/amzn/msft) 0.7x. Stake base ya es ~12% bankroll — NO subir más. El volumen/upside ahora viene de FÚTBOL (Mundial).
 - ✅ **⚽ FOOTBALL TRADER** — NUEVA: Mundial 2026 + ligas, ratings Elo de ClubElo. Edge mín 10% favorito / 15% underdog / 12% draw. **Apuesta solo entre 24h y 1h antes del kickoff.** Ejecuta con CLOB v2 (sig_type=2).
 - ❌ **🏛️ POLITICS TRADER** — **DESACTIVADO 2-Jun** (`enable_politics_trader=False`). Drenaba capital a edge mínimo.
 - ⏭️ **🔍 MARKET SCANNER (sports/esports)** — desactivada (Anthropic API billing agotado)
@@ -237,13 +237,20 @@ _Añadir filas cada auditoría._
 | `scripts/whale_monitor.py` | Monitor top whales de Polymarket (cron horario) |
 | `scripts/backtest.py` | Aplica filtros actuales retroactivamente vs resultados reales |
 | `redeem.py` | Cobrar posiciones resueltas (manual o cron) |
+| `scripts/onboard.py` | Reporte de situación para sesiones nuevas (flags, balance, WR, trades, git) |
+| `scripts/daily_review.py` | Resumen diario a Telegram + alertas automáticas (cron 13/21 UTC) |
 
 ## ⏰ Cronjobs instalados
 
 ```
 0 23 * * *  /root/Polybot/scripts/daily_backup.sh >> /root/Polybot/logs/backup.log 2>&1
 0 * * * *   /root/Polybot/venv/bin/python /root/Polybot/scripts/whale_monitor.py >> /root/Polybot/logs/whales.log 2>&1
+0 13 * * *  /root/Polybot/venv/bin/python /root/Polybot/scripts/daily_review.py >> /root/Polybot/logs/review.log 2>&1
+0 21 * * *  /root/Polybot/venv/bin/python /root/Polybot/scripts/daily_review.py >> /root/Polybot/logs/review.log 2>&1
 ```
+> **daily_review.py (2-Jun):** manda a Telegram balance + WR por estrategia +
+> apuestas 24h + alertas automáticas (bot caído, balance <$45, 5 LOSS seguidas,
+> 0 apuestas/24h). Corre 13:00 y 21:00 UTC. Revisión sin abrir el servidor.
 
 ## 📈 Resultados backtest (22-Abr)
 
