@@ -369,14 +369,25 @@ class StockTrader:
                                 if mid in self.traded_markets or cid in self.traded_markets:
                                     continue
 
-                                # Solo mercados que resuelven en 48h
+                                # Ventana de resolución: 48h para diarios,
+                                # 120h para semanales ("finish week/above/below").
+                                # Los semanales (73% WR, +$26.73) resuelven el
+                                # viernes y desde lunes/martes están a >48h —
+                                # antes eran bloqueados todos los lun-mié sin
+                                # razón. 120h = 5 días cubre la semana completa.
                                 end_str = m.get("endDate", "")
                                 if end_str:
                                     try:
                                         end_dt = datetime.fromisoformat(
                                             end_str.replace("Z", "+00:00"))
                                         hours = (end_dt - datetime.now(timezone.utc)).total_seconds() / 3600
-                                        if hours < 0 or hours > 48:
+                                        q_lower_end = q  # ya está en lower
+                                        is_weekly_market = any(kw in q_lower_end for kw in (
+                                            "finish week", "finish above", "finish below",
+                                            "end above", "end below",
+                                        ))
+                                        max_hours = 120 if is_weekly_market else 48
+                                        if hours < 0 or hours > max_hours:
                                             continue
                                     except:
                                         pass
@@ -593,7 +604,9 @@ class StockTrader:
                 if current_price > 0:
                     gap_pct = abs(target_price - current_price) / current_price
                     is_weekly = weekly_kw and not daily_kw
-                    max_gap = 0.03
+                    # Semanales tienen 3-5 días para alcanzar el target → 5%.
+                    # Diarios solo tienen horas → 3%.
+                    max_gap = 0.05 if is_weekly else 0.03
                     if gap_pct > max_gap:
                         kind = "semanal" if is_weekly else "diario"
                         logger.info(
