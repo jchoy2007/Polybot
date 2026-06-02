@@ -341,9 +341,14 @@ Tras 2 LOSS el 11-May (SPY $740 −$3.54, WTI $98 −$7.07) y revisión de logs:
 
 ## 🐛 Bugs pendientes identificados (no arreglados aún)
 
-1. **Telegram muestra valores incorrectos para posiciones perdidas**: MSFT mostró
-   $21.15 cuando Polymarket decía $0.12. Causa probable: API de Polymarket
-   devolviendo valor incorrecto o telegram_monitor sumando mal.
+1. ~~**Telegram muestra valores incorrectos para posiciones perdidas**: MSFT
+   mostró $21.15 cuando Polymarket decía $0.12.~~ **RESUELTO 2-Jun.** Causa: el
+   campo `currentValue` del data-api de Polymarket se inflaba. Fix: usar
+   `size * curPrice` (lo que muestra la UI de Polymarket) en TODOS los sitios —
+   `telegram_monitor.py` (ya estaba), `main.py:214/421/474` y `tracker.py:161`.
+   El más crítico era `main.py:421` (kill-switch `_total_value`): un valor inflado
+   hacía ver más capital del real. También `tracker.py` (detección WON/LOST): un
+   `currentValue` inflado evitaba marcar LOST una posición perdida.
    
 2. **Auditoría completa pendiente**: data/trade_results.json no se ha auditado
    completamente con números reales del VPS. Falta hacerlo antes de escalar.
