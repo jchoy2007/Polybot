@@ -18,7 +18,7 @@
 > sobre todo de **politics** apostando a edge 1.5-3.4% (casi -EV). Modo recuperación:
 > **SOLO lo que funciona + seguro, bajo el capital real (~$56).**
 
-- ✅ **📈 STOCK TRADER (Up/Down)** — activa (ventana US 14-20 UTC, lun-vie), umbrales del 1-Jun (whitelist tech, cap edge 40%, intraday 12%)
+- ✅ **📈 STOCK TRADER** — activa (ventana US 14-20 UTC, lun-vie). Whitelist tech-only (`TRADEABLE_TICKERS`: nvda/googl/aapl/tsla/meta/amzn/msft) + cap edge 40%. **2-Jun: "Up or Down" intradía DESACTIVADO** (`enable_intraday_updown=False`). Solo target-based: "closes above $X", "finish week above $X".
 - ✅ **⚽ FOOTBALL TRADER** — NUEVA: Mundial 2026 + ligas, ratings Elo de ClubElo. Edge mín 10% favorito / 15% underdog / 12% draw. **Apuesta solo entre 24h y 1h antes del kickoff.** Ejecuta con CLOB v2 (sig_type=2).
 - ❌ **🏛️ POLITICS TRADER** — **DESACTIVADO 2-Jun** (`enable_politics_trader=False`). Drenaba capital a edge mínimo.
 - ⏭️ **🔍 MARKET SCANNER (sports/esports)** — desactivada (Anthropic API billing agotado)
@@ -346,6 +346,31 @@ Tras 2 LOSS el 11-May (SPY $740 −$3.54, WTI $98 −$7.07) y revisión de logs:
    real. Idea del usuario.
 
 ---
+
+## 📊 Análisis STOCKS (2-Jun-2026, n=57 resueltos)
+
+Auditoría completa que motivó el recovery mode. STOCKS histórico: 25/57 (44% WR),
+**−$58.41**, ROI −19.9%. Desglose que revela que "stocks" eran 3 estrategias mezcladas:
+
+| Por categoría | WR | P&L |
+|---|---|---|
+| TECH-STOCK (nvda/googl/aapl/tsla/meta/amzn/msft) | 68% | **+$28.88** ✅ |
+| ÍNDICE/ETF (S&P/Dow/SPY/Russell) | 33% | −$35.52 ❌ |
+| COMMODITY (WTI/Gold) | 29% | −$51.77 ❌ |
+
+| Por tipo de mercado (solo tech) | WR | P&L |
+|---|---|---|
+| FINISH-WEEK above/below $X | 73% | +$26.73 ✅ |
+| CLOSES above/below $X | 73% | +$11.07 ✅ |
+| UP-OR-DOWN intradía | 43% | −$7.26 ❌ |
+
+**Hallazgo decisivo:** "Up or Down" intradía (todos los activos, n=27) = 30% WR,
+**−$57.12** (=98% de toda la pérdida de stocks). Y el edge está **INVERTIDO**:
+las perdidas tenían edge medio 0.21 vs las ganadas 0.11 — el modelo NO tiene señal
+direccional sin un precio objetivo, su "edge" intradía es ruido sobre-confiado.
+→ **Conclusión:** no es mala suerte ni filtro flojo; es una categoría estructuralmente
+no-predecible. Acción: whitelist tech-only (1-Jun) + intraday Up/Down OFF (2-Jun).
+Sin esas dos categorías, el resto del libro está en break-even/positivo.
 
 ## ⚠️ Patrones a EVITAR (learnings caros)
 

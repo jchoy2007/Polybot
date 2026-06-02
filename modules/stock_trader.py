@@ -495,6 +495,18 @@ class StockTrader:
 
         logger.info(f"   📈 {question[:55]}")
 
+        # 2-Jun-2026: "Up or Down" intradía DESACTIVADO. Análisis de n=27:
+        # 30% WR, -$57.12 (=98% de la pérdida total de stocks), y el edge está
+        # INVERTIDO (perdidas edge medio 0.21 > ganadas 0.11) → el modelo no
+        # tiene señal direccional sin un precio objetivo, solo ruido sobre-
+        # confiado. Los target-based (closes above $X / finish week) van 73% WR.
+        if is_daily_intraday and not getattr(SAFETY, 'enable_intraday_updown', False):
+            logger.info(
+                f"      ⛔ 'Up or Down' intradía DESACTIVADO (2-Jun): 30% WR, "
+                f"-$57 histórico, edge anti-señal. Solo target-based markets."
+            )
+            return None
+
         # Filtro VIX: volatilidad del mercado. VIX alto = mercado en pánico,
         # los stocks tienden a comportamiento errático y los filtros de
         # tendencia no calibran. 22-Abr: agregado tras 4/4 LOSS del 21-Abr.

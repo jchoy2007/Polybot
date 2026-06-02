@@ -82,6 +82,12 @@ class SafetyRules:
     enable_football_trader: bool = True    # ✅ ACTIVO (Mundial 2026, Elo)
     enable_politics_trader: bool = False   # ❌ DESACTIVADO (edges mínimos)
 
+    # Mercados "Up or Down on [hoy]" intradía: 30% WR, -$57.12 (n=27), y el
+    # edge está INVERTIDO (lost edge 0.21 > won edge 0.11) → el cálculo es
+    # anti-señal, subir umbral lo empeora. Solo target-based (closes above $X,
+    # finish week) son sanos (73% WR). 2-Jun: apagado. True para reactivar.
+    enable_intraday_updown: bool = False   # ❌ DESACTIVADO (coin-flip estructural)
+
     # --- Meta del usuario (configurable) ---
     goal_amount: float = 1000000.0   # $1M default
     goal_date: str = "2027-04-30"    # Fecha límite (YYYY-MM-DD)
