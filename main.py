@@ -35,6 +35,7 @@ from modules.auto_redeem import AutoRedeemer
 from modules.stock_trader import StockTrader
 from modules.politics_trader import PoliticsTrader
 from modules.telegram_monitor import TelegramMonitor
+from modules.football_trader import FootballTrader
 
 # ============================================================
 # HELPER: Tiempo hasta resolución
@@ -342,7 +343,8 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     stock_trader: StockTrader,
                     telegram: TelegramMonitor = None,
                     scan_only: bool = False,
-                    politics: PoliticsTrader = None):
+                    politics: PoliticsTrader = None,
+                    football_trader: FootballTrader = None):
     """Ejecuta un ciclo completo con TODAS las estrategias."""
 
     cycle_start = datetime.now()
@@ -960,7 +962,11 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                 await telegram.send_error_alert(f"Error Stock Trader: {str(e)[:100]}")
 
     # ===== POLITICS TRADER (extreme price strategy, sin IA) =====
-    if politics:
+    if politics and not getattr(SAFETY, 'enable_politics_trader', True):
+        logger.info("\n" + "=" * 50)
+        logger.info("🏛️ POLITICS TRADER: ❌ DESACTIVADO (recovery mode 2-Jun)")
+        logger.info("=" * 50)
+    elif politics:
         logger.info("\n" + "=" * 50)
         logger.info("🏛️ POLITICS TRADER")
         logger.info("=" * 50)
@@ -1246,6 +1252,69 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             except Exception as e:
                 logger.error(f"   Error auto-cobro: {e}")
 
+    # ===== ⚽ FOOTBALL TRADER (Mundial 2026 + ligas, ratings Elo) =====
+    if football_trader and not getattr(SAFETY, 'enable_football_trader', True):
+        logger.info("\n" + "=" * 50)
+        logger.info("⚽ FOOTBALL TRADER: ❌ DESACTIVADO")
+        logger.info("=" * 50)
+    elif football_trader:
+        logger.info("\n" + "=" * 50)
+        logger.info("⚽ FOOTBALL TRADER (Elo + estadísticas)")
+        logger.info("=" * 50)
+        if STATE.cycle_bets >= SAFETY.max_bets_per_cycle:
+            logger.info(f"   ⏭️ Max apuestas/ciclo alcanzado ({SAFETY.max_bets_per_cycle})")
+        elif STATE.daily_spend >= SAFETY.max_daily_spend:
+            logger.info(f"   ⏭️ Max gasto diario alcanzado (${SAFETY.max_daily_spend:.0f})")
+        else:
+            try:
+                football_trade = await football_trader.run_cycle()
+                if football_trade:
+                    status = football_trade.get("status", "UNKNOWN")
+                    if status == "EXECUTED":
+                        logger.info(f"   ✅ Football trade: ${football_trade['amount']:.2f} "
+                                   f"{football_trade.get('side', '')} | Edge: {football_trade.get('edge', 0):.1%}")
+                        tracker.add_trade(
+                            market_id=football_trade.get("market_id", ""),
+                            question=football_trade.get("question", ""),
+                            side=football_trade.get("side", ""),
+                            amount=football_trade["amount"],
+                            price=football_trade.get("price", 0.50),
+                            strategy="FOOTBALL",
+                            edge=football_trade.get("edge"),
+                            prob=football_trade.get("probability"),
+                        )
+                        # football_trader usa su propio py-clob-client-v2 (no pasa por
+                        # executor.execute_bet), así que contabilizamos manualmente:
+                        STATE.cycle_bets += 1
+                        STATE.daily_spend += football_trade["amount"]
+                        executor.executed_orders.append({
+                            "mode": "LIVE",
+                            "side": football_trade.get("side", ""),
+                            "amount_usd": football_trade["amount"],
+                            "question": football_trade.get("question", "")[:60],
+                            "price": football_trade.get("price", 0.50),
+                            "edge": football_trade.get("edge", 0),
+                            "status": "EXECUTED",
+                        })
+                        if telegram:
+                            await telegram.send_trade_alert(
+                                "FOOTBALL", football_trade.get("question", ""),
+                                football_trade.get("side", ""), football_trade["amount"],
+                                football_trade.get("price", 0.50), football_trade.get("edge", 0), "fin del partido")
+                            telegram.log_trade("FOOTBALL", football_trade.get("question", ""),
+                                               football_trade.get("side", ""), football_trade["amount"])
+                    elif status == "SIMULATED":
+                        logger.info(f"   🏃 Football simulado: ${football_trade['amount']:.2f} {football_trade.get('side', '')}")
+                    elif status == "FAILED":
+                        logger.info(f"   ❌ Football trade falló")
+                        if telegram:
+                            await telegram.send_error_alert(
+                                f"Football trade falló\nMercado: {football_trade.get('question', '?')[:40]}")
+            except Exception as e:
+                logger.error(f"   Error en Football Trader: {e}")
+                if telegram:
+                    await telegram.send_error_alert(f"Error Football Trader: {str(e)[:100]}")
+
     # ===== RESUMEN COMPLETO =====
     logger.info("\n" + "=" * 60)
     logger.info("📋 RESUMEN DEL CICLO")
@@ -1441,6 +1510,7 @@ async def main():
     tracker = WinRateTracker()
     stock_trader = StockTrader()
     politics = PoliticsTrader()
+    football_trader = FootballTrader()
     telegram = TelegramMonitor()
 
     # Enviar notificación de inicio
@@ -1454,7 +1524,8 @@ async def main():
             await run_cycle(scanner, analyzer, risk, executor,
                           redeemer, tracker, stock_trader,
                           telegram, args.scan_only,
-                          politics=politics)
+                          politics=politics,
+                          football_trader=football_trader)
         else:
             # Loop continuo
             last_ia_scan = 0
@@ -1496,7 +1567,8 @@ async def main():
                     logger.info("=" * 50)
                     await run_cycle(scanner, analyzer, risk, executor,
                                   redeemer, tracker, stock_trader,
-                                  telegram, politics=politics)
+                                  telegram, politics=politics,
+                                  football_trader=football_trader)
                     last_ia_scan = now
                     logger.info(f"\n⏰ Próximo ciclo en {SAFETY.scan_interval_minutes} min")
 
@@ -1519,6 +1591,7 @@ async def main():
         await redeemer.close()
         await stock_trader.close()
         await politics.close()
+        await football_trader.close()
         await telegram.close()
 
         # Guardar log final

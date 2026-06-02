@@ -47,7 +47,7 @@ class SafetyRules:
     min_bet_size: float = 1.50        # Mínimo por apuesta en USD (permite operar con capital bajo)
     max_bet_pct: float = 0.08         # Máximo 8% del bankroll por apuesta
     max_bet_absolute: float = 6.0     # Máximo por apuesta (auto-escala con capital)
-    kelly_fraction: float = 0.25      # Quarter Kelly (los pros NUNCA usan más)
+    kelly_fraction: float = 0.20      # RECOVERY (2-Jun): 1/5 Kelly — sizing conservador bajo capital ~$56
     min_edge_required: float = 0.03   # Edge mínimo 3% (bajado de 5% — deportes tienen edges chicos pero consistentes)
     min_win_probability: float = 0.55  # Solo apostar favoritos (>55% prob, subido de 40%)
 
@@ -74,6 +74,13 @@ class SafetyRules:
     scan_interval_minutes: int = 15       # Escanear cada 15 min (trading corto plazo)
     dry_run: bool = True                  # MODO SIMULACIÓN por defecto
     log_every_decision: bool = True       # Registrar cada decisión
+
+    # --- RECOVERY MODE (2-Jun-2026): SOLO STOCKS + FOOTBALL ---
+    # Politics drenaba capital apostando a edge 1.5-3.4% (casi -EV).
+    # Cambiar a True para reactivar una estrategia.
+    enable_stock_trader: bool = True       # ✅ ACTIVO (lo que funciona)
+    enable_football_trader: bool = True    # ✅ ACTIVO (Mundial 2026, Elo)
+    enable_politics_trader: bool = False   # ❌ DESACTIVADO (edges mínimos)
 
     # --- Meta del usuario (configurable) ---
     goal_amount: float = 1000000.0   # $1M default

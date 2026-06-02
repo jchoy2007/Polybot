@@ -13,11 +13,28 @@
 - **WR reseteado**: **0/0** desde el fresh-start del 27-Abr 22:30 UTC
 - **Tracker histórico**: `data/trade_results_backup_27apr.json` — fuera del repo (gitignored)
 
-### Estrategias activas (post 28-Abr, migración v2)
-- ✅ **📈 STOCK TRADER (Up/Down)** — única estrategia ejecutora (ventana US 14-20 UTC, lun-vie)
-- 👀 **🏛️ POLITICS MONITOR** — loguea, no apuesta (recolectando data)
+### Estrategias activas (RECOVERY MODE — 2-Jun-2026)
+> **Decisión del usuario (2-Jun):** apostar negativo las últimas semanas venía
+> sobre todo de **politics** apostando a edge 1.5-3.4% (casi -EV). Modo recuperación:
+> **SOLO lo que funciona + seguro, bajo el capital real (~$56).**
+
+- ✅ **📈 STOCK TRADER (Up/Down)** — activa (ventana US 14-20 UTC, lun-vie), umbrales del 1-Jun (whitelist tech, cap edge 40%, intraday 12%)
+- ✅ **⚽ FOOTBALL TRADER** — NUEVA: Mundial 2026 + ligas, ratings Elo de ClubElo. Edge mín 10% favorito / 15% underdog / 12% draw. **Apuesta solo entre 24h y 1h antes del kickoff.** Ejecuta con CLOB v2 (sig_type=2).
+- ❌ **🏛️ POLITICS TRADER** — **DESACTIVADO 2-Jun** (`enable_politics_trader=False`). Drenaba capital a edge mínimo.
 - ⏭️ **🔍 MARKET SCANNER (sports/esports)** — desactivada (Anthropic API billing agotado)
 - 🗑️ **CRYPTO eliminada definitivamente** (`modules/crypto_daily.py` borrado el 28-Abr — 5/14 WR 36%, -$29)
+
+**Control por flags** (`config/settings.py` → `SafetyRules`): `enable_stock_trader`,
+`enable_football_trader`, `enable_politics_trader`. Cambiar a `True/False` y reiniciar
+para activar/desactivar sin tocar `main.py`.
+
+> ⚠️ **`recovery.py` NO se usó.** Fue escrito para otra versión del bot (FlashCrash/
+> Weather/Harvester/BTC que no existen aquí). Correrlo habría crasheado el bot vivo
+> (insertaba bloque de fútbol llamando a `football_trader` sin inicializarlo). La
+> integración del fútbol se hizo **a mano** en `main.py` (import, init, firma de
+> `run_cycle`, bloque de ciclo con tracking, close). El módulo `football_trader.py`
+> se trajo de `origin/claude/keen-einstein-RYHvZ` y se le **reescribió `_execute_order`
+> a CLOB v2** (venía con API v1 / sig_type=0 → habría dado `order_version_mismatch`).
 
 > **Nombres comerciales (29-Abr)**: el bot pasó a tener 3 módulos con nombres
 > sin numerar — `📈 STOCK TRADER`, `🏛️ POLITICS MONITOR`, `🔍 MARKET SCANNER`.
@@ -154,7 +171,7 @@ initial_bankroll = 200.0
 min_bet_size = 1.50
 max_bet_pct = 0.08           # 8% del bankroll por apuesta
 max_bet_absolute = 6.0
-kelly_fraction = 0.25        # Quarter Kelly
+kelly_fraction = 0.20        # RECOVERY 2-Jun (era 0.25) — sizing conservador bajo capital ~$56
 min_edge_required = 0.03     # 3% edge mínimo (deportes)
 min_win_probability = 0.55   # Solo favoritos
 max_bets_per_cycle = 5
@@ -462,7 +479,7 @@ cd /root/Polybot && git pull origin main && systemctl restart polybot
 
 ### Criterios de parada (kill switches)
 - Balance < $80 → pausar bot, auditar
-- Balance < $60 → parar bot, decidir si seguir (kill switch automático en `settings.py`: `max_total_loss_pct = 0.70`, 22-Abr)
+- **Kill switch real (verificado 2-Jun):** NO es un piso fijo de $60. En el arranque (`main.py:1415`) el ATH se **resetea al balance real actual**, así que el piso es dinámico = 70% del valor total (libre + posiciones) desde el último arranque/pico. Con balance $56.64 (2-Jun) el piso quedó en ~$40, por eso el bot sigue operando — funciona como diseñado, el "$60" de notas viejas está desactualizado.
 - WR acumulado < 35% en 20+ trades → revisar estrategia
 - >5 pérdidas consecutivas → pausa automática 30 min (ya implementado)
 
@@ -509,4 +526,4 @@ cd /root/Polybot && git pull origin main && systemctl restart polybot
 
 ---
 
-**Última actualización**: 13 mayo 2026 (fix SPY/ETF + closes regex + ATM trap)
+**Última actualización**: 2 junio 2026 (RECOVERY: solo STOCKS + FOOTBALL; politics OFF; Football Trader integrado a mano con CLOB v2; ventana Mundial 24h-1h pre-kickoff; Kelly 0.20; balance $56.64)
