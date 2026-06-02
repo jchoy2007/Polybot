@@ -5,6 +5,44 @@
 
 ---
 
+## 🤝 PROTOCOLO DE COLABORACIÓN — 2 Claudes (LEER PRIMERO)
+
+Hay dos sesiones de Claude trabajando este repo. Para NO pisarse:
+
+**Roles:**
+- **Claude-VPS** (corre en `/root/Polybot`, en el servidor): edita `main`,
+  hace el deploy real (`git pull` + `systemctl restart polybot`). Es el ÚNICO
+  que aplica cambios al bot en vivo. Solo él reinicia el bot.
+- **Claude-PC** (tu computadora / claude.ai/code): analiza, planea, propone.
+  Sus cambios NO llegan al bot hasta que Claude-VPS hace `git pull`.
+
+**Reglas de oro (ambos):**
+1. **Antes de tocar nada:** `git pull --rebase origin main`. Empezar siempre
+   desde el estado real, NUNCA sobre una copia vieja.
+2. **Antes de cada push:** `git pull --rebase origin main` otra vez → `git push`.
+3. **Commits chicos y frecuentes.** No acumular cambios grandes sin pushear.
+4. **NO editar el mismo archivo a la vez.** Coordinar vía `scripts/claude_task.md`
+   (quién hace qué). Si vas a tocar un archivo, anótalo ahí primero.
+5. **Verificar antes de proponer:** correr `./venv/bin/python scripts/onboard.py`
+   para ver el estado REAL del VPS (no asumir desde una copia local).
+
+**Flujo recomendado (el más seguro — un solo escritor en `main`):**
+- Claude-PC: hace análisis/diseño y deja las tareas en `scripts/claude_task.md`
+  (commit a `main` o a branch + PR). NO toca el bot.
+- Claude-VPS: lee `claude_task.md`, ejecuta en `main`, commitea, reinicia el bot.
+- Así nunca hay dos escritores simultáneos sobre el código vivo = sin conflictos.
+
+**Si Claude-PC está en modo sandbox** (claude.ai/code crea branch `claude/...`
+automáticamente y no deja commitear a `main`): trabaja en su branch, abre PR, y
+**deja escrito en `claude_task.md`: "PR #X listo para merge"**. Claude-VPS lo
+revisa, mergea a `main` y hace deploy. NO dejes trabajo abandonado en branches
+sueltas sin avisar.
+
+> Regla simple: **el bot solo refleja `main`, y solo Claude-VPS hace deploy.**
+> Todo lo demás se coordina por `claude_task.md`.
+
+---
+
 ## 📊 Estado actual del proyecto
 
 ### Bankroll (28-Abr, post migración v2)

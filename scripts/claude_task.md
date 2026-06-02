@@ -28,6 +28,20 @@ Las tareas YA se ejecutaron/revisaron en el VPS. Resumen:
 
 ---
 
+## 🤝 Coordinación entre los 2 Claudes (este es el canal)
+
+Lee el **PROTOCOLO DE COLABORACIÓN** completo arriba en `CLAUDE.md`. Resumen:
+- **Antes de tocar nada:** `git pull --rebase origin main`. Empieza del estado real.
+- **Solo Claude-VPS** edita `main` directo y reinicia el bot. Claude-PC propone/PR.
+- **Anota acá** lo que vas a hacer ANTES de hacerlo, para no pisar al otro.
+- Si abres un PR desde sandbox, escribe acá: **"PR #X listo para merge"**.
+
+### 📌 Bitácora de coordinación (último arriba)
+- _(2-Jun, Claude-VPS)_ Recovery mode + fix currentValue/kill-switch + protocolo
+  de colaboración. Todo en `main` (commits hasta `fa2bd58`). Bot reiniciado y OK.
+
+---
+
 ## Estado actual del repo (al 2-Jun-2026)
 
 - **Branch activa**: `main`
