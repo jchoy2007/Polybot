@@ -4,7 +4,67 @@
 
 ---
 
-## ✅ ESTADO DE EJECUCIÓN (2-Jun-2026) — leer ANTES de ejecutar nada
+## 🤝 PROTOCOLO DE ROLES (leer primero)
+
+**Claude-PC (sandbox / claude.ai/code):**
+- Analiza problemas, escribe el código/diff
+- Deja el script listo en la sección "Pendiente para VPS" abajo
+- **NO pushea a `main` directamente** (puede escribir en su branch si necesita)
+- NO reinicia el bot
+
+**Claude-VPS (servidor /root/Polybot):**
+- Lee este archivo al inicio de cada sesión
+- Ejecuta los scripts de la sección "Pendiente para VPS"
+- Hace `git pull origin main` antes de tocar nada
+- Es el ÚNICO que hace `systemctl restart polybot`
+- Confirma en la bitácora cuando terminó
+
+**Usuario:** copia el script de Claude-PC y se lo pasa a Claude-VPS.
+
+---
+
+## 📌 Bitácora de coordinación (último arriba)
+- _(2-Jun, Claude-PC)_ Fix stocks: ventana 48h→120h para finish-week + gap
+  3%→5% para semanales. Commit `ba9120c` ya en `main`. VPS debe aplicar
+  con el script de abajo.
+- _(2-Jun, Claude-PC)_ Auditoría completa del repo — todo OK, sin tareas urgentes.
+- _(2-Jun, Claude-VPS)_ Recovery mode + fix currentValue/kill-switch. Bot OK.
+
+---
+
+## 🚀 Pendiente para VPS — ejecutar en orden
+
+### [2-Jun] Fix: stocks ahora detecta mercados semanales (finish week)
+```bash
+cd /root/Polybot
+git pull origin main
+python3 -m py_compile modules/stock_trader.py && echo "Syntax OK"
+systemctl restart polybot
+sleep 3
+systemctl status polybot --no-pager | head -5
+```
+**Qué hace:** habilita mercados "finish week above/below $X" (73% WR)
+de lunes a viernes. Antes solo los veía jue/vie. Gap para semanales: 5% (era 3%).
+
+---
+
+## ✅ EJECUTADO ANTERIORMENTE (referencia histórica)
+
+1. **Bug Telegram** — ✅ ARREGLADO (`size * curPrice` en todos los sitios)
+2. **Football Trader** — ✅ VERIFICADO (sig_type=2, Side.BUY de v2)
+3. **Tracker PENDING 29-Abr** — ⚠️ NO APLICA (dejar como está)
+4. **onboard.py venv** — ✅ HECHO
+5. **Filtros stocks** — ✅ CONFIRMADOS (whitelist tech-only, intraday OFF)
+
+---
+
+## Estado actual del repo (2-Jun-2026)
+
+- **Branch activa**: `main` (último commit: `ba9120c`)
+- **Recovery mode**: solo STOCKS (tech, target-based) + FOOTBALL (Mundial 2026)
+- **Politics**: OFF | **Intraday Up/Down**: OFF
+- **Kelly**: 0.20 | **max_bet_absolute**: $6 | **Balance aprox**: ~$56 pUSD
+
 
 Este archivo se creó en la branch `claude/stoic-noether-m5t7H` y se trajo a `main`.
 Las tareas YA se ejecutaron/revisaron en el VPS. Resumen:
