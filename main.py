@@ -211,9 +211,9 @@ async def sync_positions():
         side = pos.get("outcome") or pos.get("side") or "?"
         size = float(pos.get("size") or pos.get("shares") or 0)
         cur_price = float(pos.get("curPrice") or pos.get("price") or 0)
-        value = float(pos.get("currentValue") or 0)
-        if value == 0 and size > 0 and cur_price > 0:
-            value = size * cur_price
+        # 2-Jun: size*curPrice es canónico (el currentValue del API mostró $21
+        # cuando el valor real era $0.12). Mismo criterio que telegram_monitor.
+        value = size * cur_price
         pnl = float(pos.get("cashPnl") or 0)
         pnl_pct = float(pos.get("percentPnl") or 0) * 100
 
@@ -418,7 +418,11 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                                 if _r_ks.status == 200:
                                     _pos_ks = await _r_ks.json()
                                     if _pos_ks and isinstance(_pos_ks, list):
-                                        _pos_val = sum(float(p.get("currentValue") or 0) for p in _pos_ks if float(p.get("currentValue") or 0) > 0.01)
+                                        # 2-Jun: size*curPrice canónico para el kill-switch
+                                        # (currentValue del API se infló a $21 vs $0.12 real).
+                                        def _pv(p):
+                                            return float(p.get("size") or 0) * float(p.get("curPrice") or 0)
+                                        _pos_val = sum(_pv(p) for p in _pos_ks if _pv(p) > 0.01)
                                         _total_value = STATE.current_bankroll + _pos_val
                                         break
                     except:
@@ -471,7 +475,10 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                                 if _r.status == 200:
                                     _pos = await _r.json()
                                     if _pos and isinstance(_pos, list):
-                                        _active = sum(1 for p in _pos if float(p.get("currentValue") or 0) > 0.01)
+                                        # 2-Jun: contar por size*curPrice (currentValue no fiable)
+                                        def _pv2(p):
+                                            return float(p.get("size") or 0) * float(p.get("curPrice") or 0)
+                                        _active = sum(1 for p in _pos if _pv2(p) > 0.01)
                                         STATE.open_positions = _active
                                         break
                     except:

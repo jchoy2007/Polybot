@@ -158,9 +158,11 @@ class WinRateTracker:
                     if not (yes_no_match or specific_match):
                         continue  # Es el lado contrario, ignorar
 
-                cur_value = float(pos.get("currentValue") or 0)
                 size = float(pos.get("size") or 0)
                 cur_price = float(pos.get("curPrice") or 0)
+                # 2-Jun: size*curPrice canónico (currentValue del API no fiable:
+                # $21 vs $0.12 real). Mismo criterio que telegram_monitor.
+                cur_value = size * cur_price
 
                 if size <= 0:
                     continue
