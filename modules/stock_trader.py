@@ -72,7 +72,9 @@ INDICES = {
                 "name": "Oil"},
 }
 
-MIN_EDGE = 0.06  # 6% base (semanales y "close above/below $X")
+MIN_EDGE = 0.04  # 4% base — bajado de 6% (4-Jun): con WR 73% en target-based,
+                 # el modelo tiene señal real. 6% era demasiado estricto y bloqueaba
+                 # todo porque los mercados eficientes tienen spread de solo 3-5%.
 # Daily intraday "Up or Down on" requiere edge mayor por mala calibración
 # (4-May: 4/4 LOST, 5-May: 0/6 LOST). Subido a 10% el 7-May-2026.
 # Bajado a 8% el 15-May-2026: con Sonnet IA + ATM trap + anti-señal cola
@@ -794,26 +796,27 @@ class StockTrader:
             )
             return None
 
-        # Filtro news sentiment (post side selection). Override: si S&P real
-        # contradice el news score, confiar en S&P (precio > keywords).
-        # 30-Abr: news capturaba "sink" en "Jobless claims sink" como BEARISH.
-        if news["score"] <= -3 and effective_direction == "UP":
+        # Filtro news sentiment: solo bloquear si score MUY extremo (<=-5 o >=5)
+        # y S&P no contradice. Score -3/-4 = ruido normal de noticias, no señal.
+        # 4-Jun: bajado de -3 a -5 porque score -3 bloqueaba TODOS los UP y el
+        # contador de Telegram no lo mostraba → 0 apuestas invisibles.
+        if news["score"] <= -5 and effective_direction == "UP":
             if market_change > 0.002:
                 logger.info(
-                    f"      📰 News bearish (score {news['score']:+d}) PERO "
+                    f"      📰 News muy bearish (score {news['score']:+d}) PERO "
                     f"S&P real {market_change:+.2%} UP → confiar en mercado"
                 )
             else:
-                logger.info(f"      📰 Noticias bearish ({news['score']:+d}), skip UP")
+                logger.info(f"      📰 Noticias muy bearish ({news['score']:+d}), skip UP")
                 return None
-        if news["score"] >= 3 and effective_direction == "DOWN":
+        if news["score"] >= 5 and effective_direction == "DOWN":
             if market_change < -0.002:
                 logger.info(
-                    f"      📰 News bullish (score {news['score']:+d}) PERO "
+                    f"      📰 News muy bullish (score {news['score']:+d}) PERO "
                     f"S&P real {market_change:+.2%} DOWN → confiar en mercado"
                 )
             else:
-                logger.info(f"      📰 Noticias bullish ({news['score']:+d}), skip DOWN")
+                logger.info(f"      📰 Noticias muy bullish ({news['score']:+d}), skip DOWN")
                 return None
 
         # Anti-continuación retirado el 15-May-2026.

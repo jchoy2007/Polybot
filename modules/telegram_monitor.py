@@ -379,6 +379,15 @@ class TelegramMonitor:
                 f"Max día: {skip_counts['max_dia']} | "
                 f"Weekend: {skip_counts['weekend']}"
             )
+            lines.append(
+                f"  Gap: {skip_counts.get('gap', 0)} | "
+                f"ATM: {skip_counts.get('atm_trap', 0)} | "
+                f"Edge bajo: {skip_counts.get('edge', 0)}"
+            )
+            lines.append(
+                f"  0 mercados: {skip_counts.get('0_mercados', 0)} | "
+                f"Whitelist: {skip_counts.get('whitelist', 0)}"
+            )
             total = sum(skip_counts.values())
             lines.append(f"  Total protecciones: {total}")
 
@@ -422,6 +431,12 @@ class TelegramMonitor:
                 "max_dia":   content.count("Max 4 stock bets/día"),
                 "news":      content.count("Noticias bearish") + content.count("Noticias bullish"),
                 "weekend":   content.count("Fin de semana"),
+                # Filtros antes invisibles (4-Jun):
+                "gap":       content.count(": skip") and content.count("Gap "),
+                "atm_trap":  content.count("At-the-money trap"),
+                "edge":      content.count("Edge insuficiente") + content.count("insuficiente (req"),
+                "0_mercados": content.count("No se encontraron mercados de bolsa"),
+                "whitelist": content.count("fuera de whitelist"),
             }
             return counts
         except Exception as e:
