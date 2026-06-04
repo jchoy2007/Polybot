@@ -10,122 +10,82 @@
 Hay dos sesiones de Claude trabajando este repo. Para NO pisarse:
 
 **Roles:**
-- **Claude-VPS** (corre en `/root/Polybot`, en el servidor): edita `main`,
-  hace el deploy real (`git pull` + `systemctl restart polybot`). Es el ÚNICO
-  que aplica cambios al bot en vivo. Solo él reinicia el bot.
-- **Claude-PC** (tu computadora / claude.ai/code): analiza, planea, propone.
-  Sus cambios NO llegan al bot hasta que Claude-VPS hace `git pull`.
+- **Claude-VPS** (corre en `/root/Polybot`, en el servidor): hace el deploy real
+  (`git pull` + `systemctl restart polybot`). Es el ÚNICO que reinicia el bot.
+- **Claude-PC** (claude.ai/code / sandbox): analiza, escribe código, deja el
+  script listo en `scripts/claude_task.md`. NO reinicia el bot.
 
-**Reglas de oro (ambos):**
-1. **Antes de tocar nada:** `git pull --rebase origin main`. Empezar siempre
-   desde el estado real, NUNCA sobre una copia vieja.
+**Reglas de oro:**
+1. **Antes de tocar nada:** `git pull --rebase origin main`.
 2. **Antes de cada push:** `git pull --rebase origin main` otra vez → `git push`.
-3. **Commits chicos y frecuentes.** No acumular cambios grandes sin pushear.
-4. **NO editar el mismo archivo a la vez.** Coordinar vía `scripts/claude_task.md`
-   (quién hace qué). Si vas a tocar un archivo, anótalo ahí primero.
-5. **Verificar antes de proponer:** correr `./venv/bin/python scripts/onboard.py`
-   para ver el estado REAL del VPS (no asumir desde una copia local).
+3. **Commits chicos y frecuentes.** No acumular sin pushear.
+4. **Claude-PC** escribe el diff/script en `claude_task.md` y se lo pasa al usuario.
+5. **Claude-VPS** lee `claude_task.md`, ejecuta, confirma en la bitácora.
 
-**Flujo recomendado (el más seguro — un solo escritor en `main`):**
-- Claude-PC: hace análisis/diseño y deja las tareas en `scripts/claude_task.md`
-  (commit a `main` o a branch + PR). NO toca el bot.
-- Claude-VPS: lee `claude_task.md`, ejecuta en `main`, commitea, reinicia el bot.
-- Así nunca hay dos escritores simultáneos sobre el código vivo = sin conflictos.
-
-**Si Claude-PC está en modo sandbox** (claude.ai/code crea branch `claude/...`
-automáticamente y no deja commitear a `main`): trabaja en su branch, abre PR, y
-**deja escrito en `claude_task.md`: "PR #X listo para merge"**. Claude-VPS lo
-revisa, mergea a `main` y hace deploy. NO dejes trabajo abandonado en branches
-sueltas sin avisar.
-
-> Regla simple: **el bot solo refleja `main`, y solo Claude-VPS hace deploy.**
-> Todo lo demás se coordina por `claude_task.md`.
+> Regla simple: **solo Claude-VPS hace `systemctl restart polybot`.**
+> Claude-PC propone; Claude-VPS aplica.
 
 ---
 
 ## 📊 Estado actual del proyecto
 
-### Bankroll (28-Abr, post migración v2)
-- **Depósito en Polymarket v2**: ~$102.72 pUSD (funder proxy)
-- **Cash disponible**: ~$101.72 pUSD (1 posición abierta de test manual desde la UI)
-- **WR reseteado**: **0/0** desde el fresh-start del 27-Abr 22:30 UTC
-- **Tracker histórico**: `data/trade_results_backup_27apr.json` — fuera del repo (gitignored)
+### Bankroll (4-Jun-2026)
+- **Balance libre**: ~$56.64 pUSD (funder proxy)
+- **WR desde 27-Abr**: 62/96 (65%) | Neto: −$54.14 (pérdidas venían de intraday + índices, ya desactivados)
+- **Tracker histórico**: `data/trade_results_backup_27apr.json` — gitignored
 
-### Estrategias activas (RECOVERY MODE — 2-Jun-2026)
-> **Decisión del usuario (2-Jun):** apostar negativo las últimas semanas venía
-> sobre todo de **politics** apostando a edge 1.5-3.4% (casi -EV). Modo recuperación:
-> **SOLO lo que funciona + seguro, bajo el capital real (~$56).**
+### Estrategias activas (RECOVERY MODE — desde 2-Jun-2026)
+> Solo lo que tiene WR positivo comprobado con capital bajo (~$56).
 
-- ✅ **📈 STOCK TRADER** — activa (ventana US 14-20 UTC, lun-vie). Whitelist tech-only (`TRADEABLE_TICKERS`: nvda/googl/aapl/tsla/meta/amzn/msft) + cap edge 40%. **2-Jun: "Up or Down" intradía DESACTIVADO** (`enable_intraday_updown=False`). Solo target-based: "closes above $X", "finish week above $X". **Conviction sizing:** Tier A (`PROVEN_WINNERS`: nvda/googl/aapl/meta) full stake; Tier B (tsla/amzn/msft) 0.7x. Stake base ya es ~12% bankroll — NO subir más. El volumen/upside ahora viene de FÚTBOL (Mundial).
-- ✅ **⚽ FOOTBALL TRADER** — NUEVA: Mundial 2026 + ligas, ratings Elo de ClubElo. Edge mín 10% favorito / 15% underdog / 12% draw. **Apuesta solo entre 24h y 1h antes del kickoff.** Ejecuta con CLOB v2 (sig_type=2).
-- ❌ **🏛️ POLITICS TRADER** — **DESACTIVADO 2-Jun** (`enable_politics_trader=False`). Drenaba capital a edge mínimo.
-- ⏭️ **🔍 MARKET SCANNER (sports/esports)** — desactivada (Anthropic API billing agotado)
-- 🗑️ **CRYPTO eliminada definitivamente** (`modules/crypto_daily.py` borrado el 28-Abr — 5/14 WR 36%, -$29)
+- ✅ **📈 STOCK TRADER** — activa (lun-vie, 14:00-20:00 UTC).
+  - Whitelist tech-only: `nvda/googl/aapl/tsla/meta/amzn/msft`
+  - Solo mercados target-based: `"closes above $X"` y `"finish week above $X"`
+  - "Up or Down" intradía **DESACTIVADO** (`enable_intraday_updown=False`) — 30% WR, −$57
+  - **Conviction sizing:** Tier A (`PROVEN_WINNERS`: nvda/googl/aapl/meta) full stake; Tier B (tsla/amzn/msft) 0.7×
+  - Edge mínimo: **4%** (bajado de 6% el 4-Jun — mercados eficientes tienen spread 3-5%)
+  - Ventana temporal: **48h** para diarios, **120h** para semanales (fix 4-Jun)
+  - Gap máximo: **3%** diarios / **5%** semanales (fix 4-Jun)
+  - News filter: solo bloquea si score **≤ −5** (fix 4-Jun; antes −3 bloqueaba todo en silencio)
 
-**Control por flags** (`config/settings.py` → `SafetyRules`): `enable_stock_trader`,
-`enable_football_trader`, `enable_politics_trader`. Cambiar a `True/False` y reiniciar
-para activar/desactivar sin tocar `main.py`.
+- ✅ **⚽ FOOTBALL TRADER** — activa. Mundial 2026 + ligas. Ratings Elo de ClubElo.
+  - Edge mín: 10% favorito / 15% underdog / 12% empate
+  - Ventana: solo entre 24h y 1h antes del kickoff
+  - Ejecuta con CLOB v2 (`sig_type=2`, `Side.BUY` de `py_clob_client_v2`)
 
-> ⚠️ **`recovery.py` NO se usó.** Fue escrito para otra versión del bot (FlashCrash/
-> Weather/Harvester/BTC que no existen aquí). Correrlo habría crasheado el bot vivo
-> (insertaba bloque de fútbol llamando a `football_trader` sin inicializarlo). La
-> integración del fútbol se hizo **a mano** en `main.py` (import, init, firma de
-> `run_cycle`, bloque de ciclo con tracking, close). El módulo `football_trader.py`
-> se trajo de `origin/claude/keen-einstein-RYHvZ` y se le **reescribió `_execute_order`
-> a CLOB v2** (venía con API v1 / sig_type=0 → habría dado `order_version_mismatch`).
+- ❌ **🏛️ POLITICS TRADER** — DESACTIVADO (`enable_politics_trader=False`). Drenaba capital a edge 1.5-3.4%.
+- ⏭️ **🔍 MARKET SCANNER (sports/esports)** — desactivado (Anthropic API sin créditos)
+- 🗑️ **CRYPTO** — eliminada definitivamente (28-Abr). 5/14 WR, −$29. Archivo borrado.
 
-> **Nombres comerciales (29-Abr)**: el bot pasó a tener 3 módulos con nombres
-> sin numerar — `📈 STOCK TRADER`, `🏛️ POLITICS MONITOR`, `🔍 MARKET SCANNER`.
-> Los logs y docs usan estos nombres. Las menciones a "Estrategia 1/5/6" son
-> históricas.
+**Control por flags** (`config/settings.py` → `SafetyRules`):
+`enable_stock_trader`, `enable_football_trader`, `enable_politics_trader`.
 
-### Costos mensuales (post-30 abril)
+### Costos mensuales
 - **VPS Hetzner CPX22**: $10.99/mes
-- **Anthropic API**: $0 (no se usa Haiku — Yahoo + RSS + keyword)
+- **Anthropic API**: $0 (bot no usa IA — Yahoo Finance + RSS + keyword)
 - **Gas Polygon**: ~$2/mes (~50 trades × $0.03)
-- **Total mínimo**: **~$13/mes** (Escenario A)
-- **Con Claude Pro opcional**: ~$33/mes (Escenario B)
+- **Total**: **~$13/mes**
 
 ### Infraestructura
-- **VPS**: Hetzner Cloud CPX22 — Helsinki, Finland ($10.99/mes)
-- **RPC**: Alchemy Polygon (con fallback a public RPC)
+- **VPS**: Hetzner Cloud CPX22 — Helsinki, Finland
+- **RPC**: Alchemy Polygon (fallback: public RPC)
 - **Wallet EOA**: `0x4bcd692f8F5c18074fF3d37AE3edfB5E826EdC71` (firma órdenes)
 - **Polymarket Funder (proxy)**: `0x5718117523abb9648a39374f5d99fcc07c533482` — donde vive el pUSD
 - **Servicio**: `systemctl status polybot` (activo 24/7)
 - **Venv**: `/root/Polybot/venv/bin/python`
-- **Entry point**: `main.py --live` (definido en `/etc/systemd/system/polybot.service`)
+- **Entry point**: `main.py --live`
 
-### Polymarket v2 (migración 27-28 Abr)
-- **SDK**: `py-clob-client-v2` (v1.0.0) — el SDK v1 quedó obsoleto cuando Polymarket migró el CLOB
-- **Colateral**: **pUSD** (`0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB`) — ya no USDC.e
-- **Auth**: derivada de la private key con `client.create_or_derive_api_key()`; **no** se usa `RELAYER_API_KEY`
-- **`SIGNATURE_TYPE=2`** forzado en `.env` (Browser proxy con funder). Antes el código probaba 0/1/2 — ahora va directo a 2.
-- **Balance reads**: `pUSD.balanceOf(funder)` en todos los sitios (`scripts/daily_audit.py`, `main.py` startup + redeem snap, `modules/auto_redeem.py`, `scripts/pre_restart_check.py`)
-- **Allowances**: aprobadas desde la UI de Polymarket (3 contratos: CTF Exchange, Neg-risk CTF, Neg-risk Adapter). Re-aprobar si cambian.
-- **MarketOrderArgs**: v2 requiere `side` explícito (`Side.BUY` desde `py_clob_client_v2`)
-- **Caveat pendiente**: `modules/auto_redeem.py` invoca `redeemPositions` desde la EOA, pero las posiciones v2 viven en el proxy. Cuando haya una posición v2 ganada, hay que verificar si el redeem funciona o requiere firmar desde el proxy.
+### Polymarket v2 (desde 27-Abr)
+- **SDK**: `py-clob-client-v2` (v1.0.0)
+- **Colateral**: **pUSD** (`0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB`)
+- **Auth**: `client.create_or_derive_api_key()` desde la private key
+- **`SIGNATURE_TYPE=2`** forzado en `.env` (Browser proxy con funder)
+- **Balance reads**: `pUSD.balanceOf(funder)` en todos los sitios
+- **Allowances**: aprobadas desde la UI de Polymarket (3 contratos: CTF Exchange, Neg-risk CTF, Neg-risk Adapter)
 
-### Cobro de posiciones (v2 vs v1)
-
-**Posiciones v1 (legacy EOA)**: `redeem.py` las cobra automáticamente cuando el oráculo UMA resuelve. `modules/auto_redeem.py` corre cada ~1h dentro del bot.
-
-**Posiciones v2 (funder/proxy)**: el SDK `py-clob-client-v2` **no expone** método de redeem (verificado: ningún `redeem`, `settle`, `claim`, `merge`, `split`, `withdraw`, `convert` en `dir(ClobClient)`). El cobro automático on-chain falla porque:
-1. La posición vive en el funder (smart contract proxy), no en la EOA
-2. `CTF.redeemPositions` paga al `msg.sender` — si firma la EOA, los fondos quedan retenidos
-3. La EOA tendría que llamar `proxy.exec(CTF, calldata)` — el ABI del proxy de Polymarket no está documentado
-
-**Workaround actual**: cobrar manualmente desde polymarket.com:
-1. Abrir polymarket.com → conectar wallet
-2. Portfolio → click "Redeem" en cada posición resuelta
-3. Aprobar tx en MetaMask
-
-**Pendiente**: investigar el ABI del proxy de Polymarket para implementar `proxy.exec(CTF, calldata)` y volver el cobro automático para v2.
-
-**Nota sobre `redeem.py`**: el bug del `return` temprano en `find_all_positions` se corrigió el 28-Abr — ahora hace **merge** de las posiciones de funder + EOA, deduplicando por `(conditionId, asset)`. Antes solo veía las del primer address con resultados.
-
-### Créditos API
-- **Anthropic**: agotado (-$0.01) — bot ya no depende de API
-- **Modelo previo**: Claude Haiku 4.5 (queda referenciado en código pero no se invoca con sports/crypto off)
+### Cobro de posiciones v2
+- **Automático**: no disponible — el SDK v2 no expone método de redeem, y las posiciones viven en el proxy (no en la EOA)
+- **Manual**: polymarket.com → Portfolio → Redeem → aprobar en MetaMask
+- **Pendiente**: investigar ABI del proxy para `proxy.exec(CTF, calldata)` y automatizar
 
 ---
 
@@ -133,30 +93,34 @@ para activar/desactivar sin tocar `main.py`.
 
 ```
 /root/Polybot/
-├── main.py                  # Orchestrator principal, ciclo de scan cada 15 min
-├── redeem.py                # Script standalone de cobro (subprocess desde main)
-├── daily_report.py          # Reporte diario (importado lazy en main para auto-stop)
+├── main.py                  # Orchestrator principal, ciclo cada 15 min
+├── redeem.py                # Script standalone de cobro
+├── daily_report.py          # Reporte diario (lazy import en main)
 ├── CLAUDE.md / EMERGENCY.md # Docs operativas
 ├── config/
-│   └── settings.py          # SafetyRules (límites inquebrantables) + BotState
+│   └── settings.py          # SafetyRules (límites) + BotState + flags on/off
 ├── core/
-│   ├── market_scanner.py    # Busca mercados en Gamma API, aplica filtros duros
-│   ├── ai_analyzer.py       # Analiza mercados con Claude Haiku (sin uso activo)
+│   ├── market_scanner.py    # Busca mercados en Gamma API
+│   ├── ai_analyzer.py       # Claude Haiku (sin uso activo — sin créditos)
 │   ├── risk_manager.py      # Kelly criterion, stop-loss, cooldowns
-│   ├── executor.py          # Ejecuta órdenes via py-clob-client-v2 (sig_type=2)
-│   └── tracker.py           # Rastrea WON/LOST, calcula win rate
+│   ├── executor.py          # Órdenes via py-clob-client-v2 (sig_type=2)
+│   └── tracker.py           # WON/LOST, win rate (usa size*curPrice, no currentValue)
 ├── modules/
-│   ├── stock_trader.py      # Estrategia única ejecutora: stocks Up/Down
-│   ├── politics_trader.py   # Politics monitoring (no apuesta, recolecta data)
+│   ├── stock_trader.py      # Estrategia stocks: target-based tech only
+│   ├── football_trader.py   # Estrategia fútbol: Elo + CLOB v2
+│   ├── politics_trader.py   # Politics (desactivado)
 │   ├── news_monitor.py      # RSS news filter para stock_trader
-│   ├── auto_redeem.py       # Cobra posiciones resueltas (pUSD desde funder)
-│   └── telegram_monitor.py  # Notificaciones a Telegram
+│   ├── auto_redeem.py       # Cobra posiciones resueltas (~1h)
+│   └── telegram_monitor.py  # Notificaciones + filtros visibles en Telegram
 ├── scripts/
-│   ├── daily_audit.py       # Snapshot rápido (balance pUSD, WR, posiciones)
+│   ├── daily_audit.py       # Snapshot: balance, WR, trades 24h, posiciones
 │   ├── daily_backup.sh      # Backup data/ (cron 23:00 UTC)
+│   ├── daily_review.py      # Resumen diario a Telegram (cron 13:00 y 21:00 UTC)
 │   ├── pre_restart_check.py # Validaciones antes de restart
-│   ├── whale_monitor.py     # Top whales monitor (cron horario)
-│   └── backtest.py          # Replay de filtros sobre trades históricos
+│   ├── whale_monitor.py     # Top whales (cron horario)
+│   ├── backtest.py          # Replay de filtros sobre trades históricos
+│   ├── onboard.py           # Reporte de situación para sesiones nuevas
+│   └── claude_task.md       # Canal de coordinación entre los 2 Claudes
 ├── data/                    # JSON de estado (tracker, bets_placed, etc.)
 └── logs/                    # Logs diarios (gitignored)
 ```
@@ -165,40 +129,50 @@ para activar/desactivar sin tocar `main.py`.
 
 ## 🎯 Estrategias activas
 
-### 🔍 MARKET SCANNER (IA Deportes + Esports — actualmente dormido)
-- **WR histórico**: 8/13 (62%) | P&L: +$16.80
-- **Flow**: scanner → filtro sports_kw → IA Haiku → risk check → executor
-- **Cubre**: esports (LoL, CS, Dota, Valorant), fútbol europeo + LatAm (Liga MX,
-  Brasileirão, Liga Argentina, Colombia), MLS, NBA, NCAAB, EuroLeague, NFL,
-  MLB, NHL, MMA, Tennis, Cricket, Rugby, Golf, F1, Chess
-- **Filtros críticos**:
-  - `market_price >= 0.40` (anti-underdog)
-  - `prob_win >= 0.55` (solo favoritos)
-  - `edge >= 0.03` (3% mínimo)
-  - Resuelve en <40h (margen de seguridad)
-  - No mercados de empate ("end in a draw", "draw?")
-  - No correlated bets (mismo partido = 1 apuesta máx)
+### 📈 STOCK TRADER — configuración actual (4-Jun-2026)
 
-### 📈 STOCK TRADER (Up/Down)
-- **WR histórico**: 1/1 (100%) pero pocos datos
-- **Cubre**: S&P, NASDAQ, Dow, Russell + NVDA, GOOGL, AAPL, TSLA, META, AMZN, MSFT, NFLX
-- **Flow**: Yahoo Finance (datos reales) → compara con Polymarket → apuesta
-- **Filtros críticos** (agregados 14-Apr):
-  - `min_edge = 0.08` (8% mínimo, más estricto que deportes)
-  - `max_bets_per_cycle` se respeta
-  - `max_daily_spend` se respeta
-  - **NO apostar direcciones opuestas del mismo ticker en el mismo día**
-    (commit 5dd5635 — evita AMZN Up + AMZN Down = pérdida garantizada)
+**Flow**: Gamma API → filtros keyword → Yahoo Finance → cálculo edge → apuesta CLOB v2
 
-### Crypto Daily ❌ ELIMINADA (28-Abr)
-- WR final: 5/14 (36%), P&L: -$29 — desactivada el 27-Abr, archivo borrado el 28-Abr.
-- `modules/crypto_daily.py` ya no existe en el repo. Si se reactiva con otra estrategia
-  (ej. latency arb tipo coinman2), recuperar de git history (`git show HEAD~1:modules/crypto_daily.py`).
+**Tickers tradeables** (`TRADEABLE_TICKERS`):
+`nvda`, `googl`, `aapl`, `tsla`, `meta`, `amzn`, `msft`
 
-### Estrategias DESACTIVADAS
-- ❌ **WEATHER** (estaba en prueba, eliminada del ciclo)
-- ❌ **HARVEST NO** (100% WR pero margen chico, eliminada para reducir complejidad)
-- ❌ **AUTO-SELLER** (BUG CRÍTICO: vendía winners a +30% antes de cobrar al 100%)
+**Tipos de mercado aceptados** (WR 73% combinado):
+- `"Will NVDA finish the week above $X?"` — semanal, ventana 120h
+- `"Will AAPL close above $X on [date]?"` — diario, ventana 48h
+
+**Tipos BLOQUEADOS**:
+- `"Will NVDA be up or down on [today]?"` — intradía, WR 30%, −$57 histórico
+
+**Filtros en orden de ejecución**:
+1. Fin de semana → skip (stocks)
+2. Fuera de 14:00-20:00 UTC → skip
+3. Whitelist `TRADEABLE_TICKERS` → skip si no está
+4. Intraday "up or down" → skip si `enable_intraday_updown=False`
+5. VIX > 25 → skip
+6. S&P data inaccesible → skip (fail-safe)
+7. Gap > 3% diario / > 5% semanal → skip
+8. At-the-money trap: precio ≈ target (<1%) + cambio >1.5% → skip
+9. Edge < 4% → skip
+10. Edge > 40% en cualquier precio → skip (anti-señal del modelo)
+11. Cola larga: precio < 0.10 o > 0.90 → skip (salvo extreme-side con prob ≥80%)
+12. News muy bearish (score ≤ −5) + S&P no sube → skip UP
+13. IA (Claude Sonnet) como último filtro si hay API key — si falla, continúa
+
+**Sizing**:
+- Kelly 0.20 × edge × bankroll, capeado a `max_bet_absolute = $6`
+- Tier A (PROVEN_WINNERS: nvda/googl/aapl/meta): 1.0× stake
+- Tier B (tsla/amzn/msft): 0.7× stake
+- Edge ≥ 25%: 0.5× (sizing inverso — edges altos son anti-señal)
+- Max 4 bets/día | Daily loss limit: −$35 → pausa resto del día
+
+### ⚽ FOOTBALL TRADER
+
+**Flow**: ClubElo API (ratings Elo) → Polymarket Gamma API → edge check → apuesta CLOB v2
+
+**Filtros**:
+- Edge mín favorito: 10% | underdog: 15% | empate: 12%
+- Ventana: 24h-1h antes del kickoff
+- Solo `sig_type=2`, `Side.BUY` de `py_clob_client_v2`
 
 ---
 
@@ -209,74 +183,22 @@ initial_bankroll = 200.0
 min_bet_size = 1.50
 max_bet_pct = 0.08           # 8% del bankroll por apuesta
 max_bet_absolute = 6.0
-kelly_fraction = 0.20        # RECOVERY 2-Jun (era 0.25) — sizing conservador bajo capital ~$56
-min_edge_required = 0.03     # 3% edge mínimo (deportes)
-min_win_probability = 0.55   # Solo favoritos
+kelly_fraction = 0.20        # Conservador (recovery mode)
+min_edge_required = 0.03     # 3% global (stocks usa su propio MIN_EDGE=4%)
+min_win_probability = 0.55
 max_bets_per_cycle = 5
 max_daily_spend = 120.0
-max_resolution_days = 2      # Solo mercados <2 días
-max_daily_loss_pct = 0.20    # Stop-loss 20% diario
-max_total_loss_pct = 0.70    # Kill switch 70% del ATH → $60 con ATH $200 (22-Abr)
-min_market_liquidity = 3000  # Relajado de 5k el 14-Apr
-min_market_volume = 1000     # Relajado de 2k el 14-Apr
+max_resolution_days = 2      # Stock trader overridea a 5 días para semanales
+max_daily_loss_pct = 0.20
+max_total_loss_pct = 0.70    # Kill switch dinámico: 70% del ATH desde último arranque
+min_market_liquidity = 3000
+min_market_volume = 1000
 ```
 
----
-
-## 🛡️ Filtros activos (resumen 22 abril 2026)
-
-1. **Weekend mode** — sábado/domingo muchas estrategias skip (mercado EEUU cerrado).
-   Stocks **bloqueados completamente** en sáb/dom desde `dbc8fda` (26-Abr).
-2. **Max 4 stocks/día** con override si edge > 25% (`stock_trader.py:302-312`)
-3. **Horario US 14-20 UTC** — fuera de ventana, stocks skip (`stock_trader.py:416-428`).
-   Chequeo de weekday va PRIMERO, luego hora.
-4. **Tendencia S&P ±0.5%** con fail-safe (`stock_trader.py:341-376`, 22-Abr)
-   - Si Yahoo falla → skip, NO apuesta ciega
-   - Log siempre: `📊 S&P tendencia: X.XX%`
-5. **VIX < 25** (`stock_trader.py:_get_vix`, 22-Abr)
-   - VIX > 30 → skip (pánico) | > 25 → skip (nervioso) | > 20 → log warning
-6. **Gap filter 3%** — `close above/below $X` con gap > 3% del precio actual → skip
-7. **Colas largas bloqueadas** — YES/NO muy asimétricos (ej. 0.02/0.98) → skip
-8. **No direcciones opuestas mismo ticker** (commit 5dd5635)
-9. **SPORTS estricto**:
-   - `market_price ∈ [0.50, 0.80]`
-   - `prob_win ≥ 0.60`
-   - `edge ≥ 0.06`
-10. **CRYPTO desactivada** temporalmente (3/8 WR, -$12)
-11. **Auto-resolve redeem** vía `redeem.py` + cron o subprocess
-12. **Política corto plazo habilitada** — aceptar mercados diplomatic/sanctions (commit 691aeb5)
-13. **Contador de skips en Telegram** (22-Abr) — el reporte periódico muestra cuántas veces disparó cada filtro en el día
+**Kill switch real**: NO es un piso fijo. Al arrancar (`main.py`) el ATH se resetea al
+balance actual → piso = 70% del total (libre + posiciones). Con $56.64 el piso es ~$40.
 
 ---
-
-## 📈 Balance histórico
-
-| Fecha | Balance | Nota |
-|---|---|---|
-| 14-Abr | $200 | Depósito inicial |
-| 15-Abr | ~$166 | +30% desde mínimo; filtros estrictos ayudaron |
-| 17-Abr | ~$166 | Estable |
-| 20-Abr | ~$140 | Pre-market stocks perdieron -$34 (5 bets UP en mercado -2%) |
-| 21-Abr | $116 | 4/4 stocks LOSS; filtro tendencia S&P no disparaba (silent fail en `logger.debug`) |
-| 22-Abr | $102.54 cash + $14 pos ≈ $116 | Filtros reforzados: trend fail-safe + VIX + skip counter |
-| 22-Abr (PM) | $74.83 cash / ~$125 total | 11 commits hoy: VIX fix (User-Agent+Stooq) + Telegram logging + Whale monitor + Backtest |
-
-_Añadir filas cada auditoría._
-
----
-
-## 🧰 Scripts disponibles
-
-| Script | Propósito |
-|---|---|
-| `scripts/daily_audit.py` | Reporte rápido de balance, WR, trades 24h, posiciones |
-| `scripts/daily_backup.sh` | Backup de `data/` (cron 23:00 UTC) |
-| `scripts/pre_restart_check.py` | Valida sintaxis, env vars, wallet antes de restart |
-| `scripts/whale_monitor.py` | Monitor top whales de Polymarket (cron horario) |
-| `scripts/backtest.py` | Aplica filtros actuales retroactivamente vs resultados reales |
-| `redeem.py` | Cobrar posiciones resueltas (manual o cron) |
-| `scripts/onboard.py` | Reporte de situación para sesiones nuevas (flags, balance, WR, trades, git) |
-| `scripts/daily_review.py` | Resumen diario a Telegram + alertas automáticas (cron 13/21 UTC) |
 
 ## ⏰ Cronjobs instalados
 
@@ -286,319 +208,141 @@ _Añadir filas cada auditoría._
 0 13 * * *  /root/Polybot/venv/bin/python /root/Polybot/scripts/daily_review.py >> /root/Polybot/logs/review.log 2>&1
 0 21 * * *  /root/Polybot/venv/bin/python /root/Polybot/scripts/daily_review.py >> /root/Polybot/logs/review.log 2>&1
 ```
-> **daily_review.py (2-Jun):** manda a Telegram balance + WR por estrategia +
-> apuestas 24h + alertas automáticas (bot caído, balance <$45, 5 LOSS seguidas,
-> 0 apuestas/24h). Corre 13:00 y 21:00 UTC. Revisión sin abrir el servidor.
 
-## 📈 Resultados backtest (22-Abr)
-
-Últimos 30 días, filtros actuales aplicados retroactivamente a `data/trade_results.json`:
-
-| | Trades | Win rate | P&L |
-|---|---|---|---|
-| **Real** | 50/90 | 55.6% | +$221.15 |
-| **Con filtros** | 43/70 | 61.4% | +$266.58 |
-| **Mejora** | −20 bloqueados | +5.9pp | +$45.43 |
-
-- **SPORTS pasó de 54% → 75% WR** (el grueso de la mejora)
-- **STOCKS** ya estaba bien (60% → 61%)
-- **CRYPTO** sin cambio (edge/prob no registrados en trades viejos)
-- Top bloqueos: derivados esports (9×), SPORTS fuera rango 0.50-0.80 (5×), SPORTS edge <6% (5×)
+`daily_review.py`: manda a Telegram balance + WR por estrategia + apuestas 24h +
+alertas automáticas (bot caído, balance <$45, 5 LOSS seguidas, 0 apuestas/24h).
 
 ---
 
-## 📝 Notas para sesión futura de Claude
+## 📊 Análisis de data histórica (n=96 trades, 4-Jun-2026)
 
-**Contexto de subscripción del usuario** (importante para priorizar):
-- Subscripción **Max expira 30-Abr-2026** → después el usuario usa Claude Pro (uso limitado de Claude Code).
-- Bot debe operar **auto-sostenible** a partir de mayo: mínima intervención humana.
-- Rutina diaria del usuario post-Max: **~5 min/día** (audit + redeem si hay 100%).
+### STOCKS — desglose por categoría (n=57 resueltos antes del recovery mode)
 
-**Qué esto implica para decisiones de diseño:**
-- Preferir **fail-safe** (skip conservador) sobre fail-open (apuesta ciega) en todos los filtros nuevos.
-- **Logging verbose** en INFO (no DEBUG) para filtros críticos, así el usuario puede diagnosticar con un `grep` sin Claude.
-- **Reportes Telegram auto-contenidos**: todo lo que el usuario necesita ver debe llegarle al celular sin abrir el servidor.
-- **Scripts idempotentes** (`daily_audit.py`, `redeem.py`): que puedan correr sin supervisión y dejar output claro.
-- **Documentación en CLAUDE.md**: cualquier cambio nuevo se anota aquí, así la próxima sesión tiene el contexto completo sin depender del chat.
+| Categoría | WR | P&L |
+|---|---|---|
+| TECH target-based (nvda/googl/aapl/meta) | **73%** | **+$28.88** ✅ |
+| Índices/ETF (S&P/Dow/SPY/Russell) | 33% | −$35.52 ❌ |
+| Commodity (WTI/Gold) | 29% | −$51.77 ❌ |
+| Up-or-Down intradía | 30% | −$57.12 ❌ |
 
-**Cosas que NO hacer sin confirmar al usuario:**
-- Cambiar sizing (`max_bet_pct`, `kelly_fraction`, `max_bet_absolute`)
-- Reactivar auto-seller
-- Desactivar kill switches o stop-losses
-- Apuestas nuevas sin filtros (ej. crear strategy sin `min_edge`)
+**Conclusión:** 98% de las pérdidas vienen de intraday + commodities + índices.
+Los 3 están bloqueados en recovery mode. Solo tech target-based sigue activo.
+
+### WR general (27-Abr → 4-Jun): 62/96 (65%) | Neto: −$54.14
+Las pérdidas son pre-recovery (intraday y categorías ahora bloqueadas).
 
 ---
 
-## 🐛 Bugs arreglados el 14 abril 2026
+## 🐛 Historial de fixes importantes
 
-| Commit | Fix | Por qué |
-|--------|-----|---------|
-| `141aa1f` | Expandir sports_kw (LatAm + más deportes) | Solo apostaba Europa |
-| `59964b4` | Filtros relajados (liquidez/volumen/timing) | 5 markets/ciclo era muy poco |
-| `94f94bc` | Stock trades cuentan en `cycle_bets`/`daily_spend` | max_daily_spend no limitaba stocks |
-| `955955e` | Tracker registra wins cobrados automáticamente | Win rate quedaba desactualizado |
-| `5dd5635` | Bloquear direcciones opuestas mismo ticker mismo día | Google Up + Down garantizaban pérdida |
-| `63c1983` | max_open_positions 15→20 | Cap muy bajo, bot frenaba con oportunidades válidas |
-| `dee7016` | Bloquear derivados esports (Games Total, Map Handicap) | 3/3 LOST −$23.45 en banda 0.40-0.50 |
-| `53f6585` | Stock markets requieren keyword direccional | "Netflix earnings" pasaba el filtro de stocks |
-| `52dab9e` | Log edge+prob en cada trade | Audit no podía correlacionar edge con profit |
-
-## 🐛 Bugs arreglados el 15 abril 2026
-
-| Commit | Fix | Por qué |
-|--------|-----|---------|
-| `ba6162c` | Bloqueo **universal** de derivados (fix regresión `dee7016`) | El filtro anterior requería `is_esports AND is_derivative`, pero markets con `question="Games Total: O/U 2.5"` no traen prefijo del juego y pasaban. Hoy 19:33 UTC un Games Total se ejecutó por este bug. |
-
-## 🐛 Bugs arreglados el 26 abril 2026
-
-| Commit | Fix | Por qué |
-|--------|-----|---------|
-| `dbc8fda` | Bloquear stocks en fin de semana (`stock_trader.py:416-428`) | El check de `weekday` estaba **anidado dentro** del check de horario US: si la hora caía en 14-20 UTC, saltaba el bloque entero y nunca verificaba sáb/dom. Resultado: 5 apuestas stocks en weekend (2 sáb + 3 dom 26-Abr) usando datos de Yahoo del viernes (mercado cerrado). Total comprometido $40.50 con info stale. Fix: chequear `weekday >= 5` ANTES del horario, retornar `None` con log explícito. Weekend mode de `main.py:358-362` solo ajusta `max_bets/min_edge`, NO bloquea stocks — la defensa correcta es en `stock_trader.py`. |
-
-## 🔧 Ajustes 15 mayo 2026 (post-auditoría)
-
-Después de auditar 1-14 May (STOCKS 12/26 WR 46%, P&L −$16.76; POLITICS 12/12
-100% P&L +$2.61 "centavos") y caso 14-May (SP500 +2.35% sin apuestas):
-
-| Cambio | Por qué |
+### 4-Jun-2026 — commit `139df64`
+| Fix | Por qué |
 |---|---|
-| **MIN_EDGE 8%→6%** y **DAILY_INTRADAY 10%→8%** en `stock_trader.py` | El 14-May AMZN finish-week NO tenía edge 6.4% y fue rechazado. Con las defensas en capas (Sonnet IA + ATM trap + anti-señal cola + gap filter) el threshold alto era redundante. |
-| **Anti-continuación retirado** (`stock_trader.py:711+`) | Bloqueaba AAPL Up el 14-May cuando AAPL +3.73% y S&P +2.35% — momentum genuino. El caso 11-May (SPY $740 ATM) que motivó el filtro ya está cubierto por ATM trap. |
-| **Extreme-side bet** (`stock_trader.py:608+`) | Antes: precios fuera de 0.02-0.98 → skip ciego. Ahora: si side cara ≥$0.95 Y prob real ≥80%, apuesta side cara con stake 0.4× (cap $3). Captura "SPY no llega a $755" cuando el mercado ya descontó. |
-| **Politics sizing $2→$4** (`main.py:972`) | WR 12/12 (100%) en n=12 resueltos. El comentario "no Kelly hasta n>=5" ya era obsoleto. Upside ahora 2x ($0.30-0.70/win). |
+| **MIN_EDGE 6%→4%** | Mercados eficientes tienen spread 3-5%. Con WR 73% el modelo SÍ tiene señal; 6% bloqueaba casi todo silenciosamente. |
+| **News filter −3→−5** | Score −3 es ruido normal de titulares. Bloqueaba todos los UP sin aparecer en el contador de Telegram → 0 apuestas invisibles. |
+| **Telegram muestra filtros antes invisibles** | Gap, ATM trap, edge insuficiente, 0 mercados, whitelist ahora visibles en el resumen diario. |
 
-## 🐛 Bugs arreglados el 13 mayo 2026
+### 4-Jun-2026 — commit `ba9120c`
+| Fix | Por qué |
+|---|---|
+| **Ventana 48h→120h para finish-week** | "finish week above $X" resuelve el viernes (~71h desde martes) — antes invisible lun-mié. Estos mercados tienen 73% WR. |
+| **Gap 3%→5% para semanales** | `is_weekly` estaba calculado pero nunca usado. Semanales tienen 3-5 días para alcanzar el target; 3% era demasiado estricto. |
 
-Tras 2 LOSS el 11-May (SPY $740 −$3.54, WTI $98 −$7.07) y revisión de logs:
+### 2-Jun-2026 — commit `b639df3`
+| Fix | Por qué |
+|---|---|
+| **Kill-switch usa `size*curPrice`** | `currentValue` del API de Polymarket se inflaba ($21 vs $0.12 real). Kill-switch veía más capital del real y nunca disparaba. |
+| **Tracker usa `size*curPrice`** | Mismo bug: `currentValue` inflado evitaba detectar posiciones LOST. |
 
-| Commit | Fix | Por qué |
-|--------|-----|---------|
-| `51063c8` | SPY/QQQ/DIA/IWM usan precio del ETF (no del índice) en `stock_trader.py:_parse_stock_question` + `_get_market_data(override_symbol=...)` | El bot fetchaba `^GSPC` (~$7,415) cuando el mercado preguntaba sobre **SPY ETF** ($740). Sonnet recibió "S&P=$7,415" y declaró "SPY 900% above target → BET 97% YES". SPY ETF estaba exactamente en $740 (coin flip) y perdió. Fix: detectar `spy/qqq/dia/iwm` como tokens en la pregunta — independiente del longest-alias winner — y pasar `override_symbol="SPY"` (etc.) a Yahoo. El context que se envía a Sonnet ahora también muestra el ticker correcto. |
-| `51063c8` | Regex "close**s** above/below" en el gap filter | El gap filter usaba `"close above" in q_lower` pero los mercados de ETFs/commodities usan **plural** "closes above $X". El filtro nunca disparaba para SPY/WTI/Gold dailies, dejando pasar bets at-the-money. Fix: `re.search(r'\bcloses?\s+(above|below)\b', q_lower)`. |
-| `51063c8` | At-the-money trap: skip si `\|precio−target\|/precio < 0.5%` Y `\|change\|>2%` | Cuando el precio está pegado al target y ya hubo movimiento intradía grande, el modelo `_calculate_prob` sobreestima a 78-82% (cap por momentum) cuando la realidad es ~coin flip + mean-reversion. SPY $740 (+2.98%) y WTI $98 (+3.16%) cayeron en esto el 11-May. El nuevo filtro corre **antes** del cálculo de prob y de Sonnet — bloquea ambos casos. |
+### 13-May-2026 — commit `51063c8`
+| Fix | Por qué |
+|---|---|
+| **SPY/QQQ/DIA/IWM usan precio ETF** | Bot fetchaba `^GSPC` (~$7,415) para mercados de SPY ($740). Sonnet recibía "900% above target" y apostaba YES en coin flip. |
+| **Regex `closes?` en gap filter** | "closes above $X" (plural) no matcheaba el filtro. SPY y WTI pasaban con gaps at-the-money. |
+| **At-the-money trap** | precio ≈ target (<1%) + cambio >1.5% → modelo sobreestima a 78-82% cuando realidad es ~coin flip. |
 
-## 🐛 Bugs pendientes identificados (no arreglados aún)
-
-1. ~~**Telegram muestra valores incorrectos para posiciones perdidas**: MSFT
-   mostró $21.15 cuando Polymarket decía $0.12.~~ **RESUELTO 2-Jun.** Causa: el
-   campo `currentValue` del data-api de Polymarket se inflaba. Fix: usar
-   `size * curPrice` (lo que muestra la UI de Polymarket) en TODOS los sitios —
-   `telegram_monitor.py` (ya estaba), `main.py:214/421/474` y `tracker.py:161`.
-   El más crítico era `main.py:421` (kill-switch `_total_value`): un valor inflado
-   hacía ver más capital del real. También `tracker.py` (detección WON/LOST): un
-   `currentValue` inflado evitaba marcar LOST una posición perdida.
-   
-2. **Auditoría completa pendiente**: data/trade_results.json no se ha auditado
-   completamente con números reales del VPS. Falta hacerlo antes de escalar.
-
-3. **Copy trading de whales** (feature nueva, planeada para miércoles): monitorear
-   wallets de los top traders de Polymarket y replicar sus movimientos en tiempo
-   real. Idea del usuario.
+### 26-Abr-2026 — commit `dbc8fda`
+| Fix | Por qué |
+|---|---|
+| **Stocks bloqueados en fin de semana** | Check de `weekday` estaba anidado dentro del check de horario → 5 apuestas en weekend con datos stale del viernes. |
 
 ---
-
-## 📊 Análisis STOCKS (2-Jun-2026, n=57 resueltos)
-
-Auditoría completa que motivó el recovery mode. STOCKS histórico: 25/57 (44% WR),
-**−$58.41**, ROI −19.9%. Desglose que revela que "stocks" eran 3 estrategias mezcladas:
-
-| Por categoría | WR | P&L |
-|---|---|---|
-| TECH-STOCK (nvda/googl/aapl/tsla/meta/amzn/msft) | 68% | **+$28.88** ✅ |
-| ÍNDICE/ETF (S&P/Dow/SPY/Russell) | 33% | −$35.52 ❌ |
-| COMMODITY (WTI/Gold) | 29% | −$51.77 ❌ |
-
-| Por tipo de mercado (solo tech) | WR | P&L |
-|---|---|---|
-| FINISH-WEEK above/below $X | 73% | +$26.73 ✅ |
-| CLOSES above/below $X | 73% | +$11.07 ✅ |
-| UP-OR-DOWN intradía | 43% | −$7.26 ❌ |
-
-**Hallazgo decisivo:** "Up or Down" intradía (todos los activos, n=27) = 30% WR,
-**−$57.12** (=98% de toda la pérdida de stocks). Y el edge está **INVERTIDO**:
-las perdidas tenían edge medio 0.21 vs las ganadas 0.11 — el modelo NO tiene señal
-direccional sin un precio objetivo, su "edge" intradía es ruido sobre-confiado.
-→ **Conclusión:** no es mala suerte ni filtro flojo; es una categoría estructuralmente
-no-predecible. Acción: whitelist tech-only (1-Jun) + intraday Up/Down OFF (2-Jun).
-Sin esas dos categorías, el resto del libro está en break-even/positivo.
 
 ## ⚠️ Patrones a EVITAR (learnings caros)
 
-1. **Correlación negativa**: apostar UP y DOWN del mismo activo el mismo día
-   garantiza perder uno de los dos. Arreglado en stocks, pendiente para deportes
-   (aunque ahí es menos común).
-
-2. **Underdogs sin evidencia**: apuestas a <30¢ en deportes con poco contexto
-   tienden a perder ~70% del tiempo (datos 14-Apr). El bot ahora requiere >=40¢.
-
-3. **Mercados de empate**: la IA no calibra bien la probabilidad de empate en
-   ligas latinoamericanas (25%+ rate de empate real vs IA dice 15%).
-
-4. **Take-profit prematuro**: el auto_seller vendía posiciones ganadoras a +30%
-   cuando hubieran cobrado +200% al vencer. Eliminado permanentemente.
-
-5. **Metas irreales**: +16% diario no es alcanzable. Meta realista: +1.5-3% diario
-   con el bot bien configurado.
-
-6. **Derivados de esports (Games Total, Map Handicap, Game Handicap)**: alta
-   varianza y la IA los mal calibra. **4 de las 5 peores pérdidas históricas**
-   son de esa categoría. Bloqueados universalmente desde `ba6162c` (15-Abr).
+1. **Intraday Up/Down sin precio objetivo**: edge invertido (perdedoras avg 21% vs ganadoras 11%). El modelo no tiene señal direccional pura. **Bloqueado permanentemente.**
+2. **Índices puros y commodities**: WTI −$45, DJIA 0/3, SPY 0/3. **Bloqueados en whitelist.**
+3. **Derivados de esports** (Games Total, Map Handicap): 4/5 peores pérdidas históricas. **Bloqueados universalmente.**
+4. **Direcciones opuestas mismo ticker**: AMZN Up + AMZN Down = pérdida garantizada.
+5. **Auto-seller**: vendía ganadores a +30% cuando cobran +200% al vencer. **Eliminado.**
+6. **Edges >40%**: 9 trades edge≥35% → 1W/8L. El modelo "se emociona"; son anti-señal.
+7. **Metas irreales**: +16% diario no es alcanzable. Realista: +1.5-3% diario.
 
 ---
 
-## 💎 Insights de data (15 abril 2026)
+## 📋 Pendientes
 
-Auditoría de los primeros 25 trades resueltos:
-
-1. **STOCKS es la estrategia dominante** (9/10 WR = 90%, +$52.75 neto).
-   AMZN invicto 3/3 (+$34.15). Tanto `Up/Down` como `close above/below` funcionan.
-   **NO aumentar sizing hasta tener 20+ trades con edge data** (edge solo se
-   empezó a registrar el 15-Abr, todavía muestra chica).
-
-2. **SPORTS pesado hacia el rojo** (6/12, −$27.93) pero el −$21.55 de ese total
-   viene exclusivamente de esports derivatives. Sin ellos: 2/4 neutral. Hay que
-   esperar más data post-filtro para juzgar la estrategia real.
-
-3. **CRYPTO muy chica para concluir** (1/3). Decisión: evaluar cuando llegue
-   a n=4 (1 pendiente en curso).
+- **Cobro automático v2**: investigar ABI del proxy de Polymarket para `proxy.exec(CTF, calldata)`. Mientras tanto, cobrar manualmente desde polymarket.com.
+- **Copy trading de whales**: monitorear top wallets de Polymarket y replicar movimientos. Feature planeada.
+- **Auditoría completa del tracker**: data/trade_results.json no auditada con números reales del VPS. Hacer antes de escalar sizing.
 
 ---
 
-## 📋 Decisiones pendientes
-
-- **CRYPTO**: evaluar desactivar cuando llegue a n=4 trades resueltos (ahora n=3).
-- **STOCKS sizing**: re-evaluar en 2-3 semanas cuando haya 20+ trades con campo
-  `edge` poblado. Mientras tanto no subir `max_bet_pct` ni `kelly_fraction`.
-- **Cobro pendiente**: 11 posiciones marcadas RESOLVIDO por Polymarket siguen
-  como PENDING en el tracker (entre ellas 1 WIN sin cobrar, Bayern +$3.76).
-  Verificar que `auto_redeem` / `redeem.py` está corriendo.
-
----
-
-## 🔧 Comandos útiles (ejecutar en el VPS)
+## 🔧 Comandos útiles (VPS)
 
 ```bash
-# Ver logs del bot en vivo
+# Logs en vivo
 tail -f /root/Polybot/logs/polybot_$(date +%Y%m%d).log
 
-# Ver logs del servicio (start/stop/crashes)
+# Logs del servicio
 journalctl -u polybot -n 100 --no-pager
 
-# Reiniciar bot
+# Reiniciar / estado
 systemctl restart polybot
-
-# Estado del bot
 systemctl status polybot
 
-# Cobrar manualmente
-cd /root/Polybot && ./venv/bin/python redeem.py
-
-# Auditoría diaria completa (balance + WR + trades 24h + posiciones abiertas)
+# Auditoría completa
 cd /root/Polybot && ./venv/bin/python scripts/daily_audit.py
 
-# Auditoría del tracker
-cd /root/Polybot && ./venv/bin/python -c "
-from core.tracker import WinRateTracker
-t = WinRateTracker()
-print(t.get_summary())
-"
+# Cobrar posiciones
+cd /root/Polybot && ./venv/bin/python redeem.py
 
-# Ver balance real (pUSD en el funder de Polymarket v2)
+# Balance pUSD en funder
 cd /root/Polybot && ./venv/bin/python -c "
-import os
-from web3 import Web3
-from dotenv import load_dotenv
-load_dotenv()
-w3 = Web3(Web3.HTTPProvider(os.getenv('ALCHEMY_RPC_URL', 'https://polygon-bor-rpc.publicnode.com')))
+import os; from web3 import Web3; from dotenv import load_dotenv; load_dotenv()
+w3 = Web3(Web3.HTTPProvider(os.getenv('ALCHEMY_RPC_URL','https://polygon-bor-rpc.publicnode.com')))
 funder = os.getenv('POLYMARKET_FUNDER_ADDRESS')
-pusd = w3.eth.contract(
-    address=w3.to_checksum_address('0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB'),
-    abi=[{'inputs':[{'name':'a','type':'address'}],'name':'balanceOf','outputs':[{'name':'','type':'uint256'}],'type':'function'}]
-)
-print(f'pUSD (funder): \${pusd.functions.balanceOf(w3.to_checksum_address(funder)).call()/1e6:.2f}')
+pusd = w3.eth.contract(address=w3.to_checksum_address('0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB'),
+  abi=[{'inputs':[{'name':'a','type':'address'}],'name':'balanceOf','outputs':[{'name':'','type':'uint256'}],'type':'function'}])
+print(f'pUSD: \${pusd.functions.balanceOf(w3.to_checksum_address(funder)).call()/1e6:.2f}')
 "
 
-# Aplicar los últimos cambios del repo
+# Aplicar cambios
 cd /root/Polybot && git pull origin main && systemctl restart polybot
+
+# Situación para sesión nueva
+cd /root/Polybot && ./venv/bin/python scripts/onboard.py
 ```
 
 ---
 
-## 📋 Workflow git
+## 💡 Notas para Claude (cualquier sesión)
 
-- **Branch activa**: `main` (todos los commits van ahí)
-- **Branch de fallback**: `claude/polybot-strategy-redeem-fix-MRxIE` (de session anterior)
-- **Remote**: `origin` = GitHub `jchoy2007/Polybot`
-- **Workflow típico**:
-  1. Edit archivo
-  2. `python3 -m py_compile archivo.py` (syntax check)
-  3. `git add archivo.py`
-  4. `git commit -m "..."`
-  5. `git push origin main`
-  6. En VPS: `git pull && systemctl restart polybot`
+1. **NO cambiar sin confirmar con el usuario**: sizing (`max_bet_pct`, `kelly_fraction`, `max_bet_absolute`), kill switches, stop-losses, reactivar intraday/politics.
+2. **Siempre syntax check**: `python3 -m py_compile archivo.py` antes de commitear.
+3. **Logging en INFO** (no DEBUG) para filtros críticos — el usuario diagnostica con `grep` sin abrir Claude.
+4. **Claude-PC propone, Claude-VPS aplica**. Script en `claude_task.md`, no push directo a main si se puede evitar.
+5. **Bot maneja dinero real**: cada cambio debe justificarse con data o bug evidente, no suposiciones.
 
 ---
 
-## 🎯 Siguiente pasos (priorizados)
+## 📞 Identidad
 
-### Inmediatos
-1. **Auditoría completa del tracker** con data real del VPS (no copia local)
-2. **Verificar que el fix de correlación** (5dd5635) está aplicado y funcionando
-3. **Monitorear win rate por 48h** con los fixes aplicados
-4. **Arreglar bug del valor MSFT en Telegram** (muestra valor incorrecto)
-
-### Esta semana
-5. **Implementar Copy Trading de whales** (monitorear top traders de Polymarket)
-6. **Considerar desactivar Crypto Daily** si no genera suficientes signals
-7. **Afinar filtros** si bot toma muy pocas apuestas o demasiadas
-
-### Criterios de parada (kill switches)
-- Balance < $80 → pausar bot, auditar
-- **Kill switch real (verificado 2-Jun):** NO es un piso fijo de $60. En el arranque (`main.py:1415`) el ATH se **resetea al balance real actual**, así que el piso es dinámico = 70% del valor total (libre + posiciones) desde el último arranque/pico. Con balance $56.64 (2-Jun) el piso quedó en ~$40, por eso el bot sigue operando — funciona como diseñado, el "$60" de notas viejas está desactualizado.
-- WR acumulado < 35% en 20+ trades → revisar estrategia
-- >5 pérdidas consecutivas → pausa automática 30 min (ya implementado)
-
-### Criterios de éxito
-- Balance > $200 → capital inicial recuperado, considerar retiro parcial
-- Balance > $300 → 1.5x, fuerte señal de que funciona
-- WR > 55% en 20+ trades → sistema calibrado
-
----
-
-## 💡 Notas para Claude (VPS o local)
-
-1. **NO hacer cambios sin entender el impacto**: el bot maneja dinero real.
-   Cada cambio debe justificarse por bugs o data evidente.
-
-2. **NO deshabilitar stop-losses ni kill switches**: son la protección del
-   capital. Si algo "bloquea" una apuesta, es probable que esté bien bloqueada.
-
-3. **Sí hacer**: agregar logging, verificar asumciones, correr pequeñas
-   auditorías con `/data/trade_results.json` antes de proponer cambios.
-
-4. **El usuario es bilingüe español/inglés**: responder en el idioma que use.
-
-5. **Commits deben ser descriptivos**: explicar qué se arregla y POR QUÉ.
-   Esto es crítico para que el próximo Claude (sesión nueva) entienda el porqué.
-
-6. **Siempre verificar sintaxis después de editar**:
-   ```bash
-   python3 -m py_compile archivo.py
-   ```
-
-7. **Contexto histórico**: el usuario quiere llegar a $500 al 30 abril (meta
-   original), pero hemos revisado a $250-300 como realista. NO presionar al
-   bot a tomar riesgos malos para alcanzar la meta original.
-
----
-
-## 📞 Contacto / Identidad
-
-- **Usuario**: jchoy2007 (GitHub)
+- **Usuario**: jchoy2007 (GitHub) | Timezone: GMT-5 (Panamá)
 - **Wallet**: `0x4bcd692f8F5c18074fF3d37AE3edfB5E826EdC71`
-- **Timezone**: GMT-5 (Panamá)
-- **Stack preferido**: Python 3 + aiohttp, py-clob-client, web3.py
+- **Stack**: Python 3 + aiohttp, py-clob-client-v2, web3.py
+- **Remote**: `origin` = `github.com/jchoy2007/Polybot` | branch activa: `main`
 
 ---
 
-**Última actualización**: 2 junio 2026 (RECOVERY: solo STOCKS + FOOTBALL; politics OFF; Football Trader integrado a mano con CLOB v2; ventana Mundial 24h-1h pre-kickoff; Kelly 0.20; balance $56.64)
+**Última actualización**: 4 junio 2026 — Recovery mode activo. Stocks tech target-based + Football Mundial. 3 bugs críticos resueltos hoy (edge 4%, news −5, ventana finish-week 120h). Balance ~$56.64.
