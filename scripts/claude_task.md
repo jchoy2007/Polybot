@@ -34,17 +34,35 @@
 
 ## 🚀 Pendiente para VPS — ejecutar en orden
 
-### [2-Jun] Fix: stocks ahora detecta mercados semanales (finish week)
+### [4-Jun] 3 mejoras grandes: Arb Trader + Football mejorado + Stocks fixes
 ```bash
 cd /root/Polybot
 git pull origin main
-python3 -m py_compile modules/stock_trader.py && echo "Syntax OK"
+
+# Verificar que todo compila
+python3 -m py_compile modules/arb_trader.py modules/football_trader.py main.py modules/stock_trader.py modules/telegram_monitor.py && echo "Syntax OK en todos"
+
+# Reiniciar
 systemctl restart polybot
-sleep 3
-systemctl status polybot --no-pager | head -5
+sleep 5
+systemctl status polybot --no-pager | head -8
+
+# Verificar que arrancó sin errores
+tail -30 logs/polybot_$(date +%Y%m%d).log | grep -E "ERROR|arb|ARB|football|FOOTBALL|stock|STOCK|OK|✅"
 ```
-**Qué hace:** habilita mercados "finish week above/below $X" (73% WR)
-de lunes a viernes. Antes solo los veía jue/vie. Gap para semanales: 5% (era 3%).
+
+**Qué trae el commit `6d0b597`:**
+
+| Módulo | Cambio | Impacto |
+|--------|--------|---------|
+| `arb_trader.py` (NUEVO) | Arbitraje YES+NO cuando spread >4% | Ganancia garantizada, riesgo casi cero |
+| `football_trader.py` | Home advantage +65 Elo al equipo local | Más precisión en odds |
+| `football_trader.py` | Alias nacionales: USA, Mexico, Canada, etc. | Mundial 2026 ahora funciona con Elo |
+| `football_trader.py` | Draw probability con modelo Dixon-Coles | Menos errores en mercados de empate |
+| `main.py` | ArbTrader integrado en run_cycle | Se ejecuta cada ciclo automáticamente |
+
+**Fixes anteriores ya aplicados (commits `ba9120c` + `139df64`):**
+- Stocks MIN_EDGE 6%→4% | News filter -3→-5 | finish-week ventana 48h→120h | gap semanal 5%
 
 ---
 
