@@ -36,6 +36,7 @@ from modules.stock_trader import StockTrader
 from modules.politics_trader import PoliticsTrader
 from modules.telegram_monitor import TelegramMonitor
 from modules.football_trader import FootballTrader
+from modules.arb_trader import ArbTrader
 
 # ============================================================
 # HELPER: Tiempo hasta resolución
@@ -344,7 +345,8 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
                     telegram: TelegramMonitor = None,
                     scan_only: bool = False,
                     politics: PoliticsTrader = None,
-                    football_trader: FootballTrader = None):
+                    football_trader: FootballTrader = None,
+                    arb_trader: ArbTrader = None):
     """Ejecuta un ciclo completo con TODAS las estrategias."""
 
     cycle_start = datetime.now()
@@ -1259,6 +1261,55 @@ async def run_cycle(scanner: MarketScanner, analyzer: AIAnalyzer,
             except Exception as e:
                 logger.error(f"   Error auto-cobro: {e}")
 
+    # ===== ♻️ ARB TRADER (YES+NO spread — ganancia garantizada) =====
+    if arb_trader:
+        logger.info("\n" + "=" * 50)
+        logger.info("♻️  ARB TRADER (spread YES+NO > 4%)")
+        logger.info("=" * 50)
+        try:
+            arb_trade = await arb_trader.run_cycle()
+            if arb_trade:
+                status = arb_trade.get("status", "UNKNOWN")
+                if status == "EXECUTED":
+                    profit = arb_trade.get("guaranteed_profit", 0)
+                    spread = arb_trade.get("spread", 0)
+                    total = arb_trade.get("total_spend", 0)
+                    logger.info(
+                        f"   ✅ ARB ejecutado: ${total:.2f} invertido "
+                        f"→ +${profit:.2f} garantizado ({spread:.1%} spread)"
+                    )
+                    tracker.add_trade(
+                        market_id=arb_trade.get("market_id", ""),
+                        question=f"[ARB] {arb_trade.get('question', '')}",
+                        side="BOTH",
+                        amount=arb_trade.get("total_spend", 0),
+                        price=0.50,
+                        strategy="ARB",
+                        edge=arb_trade.get("spread", 0),
+                        prob=1.0,
+                    )
+                    STATE.cycle_bets += 1
+                    STATE.daily_spend += arb_trade.get("total_spend", 0)
+                    if telegram:
+                        await telegram.send(
+                            f"♻️ ARB EJECUTADO\n"
+                            f"Mercado: {arb_trade.get('question','')[:60]}\n"
+                            f"YES ${arb_trade.get('yes_spend',0):.2f} @ {arb_trade.get('yes_price',0):.3f} "
+                            f"+ NO ${arb_trade.get('no_spend',0):.2f} @ {arb_trade.get('no_price',0):.3f}\n"
+                            f"Spread: {spread:.1%} | Profit garantizado: +${profit:.2f}"
+                        )
+                elif status == "SIMULATED":
+                    logger.info(f"   🏃 ARB simulado: spread {arb_trade.get('spread', 0):.1%}")
+                elif status == "PARTIAL_YES_ONLY":
+                    logger.warning("   ⚠️ ARB parcial: solo YES ejecutado")
+                    if telegram:
+                        await telegram.send_error_alert(
+                            f"⚠️ ARB PARCIAL — solo YES ejecutado\n"
+                            f"{arb_trade.get('question','')[:60]}"
+                        )
+        except Exception as e:
+            logger.error(f"   ♻️ Arb error: {e}")
+
     # ===== ⚽ FOOTBALL TRADER (Mundial 2026 + ligas, ratings Elo) =====
     if football_trader and not getattr(SAFETY, 'enable_football_trader', True):
         logger.info("\n" + "=" * 50)
@@ -1518,6 +1569,7 @@ async def main():
     stock_trader = StockTrader()
     politics = PoliticsTrader()
     football_trader = FootballTrader()
+    arb_trader = ArbTrader()
     telegram = TelegramMonitor()
 
     # Enviar notificación de inicio
@@ -1532,7 +1584,8 @@ async def main():
                           redeemer, tracker, stock_trader,
                           telegram, args.scan_only,
                           politics=politics,
-                          football_trader=football_trader)
+                          football_trader=football_trader,
+                          arb_trader=arb_trader)
         else:
             # Loop continuo
             last_ia_scan = 0
@@ -1575,7 +1628,8 @@ async def main():
                     await run_cycle(scanner, analyzer, risk, executor,
                                   redeemer, tracker, stock_trader,
                                   telegram, politics=politics,
-                                  football_trader=football_trader)
+                                  football_trader=football_trader,
+                                  arb_trader=arb_trader)
                     last_ia_scan = now
                     logger.info(f"\n⏰ Próximo ciclo en {SAFETY.scan_interval_minutes} min")
 

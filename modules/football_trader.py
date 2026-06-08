@@ -32,6 +32,15 @@ MIN_EDGE_FAVORITE  = 0.10   # 10% para apostar al favorito
 MIN_EDGE_UNDERDOG  = 0.15   # 15% para apostar al underdog (mayor varianza)
 MIN_EDGE_DRAW      = 0.12   # 12% para draws
 
+# Ventaja de local en Elo (estándar FIFA/ClubElo: ~+65 puntos)
+HOME_ELO_ADVANTAGE = 65
+
+# Torneos internacionales/neutral venue → sin ventaja de local
+NEUTRAL_VENUE_KW = [
+    "world cup", "copa america", "euro", "nations league", "champions league final",
+    "europa league final", "club world cup", "olympic", "olimpic"
+]
+
 # Ligas prioritarias (mejor liquidez y estadísticas)
 PRIORITY_LEAGUES = [
     "champions league", "uefa", "premier league", "la liga", "serie a",
@@ -450,17 +459,23 @@ class FootballTrader:
         result = {
             "team_a": None,
             "team_b": None,
-            "question_type": "win",   # win, draw, score, advance
-            "league": None
+            "question_type": "win",
+            "league": None,
+            "home_team": None,      # equipo local si se detecta
+            "neutral_venue": False, # sin ventaja de local
         }
 
         # Detectar tipo de pregunta
-        if "draw" in q:
+        if "draw" in q or "tie" in q:
             result["question_type"] = "draw"
-        elif "advance" in q or "qualify" in q or "progress" in q:
+        elif "advance" in q or "qualify" in q or "progress" in q or "through" in q:
             result["question_type"] = "advance"
-        elif any(x in q for x in ["beat", "win", "defeat"]):
+        elif any(x in q for x in ["beat", "win", "defeat", "score more"]):
             result["question_type"] = "win"
+
+        # Detectar venue neutral (sin ventaja local)
+        if any(kw in q for kw in NEUTRAL_VENUE_KW):
+            result["neutral_venue"] = True
 
         # Detectar liga
         for lg in PRIORITY_LEAGUES:
@@ -468,14 +483,25 @@ class FootballTrader:
                 result["league"] = lg
                 break
 
-        # Intentar parsear "Team A vs Team B"
-        vs_patterns = [r"(.+?)\s+vs\.?\s+(.+?)[\?\s]", r"(.+?)\s+v\s+(.+?)[\?\s]"]
+        # Parsear "Team A vs Team B" — team_a se asume local salvo indicación
+        vs_patterns = [
+            r"will\s+(.+?)\s+(?:beat|defeat|vs\.?|v)\s+(.+?)[\?$]",
+            r"(.+?)\s+vs\.?\s+(.+?)[\?\s\|]",
+            r"(.+?)\s+v\s+(.+?)[\?\s\|]",
+        ]
         for pat in vs_patterns:
             m = re.search(pat, q)
             if m:
                 result["team_a"] = m.group(1).strip()
                 result["team_b"] = m.group(2).strip()
                 break
+
+        # Detectar local explícito ("at home", "home game")
+        if result["team_a"] and ("at home" in q or "home" in q.split()):
+            result["home_team"] = result["team_a"]
+        elif result["team_a"] and not result["neutral_venue"]:
+            # Por convención en Polymarket, el primer equipo suele ser local
+            result["home_team"] = result["team_a"]
 
         return result
 
@@ -502,21 +528,29 @@ class FootballTrader:
 
         # Si tenemos los dos equipos, intentar Elo
         if team_a and team_b and len(team_a) > 2 and len(team_b) > 2:
-            elo_prob = await self._get_elo_probability(team_a, team_b, q_type)
+            elo_prob = await self._get_elo_probability(
+                team_a, team_b, q_type,
+                home_team=parsed.get("home_team"),
+                neutral_venue=parsed.get("neutral_venue", False),
+            )
             if elo_prob is not None:
-                # Blend: 60% Elo, 40% mercado (mercado tiene info que Elo no tiene)
-                blended = 0.60 * elo_prob + 0.40 * base_prob
-                logger.info(f"      Elo={elo_prob:.2f} | Market={base_prob:.2f} | Blend={blended:.2f}")
+                # Blend: 65% Elo + 35% mercado.
+                # Más peso a Elo que antes (era 60/40) porque el modelo de
+                # home advantage lo hace más preciso.
+                blended = 0.65 * elo_prob + 0.35 * base_prob
+                neutral_note = " [neutral]" if parsed.get("neutral_venue") else ""
+                logger.info(f"      Elo={elo_prob:.2f}{neutral_note} | Market={base_prob:.2f} | Blend={blended:.2f}")
                 return blended
 
         # Sin Elo: análisis heurístico de la pregunta
         return self._heuristic_probability(q, q_type, market_price)
 
     async def _get_elo_probability(
-        self, team_a: str, team_b: str, q_type: str
+        self, team_a: str, team_b: str, q_type: str,
+        home_team: str = None, neutral_venue: bool = False
     ) -> Optional[float]:
         """Obtiene ratings Elo de ClubElo.com y calcula probabilidad."""
-        cache_key = f"elo:{team_a}:{team_b}"
+        cache_key = f"elo:{team_a}:{team_b}:{q_type}:{home_team}"
         if cache_key in self.elo_cache:
             return self.elo_cache[cache_key]
 
@@ -528,22 +562,42 @@ class FootballTrader:
         if elo_a is None or elo_b is None:
             return None
 
-        # Fórmula Elo estándar para fútbol
-        diff = elo_a - elo_b
-        # Home advantage: ~+65 Elo points si equipo A es local
-        # No podemos saber siempre quién es local, usar diff puro
+        # Ventaja de local: +65 Elo al equipo local (estándar FIFA)
+        # Si es terreno neutral (World Cup, Champions League final) → sin ventaja
+        elo_a_adj = elo_a
+        elo_b_adj = elo_b
+        if not neutral_venue:
+            if home_team and home_team in team_a.lower():
+                elo_a_adj += HOME_ELO_ADVANTAGE
+            elif home_team and home_team in team_b.lower():
+                elo_b_adj += HOME_ELO_ADVANTAGE
+            else:
+                # Convención: primer equipo es local por defecto
+                elo_a_adj += HOME_ELO_ADVANTAGE
+
+        diff = elo_a_adj - elo_b_adj
         p_a_win = 1.0 / (1.0 + 10 ** (-diff / 400.0))
 
-        # Ajustar por tipo de pregunta
+        # Probabilidad de empate: modelo Dixon-Coles simplificado
+        # Empate es más probable cuanto más parecidos sean los equipos
+        elo_diff_abs = abs(diff)
         if q_type == "draw":
-            # Probabilidad de empate aumenta cuando diferencia de Elo es pequeña
-            elo_closeness = max(0, 1.0 - abs(diff) / 400.0)
-            prob = 0.20 + 0.15 * elo_closeness
+            if elo_diff_abs < 50:
+                prob = 0.30   # Equipos muy parejos
+            elif elo_diff_abs < 150:
+                prob = 0.27
+            elif elo_diff_abs < 300:
+                prob = 0.22
+            else:
+                prob = 0.16   # Diferencia grande → empate raro
         elif q_type == "win":
-            prob = p_a_win
+            # Restar prob de empate al favorito para ser conservadores
+            draw_prob = max(0.16, 0.30 - elo_diff_abs / 2000)
+            p_a_real = p_a_win * (1.0 - draw_prob)
+            prob = p_a_real
         elif q_type == "advance":
-            # Avanzar en torneo: similar a ganar pero con más weight al favorito
-            prob = min(0.95, p_a_win * 1.15)
+            # Avanzar incluye también poder ganar en penales/prórrogas
+            prob = min(0.92, p_a_win * 1.10)
         else:
             prob = p_a_win
 
@@ -552,35 +606,67 @@ class FootballTrader:
         return prob
 
     async def _fetch_club_elo(self, session: aiohttp.ClientSession, team: str) -> Optional[float]:
-        """Obtiene rating Elo de un equipo desde ClubElo.com."""
-        # Limpiar nombre del equipo para la URL
-        team_clean = re.sub(r'[^a-zA-Z0-9\s]', '', team)
-        team_slug = team_clean.strip().replace(' ', '_').title()
+        """Obtiene rating Elo de un equipo desde ClubElo.com.
+        Prueba múltiples formatos de nombre para aumentar el hit rate.
+        """
+        team_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', team).strip()
 
-        cache_key = f"clubelo:{team_slug}"
-        if cache_key in self.elo_cache:
-            return self.elo_cache[cache_key]
+        # Generar variantes del nombre para probar
+        variants = []
+        base = team_clean.title().replace(' ', '_')
+        variants.append(base)
+        # Sin artículos comunes
+        no_articles = re.sub(r'\b(The|El|La|Los|Las|De|Del|Fc|Cf|Sc|Ac|As)\b', '', team_clean, flags=re.I).strip()
+        variants.append(no_articles.title().replace(' ', '_'))
+        # Solo primera palabra (para equipos como "Real Madrid" → "Real_Madrid" ya está, pero "FC Barcelona" → "Barcelona")
+        words = team_clean.split()
+        if words:
+            variants.append(words[-1].title())  # última palabra
+            if len(words) > 1:
+                variants.append('_'.join(w.title() for w in words[1:]))  # sin primera palabra
 
-        try:
-            url = f"http://api.clubelo.com/{team_slug}"
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=8)) as resp:
-                if resp.status == 200:
-                    text = await resp.text()
-                    lines = text.strip().split('\n')
-                    if len(lines) > 1:
-                        # Formato: Rank,Club,Country,Level,Elo,From,To
-                        last_line = lines[-1]
-                        parts = last_line.split(',')
-                        if len(parts) >= 5:
-                            try:
-                                elo = float(parts[4])
-                                self.elo_cache[cache_key] = elo
-                                logger.debug(f"      ClubElo {team_slug}: {elo:.0f}")
-                                return elo
-                            except ValueError:
-                                pass
-        except Exception as e:
-            logger.debug(f"      ClubElo error para {team_slug}: {e}")
+        # Alias manuales de selecciones nacionales (World Cup 2026)
+        NATIONAL_ALIASES = {
+            "usa": "USA", "united states": "USA", "us": "USA",
+            "england": "England", "france": "France", "germany": "Germany",
+            "spain": "Spain", "brazil": "Brazil", "argentina": "Argentina",
+            "portugal": "Portugal", "netherlands": "Netherlands", "holland": "Netherlands",
+            "italy": "Italy", "mexico": "Mexico", "colombia": "Colombia",
+            "uruguay": "Uruguay", "chile": "Chile", "japan": "Japan",
+            "south korea": "SouthKorea", "korea": "SouthKorea",
+            "morocco": "Morocco", "senegal": "Senegal", "australia": "Australia",
+            "canada": "Canada", "ecuador": "Ecuador", "peru": "Peru",
+            "costa rica": "CostaRica", "panama": "Panama",
+        }
+        team_lower = team.lower().strip()
+        if team_lower in NATIONAL_ALIASES:
+            variants.insert(0, NATIONAL_ALIASES[team_lower])
+
+        # Probar cada variante
+        for slug in dict.fromkeys(variants):  # dedup preservando orden
+            if not slug or slug == '_':
+                continue
+            cache_key = f"clubelo:{slug}"
+            if cache_key in self.elo_cache:
+                return self.elo_cache[cache_key]
+            try:
+                url = f"http://api.clubelo.com/{slug}"
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=8)) as resp:
+                    if resp.status == 200:
+                        text = await resp.text()
+                        lines = [l for l in text.strip().split('\n') if l and not l.startswith('Rank')]
+                        if lines:
+                            parts = lines[-1].split(',')
+                            if len(parts) >= 5:
+                                try:
+                                    elo = float(parts[4])
+                                    self.elo_cache[cache_key] = elo
+                                    logger.info(f"      ClubElo {slug}: {elo:.0f}")
+                                    return elo
+                                except ValueError:
+                                    pass
+            except Exception as e:
+                logger.debug(f"      ClubElo error {slug}: {e}")
 
         return None
 
