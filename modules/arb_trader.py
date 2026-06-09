@@ -29,7 +29,7 @@ logger = logging.getLogger("polybot.arb")
 GAMMA_API_URL = "https://gamma-api.polymarket.com"
 
 # Spread mínimo para cubrir slippage potencial y gas
-MIN_ARB_SPREAD = 0.04   # 4% mínimo garantizado
+MIN_ARB_SPREAD = 0.025  # 2.5% mínimo — Polymarket líquido tiene spreads 1-3%
 MAX_ARB_SPEND  = 12.0   # Máximo total ($6 por lado)
 MIN_ARB_SPEND  = 3.0    # Mínimo total para que valga el gas
 

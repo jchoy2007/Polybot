@@ -604,17 +604,32 @@ class StockTrader:
                 target_price = float(target_match.group(1).replace(",", ""))
                 current_price = mkt_data.get("price", 0)
                 if current_price > 0:
-                    gap_pct = abs(target_price - current_price) / current_price
                     is_weekly = weekly_kw and not daily_kw
-                    # Semanales tienen 3-5 días para alcanzar el target → 5%.
-                    # Diarios solo tienen horas → 3%.
-                    max_gap = 0.05 if is_weekly else 0.03
+                    # Gap asimétrico (9-Jun-2026): el riesgo no es el mismo
+                    # si el precio ya superó el target que si aún necesita subir.
+                    #
+                    # Caso A — precio YA por encima del target (bet YES fácil):
+                    #   NVDA $1,100 vs target $1,050 → solo necesita no caer 4.5%
+                    #   → gap máximo 12% diario / 20% semanal (nunca bloquear de facto)
+                    #
+                    # Caso B — precio por DEBAJO del target (stock necesita subir):
+                    #   NVDA $1,000 vs target $1,050 → necesita subir 5%
+                    #   → gap máximo 3% diario / 5% semanal (estricto, como antes)
+                    #
+                    # Historial: las pérdidas originales (AAPL >$255, AMZN >$250,
+                    # NVDA >$200) eran todas Caso B — stock debajo del target.
+                    needs_to_climb = target_price > current_price
+                    if needs_to_climb:
+                        max_gap = 0.05 if is_weekly else 0.03  # estricto
+                    else:
+                        max_gap = 0.20 if is_weekly else 0.12  # permisivo (cola larga lo filtra)
+                    gap_pct = abs(target_price - current_price) / current_price
                     if gap_pct > max_gap:
                         kind = "semanal" if is_weekly else "diario"
+                        direction_note = "subir" if needs_to_climb else "no caer"
                         logger.info(
                             f"      Gap {gap_pct:.1%} > {max_gap:.0%} para "
-                            f"{kind} target ${target_price:.0f} vs "
-                            f"actual ${current_price:.0f}: skip"
+                            f"{kind} (necesita {direction_note} ${abs(target_price-current_price):.0f}): skip"
                         )
                         return None
             except (ValueError, AttributeError):
