@@ -43,17 +43,23 @@ NEUTRAL_VENUE_KW = [
 
 # Ligas prioritarias (mejor liquidez y estadísticas)
 PRIORITY_LEAGUES = [
-    "champions league", "uefa", "premier league", "la liga", "serie a",
-    "bundesliga", "ligue 1", "copa libertadores", "world cup", "copa america",
-    "mls", "eredivisie", "brasileirao", "premier", "fa cup", "europa league",
-    "nations league", "conmebol", "concacaf"
+    # Mundial — máxima prioridad
+    "world cup", "fifa world cup", "2026 world cup", "world cup 2026",
+    "group stage", "group a", "group b", "group c", "group d", "group e",
+    "group f", "group g", "group h", "round of 16", "quarterfinal", "semifinal",
+    # Copas continentales
+    "copa america", "euro 2024", "nations league", "concacaf",
+    # Clubes
+    "champions league", "uefa", "europa league", "premier league", "la liga",
+    "serie a", "bundesliga", "ligue 1", "copa libertadores",
+    "mls", "eredivisie", "brasileirao", "fa cup", "conmebol",
 ]
 
-# Keywords de partidos de fútbol
 FOOTBALL_MATCH_KW = [
-    " vs ", " v ", " vs. ", "beat ", "win ", "draw ", "match ",
-    "game ", "score ", "goal ", "result ", "advance", "qualify",
-    "final", "semi-final", "quarterfinal", "knockout"
+    " vs ", " v ", " vs. ", "beat ", "beats ", "win ", "wins ", "draw ",
+    "match ", "game ", "score ", "goal ", "result ", "advance", "qualify",
+    "final", "semi-final", "quarterfinal", "knockout", "eliminate", "progress",
+    "advance to", "through to", "group stage",
 ]
 
 # Keywords que NO son fútbol (excluir)
@@ -165,7 +171,8 @@ class FootballTrader:
                 return c["data"]
 
         markets = []
-        search_tags = ["soccer", "football"]
+        # Incluir tags específicos del Mundial 2026
+        search_tags = ["soccer", "football", "world-cup", "fifa", "world cup", "sports"]
 
         # Búsqueda por categorías de deportes
         for tag in search_tags:
@@ -245,10 +252,10 @@ class FootballTrader:
                     end_dt = datetime.fromisoformat(end_str.replace("Z", "+00:00"))
                     hours = (end_dt - datetime.now(timezone.utc)).total_seconds() / 3600
                     # endDate ≈ fin del partido ≈ kickoff + ~2.5h.
-                    # Regla del usuario (2-Jun): apostar SOLO entre 24h y 1h antes
-                    # del kickoff. Fuera de esa ventana → skip (info stale o ya empezó).
+                    # Ventana 48h: partidos del Mundial se publican 2 días antes.
+                    # Con 24h se bloqueaban partidos de mañana que están a ~39h.
                     hours_to_kickoff = hours - 2.5
-                    if not (1.0 <= hours_to_kickoff <= 24.0):
+                    if not (1.0 <= hours_to_kickoff <= 48.0):
                         continue
                 except Exception:
                     # Sin fecha fiable → no arriesgar fuera de ventana
@@ -627,16 +634,36 @@ class FootballTrader:
 
         # Alias manuales de selecciones nacionales (World Cup 2026)
         NATIONAL_ALIASES = {
+            # América del Norte (sede)
             "usa": "USA", "united states": "USA", "us": "USA",
+            "mexico": "Mexico", "canada": "Canada",
+            # Europa
             "england": "England", "france": "France", "germany": "Germany",
-            "spain": "Spain", "brazil": "Brazil", "argentina": "Argentina",
-            "portugal": "Portugal", "netherlands": "Netherlands", "holland": "Netherlands",
-            "italy": "Italy", "mexico": "Mexico", "colombia": "Colombia",
-            "uruguay": "Uruguay", "chile": "Chile", "japan": "Japan",
-            "south korea": "SouthKorea", "korea": "SouthKorea",
-            "morocco": "Morocco", "senegal": "Senegal", "australia": "Australia",
-            "canada": "Canada", "ecuador": "Ecuador", "peru": "Peru",
-            "costa rica": "CostaRica", "panama": "Panama",
+            "spain": "Spain", "portugal": "Portugal", "netherlands": "Netherlands",
+            "holland": "Netherlands", "italy": "Italy", "croatia": "Croatia",
+            "serbia": "Serbia", "switzerland": "Switzerland", "austria": "Austria",
+            "belgium": "Belgium", "denmark": "Denmark", "poland": "Poland",
+            "ukraine": "Ukraine", "hungary": "Hungary", "scotland": "Scotland",
+            "turkey": "Turkey", "czechia": "CzechRepublic", "czech republic": "CzechRepublic",
+            "slovakia": "Slovakia", "romania": "Romania", "wales": "Wales",
+            "greece": "Greece", "norway": "Norway",
+            # América del Sur
+            "brazil": "Brazil", "argentina": "Argentina", "colombia": "Colombia",
+            "uruguay": "Uruguay", "chile": "Chile", "ecuador": "Ecuador",
+            "peru": "Peru", "venezuela": "Venezuela", "bolivia": "Bolivia",
+            "paraguay": "Paraguay",
+            # África
+            "morocco": "Morocco", "senegal": "Senegal", "nigeria": "Nigeria",
+            "ghana": "Ghana", "egypt": "Egypt", "ivory coast": "IvoryCoast",
+            "cameroon": "Cameroon", "mali": "Mali", "south africa": "SouthAfrica",
+            "tunisia": "Tunisia", "algeria": "Algeria",
+            # Asia / Oceanía
+            "japan": "Japan", "south korea": "SouthKorea", "korea": "SouthKorea",
+            "australia": "Australia", "iran": "Iran", "saudi arabia": "SaudiArabia",
+            "qatar": "Qatar", "iraq": "Iraq", "uzbekistan": "Uzbekistan",
+            # CONCACAF
+            "costa rica": "CostaRica", "panama": "Panama", "honduras": "Honduras",
+            "jamaica": "Jamaica", "el salvador": "ElSalvador",
         }
         team_lower = team.lower().strip()
         if team_lower in NATIONAL_ALIASES:
