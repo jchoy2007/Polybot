@@ -62,6 +62,41 @@ FOOTBALL_MATCH_KW = [
     "advance to", "through to", "group stage",
 ]
 
+# Ratings Elo de SELECCIONES nacionales. ClubElo.com solo cubre CLUBES — para
+# el Mundial (selecciones) devuelve None y el pricing caía a precio de mercado
+# (edge 0 → nunca apostaba). eloratings.net (World Football Elo) sí cubre
+# selecciones y expone un TSV con ratings en vivo: col 2 = código país, col 3 = Elo.
+NATIONAL_ELO_URL = "https://www.eloratings.net/World.tsv"
+
+# Mapeo nombre (normalizado, sin acentos) → código eloratings.net.
+# Cubre las selecciones del Mundial 2026 + variantes que usa Polymarket
+# ("IR Iran", "DR Congo", "Korea Republic", "Cote d'Ivoire", etc.).
+NATIONAL_TEAM_CODES = {
+    "usa": "US", "united states": "US", "united states of america": "US",
+    "mexico": "MX", "canada": "CA",
+    "argentina": "AR", "brazil": "BR", "uruguay": "UY", "colombia": "CO",
+    "ecuador": "EC", "paraguay": "PY", "peru": "PE", "chile": "CL",
+    "venezuela": "VE", "bolivia": "BO",
+    "spain": "ES", "france": "FR", "england": "EN", "portugal": "PT",
+    "netherlands": "NL", "germany": "DE", "belgium": "BE", "croatia": "HR",
+    "italy": "IT", "switzerland": "CH", "denmark": "DK", "norway": "NO",
+    "sweden": "SE", "austria": "AT", "turkey": "TR", "turkiye": "TR",
+    "ukraine": "UA", "poland": "PL", "serbia": "RS", "greece": "GR",
+    "czechia": "CZ", "czech republic": "CZ", "hungary": "HU", "slovakia": "SK",
+    "slovenia": "SI", "romania": "RO", "ireland": "IE", "wales": "WA",
+    "japan": "JP", "south korea": "KR", "korea republic": "KR", "korea": "KR",
+    "iran": "IR", "ir iran": "IR", "australia": "AU", "saudi arabia": "SA",
+    "qatar": "QA", "jordan": "JO", "uzbekistan": "UZ", "new zealand": "NZ",
+    "morocco": "MA", "senegal": "SN", "nigeria": "NG", "egypt": "EG",
+    "cote d ivoire": "CI", "cote divoire": "CI", "ivory coast": "CI",
+    "ghana": "GH", "cameroon": "CM",
+    "algeria": "DZ", "tunisia": "TN", "dr congo": "CD", "congo dr": "CD",
+    "south africa": "ZA", "angola": "AO", "mozambique": "MZ",
+    "curacao": "CW", "panama": "PA", "costa rica": "CR", "honduras": "HN",
+    "el salvador": "SV", "trinidad and tobago": "TT", "suriname": "SR",
+    "new caledonia": "NC",
+}
+
 # Keywords que NO son fútbol (excluir)
 NOT_FOOTBALL_KW = [
     "nfl", "nba", "mlb", "nhl", "ufc", "mma", "tennis", "golf", "f1",
@@ -81,6 +116,8 @@ class FootballTrader:
         self.min_interval = 180       # Mínimo 3 min entre escaneos
         self.traded_markets: set = set()
         self.elo_cache: Dict = {}     # Caché de ratings Elo por equipo
+        self._national_elo: Optional[Dict[str, float]] = None  # {código: Elo}
+        self._national_elo_ts = 0.0
         self._load_traded()
 
     async def _get_session(self) -> aiohttp.ClientSession:
@@ -161,8 +198,51 @@ class FootballTrader:
     # BUSCAR MERCADOS DE FÚTBOL
     # ═══════════════════════════════════════════════════════════════
 
+    # Tags de Polymarket que agrupan partidos de fútbol/Mundial.
+    # IMPORTANTE: los partidos individuales (moneyline "Will X win?") viven en
+    # el endpoint /events, NO en /markets, y el kickoff real está en el campo
+    # `gameStartTime` de cada sub-mercado (NO en startDate, que es la fecha de
+    # creación del mercado). El parámetro `tag` de /markets es ignorado por
+    # Gamma — por eso la versión anterior nunca encontraba partidos.
+    EVENT_TAGS = ["world-cup", "fifa-world-cup", "soccer"]
+    KICKOFF_MIN_H = 1.0    # no apostar a <1h del inicio (libro volátil)
+    KICKOFF_MAX_H = 48.0   # partidos se publican ~2 días antes
+
+    def _kickoff_dt(self, event: Dict) -> Optional[datetime]:
+        """Kickoff real del partido desde gameStartTime del primer sub-mercado."""
+        for m in (event.get("markets") or []):
+            g = m.get("gameStartTime")
+            if g:
+                try:
+                    return datetime.fromisoformat(
+                        str(g).replace(" ", "T").replace("+00", "+00:00"))
+                except Exception:
+                    pass
+        ed = event.get("endDate")
+        if ed:
+            try:
+                return datetime.fromisoformat(ed.replace("Z", "+00:00"))
+            except Exception:
+                pass
+        return None
+
+    @staticmethod
+    def _split_event_teams(title: str) -> Tuple[Optional[str], Optional[str]]:
+        """'Helsingborgs IF vs. Landskrona BoIS' → ('Helsingborgs IF', 'Landskrona BoIS')."""
+        t = re.split(r'\s+vs\.?\s+|\s+v\s+', title, maxsplit=1, flags=re.IGNORECASE)
+        if len(t) == 2:
+            # Quitar sufijos tipo "- Total Corners" del segundo equipo
+            b = re.split(r'\s+[-–]\s+', t[1])[0].strip()
+            return t[0].strip(), b
+        return None, None
+
     async def _find_football_markets(self) -> List[Dict]:
-        """Busca mercados de fútbol en Polymarket Gamma API."""
+        """Busca partidos de fútbol (moneyline) en Polymarket vía /events.
+
+        Estructura real (jun-2026): cada partido es un EVENTO 'A vs. B' con
+        sub-mercados binarios. El moneyline es `sportsMarketType == "moneyline"`
+        con pregunta 'Will <equipo> win on <fecha>?' y outcomes ["Yes","No"].
+        """
         session = await self._get_session()
         cache_key = "football_markets"
         if cache_key in self.cache:
@@ -170,103 +250,97 @@ class FootballTrader:
             if time.time() - c["ts"] < self.cache_ttl:
                 return c["data"]
 
-        markets = []
-        # Incluir tags específicos del Mundial 2026
-        search_tags = ["soccer", "football", "world-cup", "fifa", "world cup", "sports"]
-
-        # Búsqueda por categorías de deportes
-        for tag in search_tags:
-            for offset in [0, 100, 200]:
+        now = datetime.now(timezone.utc)
+        events: Dict[str, Dict] = {}
+        for tag in self.EVENT_TAGS:
+            for offset in [0, 60, 120, 180, 240, 300]:
                 try:
                     async with session.get(
-                        f"{GAMMA_API_URL}/markets",
+                        f"{GAMMA_API_URL}/events",
                         params={
                             "active": "true", "closed": "false",
-                            "limit": 100, "offset": str(offset),
-                            "order": "volume", "ascending": "false",
-                            "tag": tag
+                            "limit": 60, "offset": str(offset),
+                            "tag_slug": tag,
+                            "order": "startDate", "ascending": "false",
                         }
                     ) as resp:
-                        if resp.status == 200:
-                            batch = await resp.json()
-                            if not batch:
-                                break
-                            for m in batch:
-                                mid = str(m.get("id", ""))
-                                cid = m.get("conditionId", "")
-                                if mid in self.traded_markets or cid in self.traded_markets:
-                                    continue
-                                if self._is_football_market(m):
-                                    markets.append(m)
+                        if resp.status != 200:
+                            break
+                        batch = await resp.json()
+                        if not batch:
+                            break
+                        for e in batch:
+                            events[str(e.get("id"))] = e
                 except Exception:
                     break
 
-        # Búsqueda por texto si hay pocos resultados
-        if len(markets) < 5:
-            for offset in [0, 100, 200, 300]:
-                try:
-                    async with session.get(
-                        f"{GAMMA_API_URL}/markets",
-                        params={
-                            "active": "true", "closed": "false",
-                            "limit": 100, "offset": str(offset),
-                            "order": "volume", "ascending": "false"
-                        }
-                    ) as resp:
-                        if resp.status == 200:
-                            batch = await resp.json()
-                            if not batch:
-                                break
-                            for m in batch:
-                                q = (m.get("question") or "").lower()
-                                if any(kw in q for kw in NOT_FOOTBALL_KW):
-                                    continue
-                                if (any(lg in q for lg in PRIORITY_LEAGUES) and
-                                        any(kw in q for kw in FOOTBALL_MATCH_KW)):
-                                    mid = str(m.get("id", ""))
-                                    if mid not in self.traded_markets:
-                                        markets.append(m)
-                except Exception:
-                    break
-
-        # Deduplicar
-        seen = set()
-        unique = []
-        for m in markets:
-            mid = str(m.get("id", ""))
-            if mid not in seen:
-                seen.add(mid)
-                unique.append(m)
-
-        # Filtrar por liquidez y resolución próxima
-        filtered = []
-        for m in unique:
-            liq = float(m.get("liquidity", 0) or 0)
-            vol = float(m.get("volume", 0) or 0)
-            if liq < 1000 or vol < 500:   # Más permisivo para fútbol (mercados nuevos)
+        filtered: List[Dict] = []
+        for e in events.values():
+            title = e.get("title", "") or ""
+            tlow = title.lower()
+            if any(kw in tlow for kw in NOT_FOOTBALL_KW):
                 continue
 
-            end_str = m.get("endDate", "")
-            if end_str:
-                try:
-                    end_dt = datetime.fromisoformat(end_str.replace("Z", "+00:00"))
-                    hours = (end_dt - datetime.now(timezone.utc)).total_seconds() / 3600
-                    # endDate ≈ fin del partido ≈ kickoff + ~2.5h.
-                    # Ventana 48h: partidos del Mundial se publican 2 días antes.
-                    # Con 24h se bloqueaban partidos de mañana que están a ~39h.
-                    hours_to_kickoff = hours - 2.5
-                    if not (1.0 <= hours_to_kickoff <= 48.0):
-                        continue
-                except Exception:
-                    # Sin fecha fiable → no arriesgar fuera de ventana
+            kickoff = self._kickoff_dt(e)
+            if not kickoff:
+                continue
+            hours = (kickoff - now).total_seconds() / 3600
+            if not (self.KICKOFF_MIN_H <= hours <= self.KICKOFF_MAX_H):
+                continue
+
+            team_a, team_b = self._split_event_teams(title)
+            if not team_a or not team_b:
+                continue
+
+            # Mundial / internacional → venue neutral (sin ventaja de local)
+            etags = " ".join(
+                (t.get("slug", "") if isinstance(t, dict) else str(t))
+                for t in (e.get("tags") or [])
+            ).lower()
+            neutral = ("world-cup" in etags or "fifa-world-cup" in etags
+                       or any(kw in tlow for kw in NEUTRAL_VENUE_KW))
+
+            for m in (e.get("markets") or []):
+                if (m.get("sportsMarketType") or "") != "moneyline":
                     continue
-            else:
-                continue
-            filtered.append(m)
+                mid = str(m.get("id", ""))
+                cid = m.get("conditionId", "")
+                if mid in self.traded_markets or cid in self.traded_markets:
+                    continue
+                if not m.get("acceptingOrders", True) or m.get("closed"):
+                    continue
+                liq = float(m.get("liquidity", 0) or m.get("liquidityNum", 0) or 0)
+                if liq < 1000:
+                    continue
 
-        # Priorizar por liquidez
+                q = (m.get("question") or "")
+                ql = q.lower()
+                is_draw = "draw" in ql or "tie" in ql
+                if is_draw:
+                    subject = None   # empate: ningún equipo es el sujeto
+                else:
+                    # Identificar a qué equipo se refiere el "Yes".
+                    # El título completo (con ambos equipos) NO está en la
+                    # pregunta de victoria — solo el nombre del equipo sujeto.
+                    subject = team_a if team_a.lower() in ql else (
+                        team_b if team_b.lower() in ql else None)
+                    if subject is None:
+                        continue
+
+                m = dict(m)  # copia para enriquecer sin tocar el caché de eventos
+                m["_event_title"] = title
+                m["_team_a"] = team_a
+                m["_team_b"] = team_b
+                m["_subject"] = subject          # equipo del "Yes" (None si draw)
+                m["_is_draw"] = is_draw
+                m["_home_team"] = None if neutral else team_a
+                m["_neutral"] = neutral
+                m["_kickoff_h"] = round(hours, 1)
+                filtered.append(m)
+
         filtered.sort(key=lambda m: float(m.get("liquidity", 0) or 0), reverse=True)
-
+        logger.info(f"   ⚽ {len(filtered)} mercados moneyline en ventana "
+                    f"{self.KICKOFF_MIN_H:.0f}-{self.KICKOFF_MAX_H:.0f}h")
         self.cache[cache_key] = {"data": filtered, "ts": time.time()}
         return filtered
 
@@ -328,8 +402,8 @@ class FootballTrader:
 
         logger.info(f"   ⚽ Analizando: {question[:60]}")
 
-        # Parsear equipos del título
-        parsed = self._parse_match_question(question)
+        # Parsear equipos (usa el contexto del evento si está enriquecido)
+        parsed = self._parse_match_question(question, market)
 
         # Calcular probabilidad estadística
         true_prob_yes = await self._estimate_true_probability(
@@ -460,9 +534,36 @@ class FootballTrader:
     # PARSEAR PREGUNTA DEL PARTIDO
     # ═══════════════════════════════════════════════════════════════
 
-    def _parse_match_question(self, question: str) -> Dict:
-        """Extrae información del partido de la pregunta."""
+    def _parse_match_question(self, question: str, market: Optional[Dict] = None) -> Dict:
+        """Extrae información del partido de la pregunta.
+
+        Si `market` viene enriquecido por `_find_football_markets` (campos
+        `_subject`, `_team_a`, etc.) usa ese contexto directamente — es fiable
+        porque sale del título del evento 'A vs. B'. El regex queda de fallback.
+        """
         q = question.lower()
+        if market and market.get("_subject") is not None:
+            # team_a = equipo del "Yes" (sujeto), team_b = rival → P(team_a gana)=P(Yes)
+            subject = market["_subject"]
+            opponent = (market["_team_b"] if subject == market["_team_a"]
+                        else market["_team_a"])
+            return {
+                "team_a": subject,
+                "team_b": opponent,
+                "question_type": "win",
+                "league": "world cup" if market.get("_neutral") else None,
+                "home_team": market.get("_home_team"),
+                "neutral_venue": bool(market.get("_neutral")),
+            }
+        if market and market.get("_is_draw"):
+            return {
+                "team_a": market.get("_team_a"),
+                "team_b": market.get("_team_b"),
+                "question_type": "draw",
+                "league": "world cup" if market.get("_neutral") else None,
+                "home_team": market.get("_home_team"),
+                "neutral_venue": bool(market.get("_neutral")),
+            }
         result = {
             "team_a": None,
             "team_b": None,
@@ -563,8 +664,16 @@ class FootballTrader:
 
         session = await self._get_session()
 
-        elo_a = await self._fetch_club_elo(session, team_a)
-        elo_b = await self._fetch_club_elo(session, team_b)
+        # En venue internacional/neutral (Mundial) los equipos son SELECCIONES
+        # → ClubElo no las tiene; usar eloratings.net. Para clubes, ClubElo.
+        elo_a = elo_b = None
+        if neutral_venue:
+            elo_a = await self._fetch_national_elo(session, team_a)
+            elo_b = await self._fetch_national_elo(session, team_b)
+        if elo_a is None:
+            elo_a = await self._fetch_club_elo(session, team_a)
+        if elo_b is None:
+            elo_b = await self._fetch_club_elo(session, team_b)
 
         if elo_a is None or elo_b is None:
             return None
@@ -611,6 +720,57 @@ class FootballTrader:
         prob = max(0.05, min(0.95, prob))
         self.elo_cache[cache_key] = prob
         return prob
+
+    @staticmethod
+    def _normalize_team(team: str) -> str:
+        """Normaliza nombre de equipo: minúsculas, sin acentos ni puntuación."""
+        import unicodedata
+        t = unicodedata.normalize("NFKD", team)
+        t = "".join(c for c in t if not unicodedata.combining(c))
+        t = re.sub(r"[^a-z0-9\s]", " ", t.lower())
+        return re.sub(r"\s+", " ", t).strip()
+
+    async def _fetch_national_elo(self, session: aiohttp.ClientSession,
+                                  team: str) -> Optional[float]:
+        """Rating Elo de una SELECCIÓN nacional vía eloratings.net (cacheado 6h)."""
+        # Cargar/refrescar tabla
+        if self._national_elo is None or (time.time() - self._national_elo_ts) > 21600:
+            try:
+                async with session.get(NATIONAL_ELO_URL,
+                        headers={"User-Agent": "Mozilla/5.0"}) as r:
+                    if r.status == 200:
+                        text = await r.text()
+                        table = {}
+                        for line in text.splitlines():
+                            parts = line.split("\t")
+                            if len(parts) > 3:
+                                try:
+                                    table[parts[2]] = float(parts[3])
+                                except ValueError:
+                                    pass
+                        if table:
+                            self._national_elo = table
+                            self._national_elo_ts = time.time()
+                            logger.info(f"      🌍 eloratings.net: {len(table)} selecciones cargadas")
+            except Exception as e:
+                logger.debug(f"      eloratings fetch error: {e}")
+        if not self._national_elo:
+            return None
+
+        norm = self._normalize_team(team)
+        code = NATIONAL_TEAM_CODES.get(norm)
+        if not code:
+            # Probar quitando prefijos comunes ("ir iran" → "iran")
+            for key, c in NATIONAL_TEAM_CODES.items():
+                if norm == key or norm.endswith(" " + key) or norm.startswith(key + " "):
+                    code = c
+                    break
+        if not code:
+            return None
+        elo = self._national_elo.get(code)
+        if elo is not None:
+            logger.info(f"      🌍 {team} ({code}): {elo:.0f}")
+        return elo
 
     async def _fetch_club_elo(self, session: aiohttp.ClientSession, team: str) -> Optional[float]:
         """Obtiene rating Elo de un equipo desde ClubElo.com.
