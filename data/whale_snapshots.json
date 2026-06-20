@@ -1,316 +1,155 @@
 {
-  "timestamp": "2026-04-29T16:00:01.933850Z",
+  "timestamp": "2026-06-20T19:00:02.472119Z",
   "wallets": {
     "coinman2": {
-      "0x8f434513700d9d990523e3169a438f0c2d57fce2e940cb081ff4480dceca6f02_No": {
-        "size": 9448.8776,
+      "0xe2e758c3474bf288ae315ac6ad2f21ea6cd71e87eb668ccf810e34c0b4412cf3_No": {
+        "size": 8731.8491,
         "side": "No",
-        "price": 0.9985,
-        "value": 9434.7042836,
-        "title": "Will Solana dip to $50 in April?"
+        "price": 0.105,
+        "value": 916.8441554999999,
+        "title": "Will the price of Bitcoin be above $62,000 on June 22?"
       },
-      "0xf362ea6dd9e7d0d0878d02c505f73a850be676befcec3724254e52fea0968084_No": {
-        "size": 8999.9973,
+      "0x0c4bbf8059303fc185182b3cde5c672e457d7987a76eefc88f932bbdfdb3f945_No": {
+        "size": 7976.7982,
         "side": "No",
-        "price": 0.999,
-        "value": 8990.997302700001,
-        "title": "Will Solana reach $120 in April?"
+        "price": 0.9235,
+        "value": 7366.5731377,
+        "title": "Will Solana dip to $60 in June?"
       },
-      "0x190fa2cc2afb3b0aa9721b4ab2209265c7fa8c89aec97c2addf26a7facaf99d8_No": {
-        "size": 8929.2972,
+      "0x632b7d45843e13ef17cbb981f7e1b7aa413357b285cd33ca5a5032ff03694c2d_No": {
+        "size": 7162.8866,
         "side": "No",
-        "price": 0.0025,
-        "value": 22.323243,
-        "title": "Will the price of Ethereum be above $2,000 on May 3?"
+        "price": 0.987,
+        "value": 7069.7690741999995,
+        "title": "Will Solana dip to $50 in June?"
       },
-      "0x316335f4359e966db915a1d4097d6ee3eb651def2178d49a5350fcac2112d518_No": {
-        "size": 8823.4561,
+      "0x5c0225d2738a13090341c38c4ffa7e5597108de265e1dea4fbd32e28f28f2faa_No": {
+        "size": 5896.2988,
         "side": "No",
-        "price": 0.9985,
-        "value": 8810.220915849999,
-        "title": "Will Solana reach $110 in April?"
+        "price": 0.03,
+        "value": 176.888964,
+        "title": "Will the price of Ethereum be above $1,600 on June 22?"
       },
-      "0x12a1a475f6ee8139d9397ee335bcf92e9db600f7a9d5226b28761732d5cc303b_No": {
-        "size": 8577.8631,
+      "0xfaeccf283f7c29e280b418a2e881ded27bfd073d289bf0319817ba1bd6f2d92e_No": {
+        "size": 4754.8128,
         "side": "No",
-        "price": 0.9955,
-        "value": 8539.262716050001,
-        "title": "Will Solana reach $100 in April?"
+        "price": 0.0495,
+        "value": 235.3632336,
+        "title": "Will the price of Ethereum be above $1,600 on June 23?"
       },
-      "0x82a737fd075007f4994b82ba45b8434b2eced88dda6fb312c67e27da7269c905_No": {
-        "size": 4379.9794,
-        "side": "No",
-        "price": 0.993,
-        "value": 4349.319544200001,
-        "title": "Will Solana dip to $70 in April?"
-      },
-      "0x2c968db20226a3d9aeebd1ccbccb2bbaa7bcab96a3db4dc2dde8f1520616fc6a_No": {
-        "size": 3325.2422,
-        "side": "No",
-        "price": 0.999,
-        "value": 3321.9169578,
-        "title": "Will Solana dip to $60 in April?"
-      },
-      "0x5b8474c2a1775adedc9baea532155a0a7e30f5ab846eb82d2e79e14647f6393d_No": {
-        "size": 3029.2857,
-        "side": "No",
-        "price": 0.9995,
-        "value": 3027.77105715,
-        "title": "Will Solana dip to $40 in April?"
-      },
-      "0xb3918a794761ba9f5f0235ae62291a9787261025b88fd6069227cfda443e6bca_No": {
-        "size": 3000.0,
-        "side": "No",
-        "price": 0.9995,
-        "value": 2998.5,
-        "title": "Will Solana reach $160 in April?"
-      },
-      "0xea15a10e1fb020e09979f1a8d9ed3e4a5880b4b000240a13b6c8e8c59ed60d78_No": {
-        "size": 2999.9993,
-        "side": "No",
-        "price": 0.9995,
-        "value": 2998.4993003500003,
-        "title": "Will Solana reach $130 in April?"
-      },
-      "0x21f508fa6a87e7406f2efe44b40db04a73273d3372ef65a13392ce00d1eb668f_No": {
-        "size": 1872.7288,
-        "side": "No",
-        "price": 0.991,
-        "value": 1855.8742408,
-        "title": "Will the price of Ethereum be above $2,300 on April 29?"
-      },
-      "0xed367585fcba7e80a94d3317f7c2d77d4bfd3ba81641e6bfb8fa7f5da9ada848_Yes": {
-        "size": 1231.8414,
+      "0xc422b24fb7256b3d4a93da468db4a3e613f674f990f993d9078a02a5a422fa6a_Yes": {
+        "size": 3563.7327,
         "side": "Yes",
-        "price": 0.36,
-        "value": 443.462904,
-        "title": "Will the price of Ethereum be above $2,300 on May 1?"
+        "price": 0.775,
+        "value": 2761.8928425,
+        "title": "Will the price of Bitcoin be above $62,000 on June 25?"
       },
-      "0x3639518d149542ee63da3fc64772baa33f5e74bc64ad5c6e106cf33139e3f606_No": {
-        "size": 1034.9315,
+      "0x55d885fdeba713cafd0be476feca82adc27d6c776c99fefaa2323fccacdf8bfd_Yes": {
+        "size": 2587.8792,
+        "side": "Yes",
+        "price": 0.0265,
+        "value": 68.5787988,
+        "title": "Will Solana reach $90 in June?"
+      },
+      "0x4f41b32697c168a854bc73cf2aaae6f9a4d575eb97c6d171b3e4ad5f111a3458_No": {
+        "size": 2500.0,
         "side": "No",
-        "price": 0.962,
-        "value": 995.6041029999999,
-        "title": "Will Solana dip to $80 on April 29?"
+        "price": 0.9925,
+        "value": 2481.25,
+        "title": "Will Solana reach $100 in June?"
+      },
+      "0x6cb25b3d87403cd0a85552ef3c9b39fc45efcf819ad0404d05e02cb560d42e5a_No": {
+        "size": 2306.0251,
+        "side": "No",
+        "price": 0.009,
+        "value": 20.754225899999998,
+        "title": "Will the price of Ethereum be above $1,600 on June 21?"
+      },
+      "0xcaf72a1595a92435c032e03c74f6817edf7b9f7a4f04ac196449dd708ca26355_Yes": {
+        "size": 2271.7536,
+        "side": "Yes",
+        "price": 0.019,
+        "value": 43.1633184,
+        "title": "Will Solana reach $80 June 15-21?"
       }
     },
     "Lost-Macadamia": {
-      "0x63f59b5dbf9407dbae6138f2abb5d99fcdcf5d1f8978ffd882b07c83c97eb9ae_No": {
-        "size": 268522.1884,
-        "side": "No",
-        "price": 0.9975,
-        "value": 267850.882929,
-        "title": "Will the US confirm that aliens exist by April 30?"
-      },
       "0x747dc809fb79e1b05be09c42d6179459a58de2ef3e40f02484a4e1260f741f75_No": {
         "size": 203897.2296,
         "side": "No",
-        "price": 0.8149,
-        "value": 166155.85240103997,
+        "price": 0.905,
+        "value": 184526.992788,
         "title": "Will the US confirm that aliens exist before 2027?"
-      },
-      "0x48fbf70c1713e71a405052bc4641e26dbba435fa557672c4040763c901cbf606_No": {
-        "size": 183561.5748,
-        "side": "No",
-        "price": 0.9985,
-        "value": 183286.2324378,
-        "title": "Will Trump visit China by April 30?"
-      },
-      "0x23dbb60ade08c2664ac29488325afbc0136735bc7beb9180d9c0cb72620b0b13_Yes": {
-        "size": 146572.3656,
-        "side": "Yes",
-        "price": 0.9915,
-        "value": 145326.5004924,
-        "title": "Will Kevin Warsh be confirmed as Fed Chair?"
-      },
-      "0x7434b22007745d99095c102119fdb6b975d34869212e9dda4c6c5c48db0683a7_No": {
-        "size": 124764.4219,
-        "side": "No",
-        "price": 0.9985,
-        "value": 124577.27526715,
-        "title": "Russia x Ukraine ceasefire by April 30, 2026?"
-      },
-      "0x74d91fa19bbdae4b7afba167f3d297d7c135d87053b1433d1d71d966da64550b_No": {
-        "size": 117763.5917,
-        "side": "No",
-        "price": 0.9995,
-        "value": 117704.70990415,
-        "title": "Will US withdraw from NATO by April 30?"
-      },
-      "0x14fd8ab261d14215058b77a9541a5013ccc3d3eb677276a9de54445a31acd194_No": {
-        "size": 77539.8712,
-        "side": "No",
-        "price": 0.9955,
-        "value": 77190.9417796,
-        "title": "Will Judy Shelton be confirmed as Fed Chair?"
       },
       "0xa467b14d51f01b957109d9cbb1d6c124fab2a089d52ed8f471d23c2812e743b7_No": {
         "size": 76588.3014,
         "side": "No",
-        "price": 0.9155,
-        "value": 70116.5899317,
+        "price": 0.9375,
+        "value": 71801.5325625,
         "title": "Xi Jinping out before 2027?"
       },
       "0xeeb1b35c595b19f9512c55f85fdf93f3625c3cec1a9b6bac6262921fbd87912e_No": {
         "size": 67649.64,
         "side": "No",
-        "price": 0.961,
-        "value": 65011.304039999995,
-        "title": "Trump out as President by June 30?"
-      },
-      "0xaaacff0f7424b38e61ee5c5b2ea9d7335d0553eca2afb874267cd94c54a11925_Yes": {
-        "size": 66285.9981,
-        "side": "Yes",
-        "price": 0.805,
-        "value": 53360.2284705,
-        "title": "Will Trump visit China by June 30?"
-      },
-      "0x1d2787cb8aed975d092b2799ed6f4083e9445f7420cdc09e9d47e7d54356c6cd_No": {
-        "size": 51000.0,
-        "side": "No",
         "price": 0.9965,
-        "value": 50821.5,
-        "title": "US x Iran ceasefire extended by April 22, 2026?"
-      },
-      "0x36e8ca24d2a13435f519f15580d42b45cdbe3bc425fb39a7c2733260357af0fa_Yes": {
-        "size": 50000.0,
-        "side": "Yes",
-        "price": 0.9985,
-        "value": 49925.0,
-        "title": "Will there be no change in Fed interest rates after the April 2026 meeting?"
-      },
-      "0xc6158282b574047044e504aabb1bc1f86ed28097e62d69425cb4403847767945_No": {
-        "size": 45385.2608,
-        "side": "No",
-        "price": 0.9975,
-        "value": 45271.797648,
-        "title": "Starmer out by April 30, 2026?"
+        "value": 67412.86626000001,
+        "title": "Trump out as President by June 30?"
       },
       "0x4ba35ccd015e3899f323b7b0bcb38ecab3a3c0fafc397666e690ba301fbeff30_No": {
         "size": 20000.0,
         "side": "No",
-        "price": 0.9735,
-        "value": 19470.0,
+        "price": 0.997,
+        "value": 19940.0,
         "title": "Xi Jinping out by June 30?"
-      },
-      "0x02f8dd15d4c674a75fccbd0e00f0cf1256101c45ef41f6d0c5dfde9c36d4141e_Yes": {
-        "size": 19999.9766,
-        "side": "Yes",
-        "price": 0.9985,
-        "value": 19969.976635100003,
-        "title": "Israel x Hezbollah Ceasefire extended by April 26, 2026?"
       },
       "0xb215decbedd846168842f6e207f09bd5f50ce51d2191f238887d976ec21b6f66_No": {
         "size": 13175.4385,
         "side": "No",
-        "price": 0.9705,
-        "value": 12786.76306425,
+        "price": 0.9955,
+        "value": 13116.149026750001,
         "title": "Will China blockade Taiwan by June 30?"
-      },
-      "0xceb6dfaa2cf5abc9d47ebc867b984a7715104944249274e8a483a2e17473e5f5_No": {
-        "size": 11357.1357,
-        "side": "No",
-        "price": 0.9945,
-        "value": 11294.671453650002,
-        "title": "US x Iran permanent peace deal by April 30, 2026?"
-      },
-      "0xd87a0ee5367e38072ac013e99035672125fee3a3f4446f0389fe806e42e3e42e_No": {
-        "size": 10000.0,
-        "side": "No",
-        "price": 0.9975,
-        "value": 9975.0,
-        "title": "US obtains Iranian enriched uranium by April 30?"
-      },
-      "0x3ded5a5738cdcb0a0c5cbaf2023a4aed7e837a20bbe0a57accc4abd04ad63809_No": {
-        "size": 3797.0788,
-        "side": "No",
-        "price": 0.9845,
-        "value": 3738.2240785999998,
-        "title": "Trump out as President by May 31?"
-      },
-      "0xc9b7230bb0e876264f52bae4f396669d280fc4eee817b3fe222fda8329d863d7_No": {
-        "size": 3624.7737,
-        "side": "No",
-        "price": 0.9995,
-        "value": 3622.9613131500005,
-        "title": "Will Elon Musk post 240+ tweets from April 27 to April 29, 2026?"
       },
       "0xb553a25b7670031fc7cf095e79525406f10b3cf66e793255836fc1fb95bf8f7c_No": {
         "size": 3451.5597,
         "side": "No",
-        "price": 0.948,
-        "value": 3272.0785955999995,
+        "price": 0.9885,
+        "value": 3411.86676345,
         "title": "Russian strike on Poland by June 30?"
-      },
-      "0xcddc048c672ee233890b99b18885dbd510e3db3d67c53afb408ddc93f9aadff4_No": {
-        "size": 2984.5525,
-        "side": "No",
-        "price": 0.9735,
-        "value": 2905.46185875,
-        "title": "Will the US confirm that aliens exist by May 31?"
       },
       "0xa7962b12241616d83dcb8c70fc33aa0f48b1ec46a3ad6a23db21d3885dedc4cb_No": {
         "size": 2949.9999,
         "side": "No",
-        "price": 0.945,
-        "value": 2787.7499055,
+        "price": 0.9955,
+        "value": 2936.72490045,
         "title": "Will the US confirm that aliens exist by June 30?"
       },
       "0x21bf9a7dae81b6bd51acae73185686ab8997b81b1401e4be10e114d472599c26_Yes": {
         "size": 2519.939,
         "side": "Yes",
-        "price": 0.135,
-        "value": 340.191765,
+        "price": 0.145,
+        "value": 365.39115499999997,
         "title": "Will Ukraine agree to cede territory to Russia before 2027?"
       },
       "0xa0b56d7e621c7cbcfa47fe1a9c24f3409e189180fd6bda55b7a8113129839afc_No": {
         "size": 1767.2773,
         "side": "No",
-        "price": 0.9775,
-        "value": 1727.5135607500001,
+        "price": 0.9955,
+        "value": 1759.32455215,
         "title": "Will China invade Taiwan by June 30, 2026?"
-      },
-      "0xd666c8eb740964a90685bf02d2a235a0970907fc48434e607011e89f6a092ea8_No": {
-        "size": 1598.0271,
-        "side": "No",
-        "price": 0.9965,
-        "value": 1592.43400515,
-        "title": "Will Donald Trump have a diplomatic meeting with Iran by April 30?"
-      },
-      "0x5bd438968a2386b6e05847b0a0b40af63000a460cf95770dc4c9b3021c283e81_Yes": {
-        "size": 1010.0,
-        "side": "Yes",
-        "price": 0.983,
-        "value": 992.83,
-        "title": "Will Bitmine announce that it holds more than 5M ETH before 2027?"
-      },
-      "0x70d706fe084905dbafb95dfff13b727e4073efc3ef590adc8330562bac5d26de_Yes": {
-        "size": 999.9866,
-        "side": "Yes",
-        "price": 0.295,
-        "value": 294.996047,
-        "title": "US x Iran diplomatic meeting by May 15, 2026?"
       },
       "0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116_No": {
         "size": 404.387,
         "side": "No",
-        "price": 0.9275,
-        "value": 375.0689425,
+        "price": 0.9415,
+        "value": 380.7303605,
         "title": "Will Trump acquire Greenland before 2027?"
       },
       "0xace3c72c24fccb6731433483ece41c780432d84850edccd5a6bf3147ccea62a9_No": {
         "size": 235.0,
         "side": "No",
-        "price": 0.875,
-        "value": 205.625,
+        "price": 0.9485,
+        "value": 222.8975,
         "title": "Will the US confirm that aliens exist by September 30?"
-      },
-      "0x25e45069ea2a269a1d2540de93ec47008b2f3340b01dcfb2f5c23d832b0df218_No": {
-        "size": 100.0,
-        "side": "No",
-        "price": 0.9995,
-        "value": 99.95,
-        "title": "Will Elon Musk post 215-239 tweets from April 27 to April 29, 2026?"
       }
     },
     "Neat-Spine": {}

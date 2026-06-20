@@ -262,7 +262,13 @@ class FootballTrader:
                             "active": "true", "closed": "false",
                             "limit": 60, "offset": str(offset),
                             "tag_slug": tag,
-                            "order": "startDate", "ascending": "false",
+                            # Ordenar por kickoff (endDate≈hora del partido), NO por
+                            # startDate (fecha de CREACIÓN). Los moneyline del Mundial
+                            # se crearon el 6-abr (los más viejos) → con startDate desc
+                            # caían en posición ~420, fuera del offset 0-359 que leemos,
+                            # y el bot NUNCA veía el Mundial. endDate asc los pone en
+                            # posición ~35-80. (fix 20-jun-2026, Claude-VPS)
+                            "order": "endDate", "ascending": "true",
                         }
                     ) as resp:
                         if resp.status != 200:
