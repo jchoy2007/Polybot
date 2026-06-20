@@ -24,6 +24,16 @@
 ---
 
 ## 📌 Bitácora de coordinación (último arriba)
+- _(20-Jun, Claude-VPS)_ **2 fixes** (aprobados por usuario): (A) ERROR 400
+  "Could not create api key" silenciado — `create_or_derive_api_key()` →
+  `derive_api_key()` directo en los 3 sitios (executor.py:95, football_trader.py:495,
+  stock_trader.py:1340). create intentaba CREAR la key (POST 400, key ya existe) antes
+  de derivar; derive es determinista desde la pk (GET 200). Verificado: 0 errores
+  post-restart. (B) `KICKOFF_MIN_H` 1.0→0.0 para apostar partidos pre-kickoff <1h
+  (el usuario quiere apostar SIEMPRE antes del inicio). In-play (hours<0) sigue
+  excluido + guarda acceptingOrders/closed. Verificado: Alemania vs Côte d'Ivoire
+  (0.4h) ahora visible y analizada en vivo. PENDIENTE/FUTURO: análisis de
+  alineaciones titulares (hoy el bot es solo Elo; requiere fuente de lineups aparte).
 - _(20-Jun, Claude-VPS)_ **CAUSA RAÍZ encontrada y aplicada** (commit `dca71c1`):
   el bot NO veía el Mundial por un bug de **ordenamiento**, NO por los thresholds.
   El discovery pedía `/events` con `order=startDate&ascending=false` (fecha de

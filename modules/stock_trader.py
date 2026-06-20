@@ -1337,7 +1337,8 @@ class StockTrader:
                 key=pk_clean, chain_id=137,
                 signature_type=sig_type, funder=funder_param
             )
-            client.set_api_creds(client.create_or_derive_api_key())
+            # derive directo: evita el POST create que da 400 (key ya existe). fix 20-jun
+            client.set_api_creds(client.derive_api_key())
 
             # FOK
             try:

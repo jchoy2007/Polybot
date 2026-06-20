@@ -92,7 +92,11 @@ class TradeExecutor:
                 key=pk_clean, chain_id=137,
                 signature_type=sig_type, funder=funder_param
             )
-            client.set_api_creds(client.create_or_derive_api_key())
+            # derive_api_key() directo en vez de create_or_derive_api_key():
+            # la key ya existe, y create_or_derive intenta CREAR primero (POST que
+            # da 400 "Could not create api key", logueado como ERROR por la librería)
+            # antes de caer a derive. derive es determinista desde la pk. (fix 20-jun)
+            client.set_api_creds(client.derive_api_key())
 
             bal_resp = client.get_balance_allowance(
                 params=BalanceAllowanceParams(

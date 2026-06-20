@@ -206,7 +206,7 @@ class FootballTrader:
     # creación del mercado). El parámetro `tag` de /markets es ignorado por
     # Gamma — por eso la versión anterior nunca encontraba partidos.
     EVENT_TAGS = ["world-cup", "fifa-world-cup", "soccer"]
-    KICKOFF_MIN_H = 1.0    # no apostar a <1h del inicio (libro volátil)
+    KICKOFF_MIN_H = 0.0    # apostar hasta el kickoff (>0h = aún no inicia); in-play (hours<0) queda fuera
     KICKOFF_MAX_H = 48.0   # partidos se publican ~2 días antes
 
     def _kickoff_dt(self, event: Dict) -> Optional[datetime]:
@@ -492,7 +492,8 @@ class FootballTrader:
                     key=pk_clean, chain_id=137,
                     signature_type=sig_type, funder=funder_param
                 )
-                client.set_api_creds(client.create_or_derive_api_key())
+                # derive directo: evita el POST create que da 400 (key ya existe). fix 20-jun
+                client.set_api_creds(client.derive_api_key())
 
                 executed = False
                 try:
