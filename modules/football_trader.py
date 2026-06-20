@@ -116,6 +116,7 @@ class FootballTrader:
         self.last_run = 0
         self.min_interval = 180       # Mínimo 3 min entre escaneos
         self.traded_markets: set = set()
+        self.traded_matches: set = set()   # match_keys "team_a|team_b" ya apostados
         self.elo_cache: Dict = {}     # Caché de ratings Elo por equipo
         self._national_elo: Optional[Dict[str, float]] = None  # {código: Elo}
         self._national_elo_ts = 0.0
@@ -137,10 +138,11 @@ class FootballTrader:
             with open("data/bets_placed.json", "r") as f:
                 data = json.load(f)
                 self.traded_markets = set(data.get("market_ids", []))
+                self.traded_matches = set(data.get("match_keys", []))
         except (FileNotFoundError, json.JSONDecodeError):
             pass
 
-    def _save_bet(self, market_id: str, question: str = ""):
+    def _save_bet(self, market_id: str, question: str = "", match_key: str = ""):
         try:
             import os
             os.makedirs("data", exist_ok=True)
@@ -148,11 +150,16 @@ class FootballTrader:
                 with open("data/bets_placed.json", "r") as f:
                     data = json.load(f)
             except (FileNotFoundError, json.JSONDecodeError):
-                data = {"market_ids": [], "history": []}
+                data = {"market_ids": [], "match_keys": [], "history": []}
+            if "match_keys" not in data:
+                data["match_keys"] = []
             if market_id and market_id not in data["market_ids"]:
                 data["market_ids"].append(market_id)
+                if match_key and match_key not in data["match_keys"]:
+                    data["match_keys"].append(match_key)
                 data["history"].append({
                     "market_id": market_id, "question": question,
+                    "match_key": match_key,
                     "timestamp": datetime.now().isoformat(),
                     "strategy": "FOOTBALL"
                 })
@@ -313,6 +320,11 @@ class FootballTrader:
                 mid = str(m.get("id", ""))
                 cid = m.get("conditionId", "")
                 if mid in self.traded_markets or cid in self.traded_markets:
+                    continue
+                # Skip si ya apostamos en este partido (otro mercado del mismo match)
+                _mk = f"{team_a}|{team_b}".lower()
+                if _mk in self.traded_matches:
+                    logger.info(f"   ⏭️ Skip partido ya apostado: {team_a} vs {team_b}")
                     continue
                 if not m.get("acceptingOrders", True) or m.get("closed"):
                     continue
@@ -525,7 +537,9 @@ class FootballTrader:
                     trade["status"] = "EXECUTED"
                     STATE.current_bankroll -= bet_amount
                     self.traded_markets.add(market_id)
-                    self._save_bet(market_id, question)
+                    _mk = f"{market.get('_team_a','')}|{market.get('_team_b','')}".lower()
+                    self.traded_matches.add(_mk)
+                    self._save_bet(market_id, question, match_key=_mk)
                     STATE.total_trades += 1
                     STATE.open_positions += 1
                     logger.info(f"      ✅ Football trade! Capital: ${STATE.current_bankroll:.2f}")
@@ -648,6 +662,7 @@ class FootballTrader:
                 team_a, team_b, q_type,
                 home_team=parsed.get("home_team"),
                 neutral_venue=parsed.get("neutral_venue", False),
+                base_prob=base_prob,
             )
             if elo_prob is not None:
                 # Blend: 65% Elo + 35% mercado.
@@ -663,10 +678,14 @@ class FootballTrader:
 
     async def _get_elo_probability(
         self, team_a: str, team_b: str, q_type: str,
-        home_team: str = None, neutral_venue: bool = False
+        home_team: str = None, neutral_venue: bool = False,
+        base_prob: float = None
     ) -> Optional[float]:
         """Obtiene ratings Elo de ClubElo.com y calcula probabilidad."""
-        cache_key = f"elo:{team_a}:{team_b}:{q_type}:{home_team}"
+        # base_prob (precio de mercado) entra en la key: el sanity check de underdog
+        # ancla al mercado, así que el resultado depende de él.
+        _bp = round(base_prob, 2) if base_prob is not None else None
+        cache_key = f"elo:{team_a}:{team_b}:{q_type}:{home_team}:{_bp}"
         if cache_key in self.elo_cache:
             return self.elo_cache[cache_key]
 
@@ -719,6 +738,12 @@ class FootballTrader:
             draw_prob = max(0.16, 0.30 - elo_diff_abs / 2000)
             p_a_real = p_a_win * (1.0 - draw_prob)
             prob = p_a_real
+            # Sanity check: si el Elo gap es grande (>100 pts) y el equipo sujeto
+            # es el UNDERDOG (prob < 0.35), el modelo pierde precisión. Anclar más
+            # al mercado para evitar apostar contra favoritos claros.
+            if base_prob is not None and elo_diff_abs > 100 and prob < 0.35:
+                prob = 0.60 * prob + 0.40 * base_prob
+                logger.info(f"      [sanity] Elo gap {elo_diff_abs:.0f}pts, underdog claro → ancla mercado")
         elif q_type == "advance":
             # Avanzar incluye también poder ganar en penales/prórrogas
             prob = min(0.92, p_a_win * 1.10)
