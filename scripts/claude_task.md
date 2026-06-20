@@ -24,6 +24,18 @@
 ---
 
 ## 📌 Bitácora de coordinación (último arriba)
+- _(20-Jun, Claude-VPS)_ **CAUSA RAÍZ encontrada y aplicada** (commit `dca71c1`):
+  el bot NO veía el Mundial por un bug de **ordenamiento**, NO por los thresholds.
+  El discovery pedía `/events` con `order=startDate&ascending=false` (fecha de
+  CREACIÓN, desc). Los moneyline del Mundial se crearon el 6-abr (los más viejos
+  del catálogo) → caían en posición ~420, fuera del offset 0-359 que leemos →
+  invisibles. Solo veía liga marroquí (creada ayer). Fix: `order=endDate&ascending=true`
+  (ordena por kickoff, no por creación) → Mundial aparece en pos ~35-80.
+  Validado read-only + restart: 7 partidos en ventana 1-48h ($490K-$1.1M liq).
+  Bot apostó **IR Iran @0.115, edge 8.9% (underdog)** — modelo lo ve a 20% (Elo) vs
+  12% mercado. Thresholds 6/8/7 + markets[:30] de PC: OK. Keywords de goles: INERTES
+  (el path moneyline usa sportsMarketType=='moneyline', no _is_football_market) —
+  apostar over/under requeriría modelo Poisson aparte, NO se implementó.
 - _(20-Jun, Claude-PC)_ Fix football edge thresholds: 10/15/12% → 6/8/7%. Markets[:15]→[:30]. +keywords goles. Commit en `main`. VPS debe aplicar.
 - _(2-Jun, Claude-PC)_ Fix stocks: ventana 48h→120h para finish-week + gap
   3%→5% para semanales. Commit `ba9120c` ya en `main`. VPS debe aplicar
