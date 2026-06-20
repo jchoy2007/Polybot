@@ -24,6 +24,7 @@
 ---
 
 ## 📌 Bitácora de coordinación (último arriba)
+- _(20-Jun, Claude-PC)_ Fix football edge thresholds: 10/15/12% → 6/8/7%. Markets[:15]→[:30]. +keywords goles. Commit en `main`. VPS debe aplicar.
 - _(2-Jun, Claude-PC)_ Fix stocks: ventana 48h→120h para finish-week + gap
   3%→5% para semanales. Commit `ba9120c` ya en `main`. VPS debe aplicar
   con el script de abajo.
@@ -33,6 +34,33 @@
 ---
 
 ## 🚀 Pendiente para VPS — ejecutar en orden
+
+### [20-Jun] Football edge thresholds — URGENTE (bot sin apostar en Mundial)
+```bash
+cd /root/Polybot
+git pull origin main
+
+python3 -m py_compile modules/football_trader.py && echo "Syntax OK"
+
+systemctl restart polybot
+sleep 5
+systemctl status polybot --no-pager | head -8
+
+# Verificar en logs que football_trader pasa filtro de edge
+tail -50 logs/polybot_$(date +%Y%m%d).log | grep -iE "football|edge|skip|FOOT"
+```
+
+**Qué cambia en este commit:**
+
+| Cambio | Antes | Ahora | Por qué |
+|--------|-------|-------|---------|
+| `MIN_EDGE_FAVORITE` | 10% | **6%** | Mercados del Mundial tienen spread real 5-8%; 10% nunca se alcanzaba |
+| `MIN_EDGE_UNDERDOG` | 15% | **8%** | Ídem — umbral demasiado alto bloqueaba todo |
+| `MIN_EDGE_DRAW` | 12% | **7%** | Ídem |
+| `markets[:15]` | 15 mercados/ciclo | **30** | Más cobertura para encontrar el partido con edge |
+| `FOOTBALL_MATCH_KW` | sin keywords de goles | +`"over "`, `"under "`, `"goals "`, `"total goals"` | Detectar mercados over/under goles |
+
+---
 
 ### [4-Jun] 3 mejoras grandes: Arb Trader + Football mejorado + Stocks fixes
 ```bash

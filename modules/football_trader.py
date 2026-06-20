@@ -27,10 +27,10 @@ logger = logging.getLogger("polybot.football")
 
 GAMMA_API_URL = "https://gamma-api.polymarket.com"
 
-# Edge mínimo más alto por la varianza natural del fútbol
-MIN_EDGE_FAVORITE  = 0.10   # 10% para apostar al favorito
-MIN_EDGE_UNDERDOG  = 0.15   # 15% para apostar al underdog (mayor varianza)
-MIN_EDGE_DRAW      = 0.12   # 12% para draws
+# Edge mínimo — bajado 20-Jun para Mundial 2026 (thresholds altos impedían apostar)
+MIN_EDGE_FAVORITE  = 0.06   # 6% para apostar al favorito
+MIN_EDGE_UNDERDOG  = 0.08   # 8% para apostar al underdog (mayor varianza)
+MIN_EDGE_DRAW      = 0.07   # 7% para draws
 
 # Ventaja de local en Elo (estándar FIFA/ClubElo: ~+65 puntos)
 HOME_ELO_ADVANTAGE = 65
@@ -60,6 +60,7 @@ FOOTBALL_MATCH_KW = [
     "match ", "game ", "score ", "goal ", "result ", "advance", "qualify",
     "final", "semi-final", "quarterfinal", "knockout", "eliminate", "progress",
     "advance to", "through to", "group stage",
+    "over ", "under ", "goals ", "total goals",
 ]
 
 # Ratings Elo de SELECCIONES nacionales. ClubElo.com solo cubre CLUBES — para
@@ -183,7 +184,7 @@ class FootballTrader:
 
         logger.info(f"   ⚽ {len(markets)} mercados de fútbol encontrados")
 
-        for market in markets[:15]:
+        for market in markets[:30]:
             try:
                 trade = await self._analyze_and_trade(market)
                 if trade:
