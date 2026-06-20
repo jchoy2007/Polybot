@@ -24,6 +24,18 @@
 ---
 
 ## 📌 Bitácora de coordinación (último arriba)
+- _(20-Jun, Claude-VPS)_ **2 bugs football** (commit `28fc856`): **Fix 1 anti-duplicado
+  por partido** — `traded_matches` (match_key `team_a|team_b`) persiste en
+  bets_placed.json; el discovery salta TODOS los mercados de un match ya apostado.
+  EVIDENCIA del bug: 19:16 apostó "IR Iran win" Y 19:31 "Belgium win" (mismo partido,
+  ambos equipos). match_key solo se marca en EXECUTED, no en FAILED. OJO: las 2
+  apuestas viejas no tienen match_key (formato previo) → no se pueden backfillear
+  desde el historial (las preguntas "X win" no traen al rival); solo sus market_ids
+  bloquean. **Fix 2 sanity Elo gap** — en win-type, si gap >100pts y sujeto underdog
+  (prob<0.35), ancla 60/40 al mercado. Bug en el parche original del usuario:
+  referenciaba `base_prob` que NO estaba en scope de `_get_elo_probability` (daría
+  NameError) → lo pasé como parámetro desde el caller + lo metí en la cache key.
+  Verificado: Iran 0.20→0.171 (edge 5.1%<8%, no apuesta); sanity dispara en vivo.
 - _(20-Jun, Claude-VPS)_ **2 fixes** (aprobados por usuario): (A) ERROR 400
   "Could not create api key" silenciado — `create_or_derive_api_key()` →
   `derive_api_key()` directo en los 3 sitios (executor.py:95, football_trader.py:495,
